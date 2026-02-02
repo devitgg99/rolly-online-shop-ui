@@ -1,4 +1,4 @@
-import { FileUploadResponse } from "@/types/fileUpload.types";
+import { FileUploadResponse, FileUploadApiResponse } from "@/types/fileUpload.types";
 import { compressImage, isImageFile, formatFileSize } from "@/lib/image-compression";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -41,7 +41,7 @@ export async function uploadFileService(file: File): Promise<FileUploadResponse>
     const formData = new FormData();
     formData.append('image', fileToUpload); // Backend expects 'image' field name
 
-    const uploadUrl = `${API_URL}/images/remove-background`;
+    const uploadUrl = `${API_URL}/file/upload`;
     console.log('📤 [Upload Service] Uploading to:', uploadUrl);
 
     const response = await fetch(uploadUrl, {
@@ -63,9 +63,17 @@ export async function uploadFileService(file: File): Promise<FileUploadResponse>
       };
     }
 
-    const data = await response.json();
-    console.log('✅ [Upload Service] Success:', data);
-    return data;
+    const apiResponse: FileUploadApiResponse = await response.json();
+    console.log('✅ [Upload Service] Success:', apiResponse);
+    
+    // Transform new API format to legacy format for backward compatibility
+    return {
+      success: apiResponse.success,
+      message: apiResponse.message,
+      data: { url: apiResponse.data },
+      url: apiResponse.data, // URL is directly in data field
+      createdAt: apiResponse.createdAt,
+    };
   }
   catch (error) {
     console.error('❌ [Upload Service] Network error:', error);
