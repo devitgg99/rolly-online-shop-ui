@@ -74,6 +74,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const [barcodeInput, setBarcodeInput] = useState('');
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
   const barcodeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const isProcessingRef = useRef(false); // Prevent concurrent scans
 
   // Clear barcode cache when dialog opens/closes
   useEffect(() => {
@@ -93,6 +94,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     setBarcodeBuffer('');
     setScannedBarcode('');
     setBarcodeInput('');
+    isProcessingRef.current = false;
     if (barcodeTimeoutRef.current) {
       clearTimeout(barcodeTimeoutRef.current);
       barcodeTimeoutRef.current = undefined;
@@ -109,19 +111,35 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         return;
       }
 
+      // Ignore if already processing a barcode
+      if (isProcessingRef.current) {
+        console.log('⏸️ Barcode scan in progress, ignoring input...');
+        return;
+      }
+
       // Enter key indicates end of barcode scan
-      if (e.key === 'Enter' && barcodeBuffer) {
+      if (e.key === 'Enter') {
         e.preventDefault();
-        handleBarcodeScanned(barcodeBuffer);
-        setBarcodeBuffer('');
-        if (barcodeTimeoutRef.current) {
-          clearTimeout(barcodeTimeoutRef.current);
+        const currentBuffer = barcodeBuffer;
+        
+        if (currentBuffer && !isProcessingRef.current) {
+          console.log('⌨️ Keyboard scan complete:', currentBuffer);
+          isProcessingRef.current = true; // Lock processing
+          setBarcodeBuffer(''); // Clear immediately
+          
+          if (barcodeTimeoutRef.current) {
+            clearTimeout(barcodeTimeoutRef.current);
+            barcodeTimeoutRef.current = undefined;
+          }
+          
+          // Process barcode
+          handleBarcodeScanned(currentBuffer);
         }
         return;
       }
 
-      // Build barcode from keystrokes
-      if (e.key.length === 1) {
+      // Build barcode from keystrokes (only printable characters)
+      if (e.key.length === 1 && !isProcessingRef.current) {
         e.preventDefault();
         setBarcodeBuffer(prev => prev + e.key);
         
@@ -130,7 +148,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
           clearTimeout(barcodeTimeoutRef.current);
         }
         barcodeTimeoutRef.current = setTimeout(() => {
-          setBarcodeBuffer('');
+          if (!isProcessingRef.current) {
+            setBarcodeBuffer('');
+          }
         }, 100);
       }
     };
@@ -142,7 +162,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         clearTimeout(barcodeTimeoutRef.current);
       }
     };
-  }, [dialogOpen, barcodeBuffer]);
+  }, [dialogOpen, barcodeBuffer]); // Keep barcodeBuffer to access latest value
 
   // Fetch today's summary on mount and periodically
   useEffect(() => {
@@ -170,10 +190,14 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   }, []);
 
   const handleBarcodeScanned = async (barcode: string) => {
-    console.log('🔍 Processing barcode:', barcode);
+    // Prevent duplicate processing
+    if (isProcessingRef.current) {
+      console.log('⏸️ Already processing a barcode, skipping...');
+      return;
+    }
     
-    // Clear old barcode data first
-    clearBarcodeCache();
+    console.log('🔍 Processing barcode:', barcode);
+    isProcessingRef.current = true; // Lock immediately
     
     toast.info(`🔍 Searching: ${barcode}...`);
     
@@ -205,31 +229,42 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         // Add to cart (will increase qty if already exists)
         handleAddToCart(product);
         
-        // Don't show toast here - handleAddToCart already shows it
-        // Just log for debugging
-        console.log('✅ Product added/updated via barcode:', product.name, 'Qty:', willBeQuantity);
-        
-        // Clear barcode after successful scan
-        clearBarcodeCache();
+        console.log('✅ Product added via barcode:', product.name, 'Qty:', willBeQuantity);
       } else {
         toast.error(`❌ Not found: ${barcode}`);
-        clearBarcodeCache();
       }
     } catch (error) {
       console.error('❌ Error finding product:', error);
       toast.error('Failed to find product. Please try again.');
-      clearBarcodeCache();
     } finally {
       setIsLoading(false);
+      
+      // Clear cache and unlock after a short delay to prevent immediate re-scan
+      setTimeout(() => {
+        clearBarcodeCache();
+        console.log('🔓 Ready for next scan');
+      }, 300);
     }
   };
 
   const handleBarcodeInputSubmit = async () => {
-    if (!barcodeInput.trim()) {
+    const barcode = barcodeInput.trim();
+    
+    if (!barcode) {
       toast.error('Please enter a barcode');
       return;
     }
-    await handleBarcodeScanned(barcodeInput.trim());
+    
+    if (isProcessingRef.current) {
+      console.log('⏸️ Already processing, please wait...');
+      return;
+    }
+    
+    // Clear input immediately
+    setBarcodeInput('');
+    
+    // Process barcode
+    await handleBarcodeScanned(barcode);
   };
 
   const handleBarcodeInputKeyPress = (e: React.KeyboardEvent) => {
