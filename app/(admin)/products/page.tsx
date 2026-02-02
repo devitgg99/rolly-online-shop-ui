@@ -8,6 +8,9 @@ import ProductsManagement from '@/components/admin/ProductsManagement';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
+// Force dynamic rendering (required for authentication)
+export const dynamic = 'force-dynamic';
+
 async function getInitialData() {
   const session = await getServerSession(authOptions);
   

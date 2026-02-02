@@ -2,6 +2,9 @@ import { fetchBrands } from '@/services/brands.service';
 import { Brand, BrandListResponse } from '@/types/brand.types';
 import BrandsManagement from '@/components/admin/BrandsManagement';
 
+// Force dynamic rendering (required for cache: 'no-store')
+export const dynamic = 'force-dynamic';
+
 async function getBrand(): Promise<Brand[]> {
   const response: BrandListResponse = await fetchBrands();
   

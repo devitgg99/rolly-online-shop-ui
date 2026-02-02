@@ -5,12 +5,12 @@ import { Eye, EyeOff, LogIn, Mail, Phone } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { formatPhoneNumber } from "@/lib/phone";
 
 type LoginMethod = 'email' | 'phone';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('email');
@@ -277,5 +277,13 @@ export default function LoginPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="w-full flex items-center justify-center p-8">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

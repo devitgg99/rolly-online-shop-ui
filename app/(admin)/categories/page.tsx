@@ -2,6 +2,9 @@ import { fetchCategories } from '@/services/categories.service';
 import { Category, CategoryListResponse } from '@/types/category.types';
 import CategoriesManagement from '@/components/admin/CategoriesManagement';
 
+// Force dynamic rendering (required for cache: 'no-store')
+export const dynamic = 'force-dynamic';
+
 async function getCategories(): Promise<Category[]> {
   const response: CategoryListResponse = await fetchCategories();
   

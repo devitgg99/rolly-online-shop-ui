@@ -13,7 +13,7 @@ export async function findProductByBarcodeAction(barcode: string): Promise<Admin
       return {
         success: false,
         message: "Unauthorized - Please login",
-        data: null,
+        data: undefined,
         createdAt: new Date().toISOString(),
       };
     }
@@ -26,7 +26,7 @@ export async function findProductByBarcodeAction(barcode: string): Promise<Admin
     return {
       success: false,
       message: error instanceof Error ? error.message : "Failed to find product by barcode",
-      data: null,
+      data: undefined,
       createdAt: new Date().toISOString(),
     };
   }

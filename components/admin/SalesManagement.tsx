@@ -73,7 +73,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const [scannedBarcode, setScannedBarcode] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
-  const barcodeTimeoutRef = useRef<NodeJS.Timeout>();
+  const barcodeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Keyboard barcode scanner listener
   useEffect(() => {
