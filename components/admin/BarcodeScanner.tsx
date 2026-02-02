@@ -119,17 +119,17 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
             if (result && !hasScannedRef.current) {
               hasScannedRef.current = true; // Mark as scanned
               const barcode = result.getText();
-              console.log('✅ Barcode scanned successfully:', barcode);
+              console.log('📷 Camera scan success:', barcode);
               
-              // Stop scanning and clean cache
+              // Stop scanning immediately
               stopScanning();
               
-              // Call callback and close
+              // Process with slight delay for clean state transition
               setTimeout(() => {
                 onScan(barcode);
-                cleanupCache(); // Clear cache after successful scan
+                cleanupCache();
                 onClose();
-              }, 100);
+              }, 200);
             }
             // Don't log errors (ZXing logs many false positives while scanning)
           }

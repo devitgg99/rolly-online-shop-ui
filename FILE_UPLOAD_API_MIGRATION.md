@@ -194,10 +194,10 @@ if (response.success && response.data?.url) {
 
 ## 🔍 Implementation Details
 
-### **Request Format (Unchanged):**
+### **Request Format:**
 ```typescript
 const formData = new FormData();
-formData.append('image', compressedFile);
+formData.append('file', compressedFile); // Field name: 'file'
 
 fetch(`${API_URL}/file/upload`, {
   method: "POST",
@@ -278,7 +278,7 @@ This allows existing code using `response.data.url` to continue working.
 
 **Request:**
 - Content-Type: `multipart/form-data`
-- Field name: `image`
+- Field name: `file` (not `image`)
 - File types: Image files (JPEG, PNG, etc.)
 
 **Success Response (200):**

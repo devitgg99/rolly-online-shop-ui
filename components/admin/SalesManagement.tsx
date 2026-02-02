@@ -143,15 +143,16 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         e.preventDefault();
         setBarcodeBuffer(prev => prev + e.key);
         
-        // Clear buffer after 100ms of no input (barcode scanners are fast)
+        // Clear buffer after 150ms of no input (barcode scanners are fast)
         if (barcodeTimeoutRef.current) {
           clearTimeout(barcodeTimeoutRef.current);
         }
         barcodeTimeoutRef.current = setTimeout(() => {
           if (!isProcessingRef.current) {
             setBarcodeBuffer('');
+            console.log('🧹 Buffer auto-cleared (timeout)');
           }
-        }, 100);
+        }, 150); // Increased to 150ms for better reliability
       }
     };
 
@@ -162,7 +163,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         clearTimeout(barcodeTimeoutRef.current);
       }
     };
-  }, [dialogOpen, barcodeBuffer]); // Keep barcodeBuffer to access latest value
+  }, [dialogOpen, barcodeBuffer]);
 
   // Fetch today's summary on mount and periodically
   useEffect(() => {
@@ -192,14 +193,18 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const handleBarcodeScanned = async (barcode: string) => {
     // Prevent duplicate processing
     if (isProcessingRef.current) {
-      console.log('⏸️ Already processing a barcode, skipping...');
+      console.log('⏸️ Scan in progress, ignoring...');
+      return;
+    }
+    
+    // Validate barcode
+    if (!barcode || barcode.trim().length === 0) {
+      console.log('⚠️ Empty barcode, ignoring...');
       return;
     }
     
     console.log('🔍 Processing barcode:', barcode);
     isProcessingRef.current = true; // Lock immediately
-    
-    toast.info(`🔍 Searching: ${barcode}...`);
     
     try {
       setIsLoading(true);
@@ -222,28 +227,25 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
           categoryName: response.data.category.name,
         };
         
-        // Check if product is already in cart to show appropriate message
-        const existingItem = cart.find(item => item.productId === product.id);
-        const willBeQuantity = existingItem ? existingItem.quantity + 1 : 1;
-        
         // Add to cart (will increase qty if already exists)
         handleAddToCart(product);
         
-        console.log('✅ Product added via barcode:', product.name, 'Qty:', willBeQuantity);
+        console.log('✅ Product added via barcode:', product.name);
       } else {
-        toast.error(`❌ Not found: ${barcode}`);
+        toast.error(`Product not found`);
+        console.log('❌ Barcode not found:', barcode);
       }
     } catch (error) {
-      console.error('❌ Error finding product:', error);
-      toast.error('Failed to find product. Please try again.');
+      console.error('❌ Barcode scan error:', error);
+      toast.error('Scan failed, try again');
     } finally {
       setIsLoading(false);
       
-      // Clear cache and unlock after a short delay to prevent immediate re-scan
+      // Delay before allowing next scan (prevents double-scan)
       setTimeout(() => {
         clearBarcodeCache();
         console.log('🔓 Ready for next scan');
-      }, 300);
+      }, 500); // Increased to 500ms for better debouncing
     }
   };
 
@@ -288,7 +290,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const handleAddToCart = (product: AdminProduct) => {
     // Check if product is out of stock
     if (product.stockQuantity <= 0) {
-      toast.error(`${product.name} is out of stock! 🚫`);
+      toast.error(`Out of stock: ${product.name}`);
       return;
     }
 
@@ -298,7 +300,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       // Check if adding one more would exceed stock
       const newQuantity = existingItem.quantity + 1;
       if (newQuantity > product.stockQuantity) {
-        toast.error(`Cannot add more! Only ${product.stockQuantity} available in stock 📦`);
+        toast.error(`Only ${product.stockQuantity} available`);
         return;
       }
 
@@ -312,7 +314,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
             }
           : item
       ));
-      toast.success(`📦 ${product.name}: Quantity increased to ${newQuantity}!`);
+      toast.success(`${product.name} x${newQuantity}`);
     } else {
       // Add new item
       setCart([...cart, {
@@ -321,7 +323,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         product,
         subtotal: product.discountedPrice,
       }]);
-      toast.success(`✅ Added ${product.name} to cart!`);
+      toast.success(`Added: ${product.name}`);
     }
   };
 

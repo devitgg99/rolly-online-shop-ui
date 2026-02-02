@@ -39,10 +39,11 @@ export async function uploadFileService(file: File): Promise<FileUploadResponse>
     }
 
     const formData = new FormData();
-    formData.append('image', fileToUpload); // Backend expects 'image' field name
+    formData.append('file', fileToUpload); // Backend expects 'file' field name
 
     const uploadUrl = `${API_URL}/file/upload`;
     console.log('📤 [Upload Service] Uploading to:', uploadUrl);
+    console.log('📤 [Upload Service] Field name: file');
 
     const response = await fetch(uploadUrl, {
       method: "POST",
