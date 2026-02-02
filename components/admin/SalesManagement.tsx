@@ -75,6 +75,30 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
   const barcodeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
+  // Clear barcode cache when dialog opens/closes
+  useEffect(() => {
+    if (dialogOpen) {
+      // Clear all barcode-related state for fresh start
+      clearBarcodeCache();
+      console.log('🧹 POS opened - barcode cache cleared');
+    } else {
+      // Clean up when closing
+      clearBarcodeCache();
+      console.log('🧹 POS closed - barcode cache cleared');
+    }
+  }, [dialogOpen]);
+
+  // Clear all barcode cache data
+  const clearBarcodeCache = () => {
+    setBarcodeBuffer('');
+    setScannedBarcode('');
+    setBarcodeInput('');
+    if (barcodeTimeoutRef.current) {
+      clearTimeout(barcodeTimeoutRef.current);
+      barcodeTimeoutRef.current = undefined;
+    }
+  };
+
   // Keyboard barcode scanner listener
   useEffect(() => {
     if (!dialogOpen) return;
@@ -146,10 +170,12 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   }, []);
 
   const handleBarcodeScanned = async (barcode: string) => {
-    console.log('🔍 Barcode scanned:', barcode);
-    setScannedBarcode(barcode);
-    setBarcodeInput(''); // Clear input field
-    toast.info(`Searching for product: ${barcode}...`);
+    console.log('🔍 Processing barcode:', barcode);
+    
+    // Clear old barcode data first
+    clearBarcodeCache();
+    
+    toast.info(`🔍 Searching: ${barcode}...`);
     
     try {
       setIsLoading(true);
@@ -182,12 +208,17 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         // Don't show toast here - handleAddToCart already shows it
         // Just log for debugging
         console.log('✅ Product added/updated via barcode:', product.name, 'Qty:', willBeQuantity);
+        
+        // Clear barcode after successful scan
+        clearBarcodeCache();
       } else {
-        toast.error(`Product not found with barcode: ${barcode} ❌`);
+        toast.error(`❌ Not found: ${barcode}`);
+        clearBarcodeCache();
       }
     } catch (error) {
-      console.error('Error finding product:', error);
+      console.error('❌ Error finding product:', error);
       toast.error('Failed to find product. Please try again.');
+      clearBarcodeCache();
     } finally {
       setIsLoading(false);
     }

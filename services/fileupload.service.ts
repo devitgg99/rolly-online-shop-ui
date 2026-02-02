@@ -1,4 +1,5 @@
 import { FileUploadResponse } from "@/types/fileUpload.types";
+import { compressImage, isImageFile, formatFileSize } from "@/lib/image-compression";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -6,7 +7,26 @@ export async function uploadFileService(file: File): Promise<FileUploadResponse>
   try {
     console.log('🔍 [Upload Service] Starting upload...');
     console.log('🔍 [Upload Service] API URL:', API_URL);
-    console.log('🔍 [Upload Service] File:', file.name, file.size, 'bytes');
+    console.log('🔍 [Upload Service] Original file:', file.name, formatFileSize(file.size));
+
+    // Compress image before upload
+    let fileToUpload = file;
+    if (isImageFile(file)) {
+      try {
+        console.log('🗜️  [Upload Service] Compressing image...');
+        fileToUpload = await compressImage(file, {
+          maxWidth: 1920,
+          maxHeight: 1920,
+          quality: 0.85,
+          outputFormat: 'image/jpeg',
+        });
+        console.log('✅ [Upload Service] Compression complete:', formatFileSize(fileToUpload.size));
+      } catch (compressionError) {
+        console.warn('⚠️  [Upload Service] Compression failed, uploading original:', compressionError);
+        // If compression fails, upload original file
+        fileToUpload = file;
+      }
+    }
 
     if (!API_URL) {
       console.error('❌ [Upload Service] API_URL is not defined!');
@@ -19,7 +39,7 @@ export async function uploadFileService(file: File): Promise<FileUploadResponse>
     }
 
     const formData = new FormData();
-    formData.append('image', file); // Backend expects 'image' field name
+    formData.append('image', fileToUpload); // Backend expects 'image' field name
 
     const uploadUrl = `${API_URL}/images/remove-background`;
     console.log('📤 [Upload Service] Uploading to:', uploadUrl);

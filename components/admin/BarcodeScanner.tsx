@@ -27,18 +27,29 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
 
   useEffect(() => {
     if (!open) {
+      // Clean up everything when closing
       stopScanning();
-      hasScannedRef.current = false; // Reset flag
+      cleanupCache();
       return;
     }
 
-    hasScannedRef.current = false; // Reset flag when opening
+    // Fresh start for each scan
+    cleanupCache();
     startScanning();
 
     return () => {
       stopScanning();
+      cleanupCache();
     };
   }, [open]);
+
+  // Clear all cache data for fresh scan
+  const cleanupCache = () => {
+    hasScannedRef.current = false;
+    setError('');
+    setIsScanning(false);
+    console.log('🧹 Barcode scanner cache cleared');
+  };
 
   const startScanning = async () => {
     try {
@@ -108,14 +119,15 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
             if (result && !hasScannedRef.current) {
               hasScannedRef.current = true; // Mark as scanned
               const barcode = result.getText();
-              console.log('📷 Camera scanned:', barcode);
+              console.log('✅ Barcode scanned successfully:', barcode);
               
-              // Stop scanning first
+              // Stop scanning and clean cache
               stopScanning();
               
-              // Then call the callback
+              // Call callback and close
               setTimeout(() => {
                 onScan(barcode);
+                cleanupCache(); // Clear cache after successful scan
                 onClose();
               }, 100);
             }
@@ -145,16 +157,21 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
         // Stop all video tracks
         if (videoRef.current && videoRef.current.srcObject) {
           const stream = videoRef.current.srcObject as MediaStream;
-          stream.getTracks().forEach(track => track.stop());
+          stream.getTracks().forEach(track => {
+            track.stop();
+            track.enabled = false;
+          });
           videoRef.current.srcObject = null;
+          videoRef.current.src = '';
         }
-        // Clean up reader
+        // Clear reader reference
         readerRef.current = null;
       } catch (err) {
-        console.error('Error stopping scanner:', err);
+        console.error('⚠️  Error stopping scanner:', err);
       }
     }
     setIsScanning(false);
+    console.log('🛑 Scanner stopped');
   };
 
   return (
