@@ -4,20 +4,54 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function uploadFileService(file: File): Promise<FileUploadResponse> {
   try {
+    console.log('🔍 [Upload Service] Starting upload...');
+    console.log('🔍 [Upload Service] API URL:', API_URL);
+    console.log('🔍 [Upload Service] File:', file.name, file.size, 'bytes');
+
+    if (!API_URL) {
+      console.error('❌ [Upload Service] API_URL is not defined!');
+      return {
+        success: false,
+        message: "API URL not configured. Please check .env.local",
+        error: "NEXT_PUBLIC_API_URL is missing",
+        url: "",
+      };
+    }
+
     const formData = new FormData();
     formData.append('image', file); // Backend expects 'image' field name
 
-    const response = await fetch(`${API_URL}/images/remove-background`, {
+    const uploadUrl = `${API_URL}/images/remove-background`;
+    console.log('📤 [Upload Service] Uploading to:', uploadUrl);
+
+    const response = await fetch(uploadUrl, {
       method: "POST",
       body: formData,
     });
+
+    console.log('📦 [Upload Service] Response status:', response.status);
+    console.log('📦 [Upload Service] Response ok:', response.ok);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ [Upload Service] Error response:', errorText);
+      return {
+        success: false,
+        message: `Server error: ${response.status} - ${response.statusText}`,
+        error: errorText,
+        url: "",
+      };
+    }
+
     const data = await response.json();
+    console.log('✅ [Upload Service] Success:', data);
     return data;
   }
   catch (error) {
+    console.error('❌ [Upload Service] Network error:', error);
     return {
       success: false,
-      message: "Network error or server unavailable",
+      message: "Unable to reach server. Check if backend is running and accessible.",
       error: error instanceof Error ? error.message : "Unknown error",
       url: "",
     };

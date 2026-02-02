@@ -5,18 +5,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { 
-  LayoutDashboard, 
   Package, 
-  ShoppingCart, 
   LogOut, 
   Menu,
   Store,
   User,
-  Settings,
   Bell,
   ChevronRight,
   Tag,
-  Award
+  Award,
+  Receipt
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -28,12 +26,10 @@ import {
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Categories', href: '/categories', icon: Tag },
   { name: 'Brands', href: '/brands', icon: Award },
-  { name: 'Orders', href: '/orders', icon: ShoppingCart },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Sales', href: '/sales', icon: Receipt },
 ];
 
 export default function AdminSidebar() {
@@ -47,7 +43,7 @@ export default function AdminSidebar() {
     <div className="flex flex-col h-full bg-background">
       {/* Logo */}
       <div className="p-6 pb-4">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+        <Link href="/products" className="flex items-center gap-3 group">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
             <Store className="w-6 h-6 text-primary-foreground" />
           </div>
@@ -153,7 +149,7 @@ export default function AdminSidebar() {
       {/* Mobile Header */}
       <div className="lg:hidden sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+          <Link href="/products" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shadow-sm">
               <Store className="w-5 h-5 text-primary-foreground" />
             </div>
