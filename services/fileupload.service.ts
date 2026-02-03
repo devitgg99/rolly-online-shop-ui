@@ -3,11 +3,12 @@ import { compressImage, isImageFile, formatFileSize } from "@/lib/image-compress
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function uploadFileService(file: File): Promise<FileUploadResponse> {
+export async function uploadFileService(file: File, token: string): Promise<FileUploadResponse> {
   try {
     console.log('🔍 [Upload Service] Starting upload...');
     console.log('🔍 [Upload Service] API URL:', API_URL);
     console.log('🔍 [Upload Service] Original file:', file.name, formatFileSize(file.size));
+    console.log('🔑 [Upload Service] Token present:', !!token);
 
     // Compress image before upload
     let fileToUpload = file;
@@ -41,12 +42,15 @@ export async function uploadFileService(file: File): Promise<FileUploadResponse>
     const formData = new FormData();
     formData.append('file', fileToUpload); // Backend expects 'file' field name
 
-    const uploadUrl = `${API_URL}/file/upload`;
+    const uploadUrl = `${API_URL}/files/upload`;
     console.log('📤 [Upload Service] Uploading to:', uploadUrl);
     console.log('📤 [Upload Service] Field name: file');
 
     const response = await fetch(uploadUrl, {
       method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
       body: formData,
     });
 
@@ -66,13 +70,17 @@ export async function uploadFileService(file: File): Promise<FileUploadResponse>
 
     const apiResponse: FileUploadApiResponse = await response.json();
     console.log('✅ [Upload Service] Success:', apiResponse);
+    console.log('✅ [Upload Service] File URL:', apiResponse.data.url);
+    console.log('✅ [Upload Service] File Name:', apiResponse.data.fileName);
+    console.log('✅ [Upload Service] File Size:', apiResponse.data.size, 'bytes');
+    console.log('✅ [Upload Service] Content Type:', apiResponse.data.contentType);
     
-    // Transform new API format to legacy format for backward compatibility
+    // Return with backward compatibility
     return {
       success: apiResponse.success,
       message: apiResponse.message,
-      data: { url: apiResponse.data },
-      url: apiResponse.data, // URL is directly in data field
+      data: apiResponse.data,
+      url: apiResponse.data.url, // For backward compatibility
       createdAt: apiResponse.createdAt,
     };
   }

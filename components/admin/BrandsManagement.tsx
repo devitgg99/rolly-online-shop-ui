@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { Award, Plus, Pencil, Trash2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +32,7 @@ interface BrandsManagementProps {
 }
 
 export default function BrandsManagement({ brands: initialBrands }: BrandsManagementProps) {
+  const { data: session } = useSession();
   const router = useRouter();
   const [brands, setBrands] = useState<Brand[]>(initialBrands);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -140,9 +142,14 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
 
   const handleFileUpload = async (file: File): Promise<string> => {
     try {
+      if (!session?.backendToken) {
+        toast.error('Authentication required');
+        throw new Error('No authentication token');
+      }
+
       toast.info('Uploading image... 📤');
       
-      const response = await uploadFileAction(file);
+      const response = await uploadFileAction(file, session.backendToken);
       
       if (response.success && response.data?.url) {
         toast.success('Image uploaded successfully! ✅');

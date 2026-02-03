@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { Tag, Plus, Pencil, Trash2, FolderTree, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ interface CategoriesManagementProps {
 }
 
 export default function CategoriesManagement({ categories: initialCategories }: CategoriesManagementProps) {
+  const { data: session } = useSession();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -158,9 +160,14 @@ export default function CategoriesManagement({ categories: initialCategories }: 
 
   const handleFileUpload = async (file: File): Promise<string> => {
     try {
+      if (!session?.backendToken) {
+        toast.error('Authentication required');
+        throw new Error('No authentication token');
+      }
+
       toast.info('Uploading image... 📤');
       
-      const response = await uploadFileAction(file);
+      const response = await uploadFileAction(file, session.backendToken);
       
       if (response.success && response.data?.url) {
         toast.success('Image uploaded successfully! ✅');

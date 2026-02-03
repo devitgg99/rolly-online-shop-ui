@@ -330,14 +330,29 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {['Hydra Essence Serum', 'Luminous Night Cream', 'Radiant Eye Contour'].map((product, idx) => (
-              <div key={idx} className="bg-card rounded-xl sm:rounded-2xl overflow-hidden group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 border border-border hover:border-primary/30 hover:-translate-y-1">
+            {[
+              { name: 'Hydra Essence Serum', id: 'demo-product-1' },
+              { name: 'Luminous Night Cream', id: 'demo-product-2' },
+              { name: 'Radiant Eye Contour', id: 'demo-product-3' }
+            ].map((product, idx) => (
+              <Link 
+                href={`/product/${product.id}`} 
+                key={idx} 
+                className="bg-card rounded-xl sm:rounded-2xl overflow-hidden group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 border border-border hover:border-primary/30 hover:-translate-y-1 cursor-pointer block"
+              >
                 <div className="relative h-48 sm:h-56 lg:h-64 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <div className="text-center relative z-10">
                     <Sparkles className="w-12 sm:w-14 lg:w-16 h-12 sm:h-14 lg:h-16 text-primary/40 mx-auto group-hover:text-primary/60 group-hover:scale-110 transition-all" />
                   </div>
-                  <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20">
+                  <div 
+                    className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // TODO: Add to wishlist
+                    }}
+                  >
                     <Button variant="ghost" size="icon" className="bg-white/90 hover:bg-white hover:scale-110 transition-all shadow-lg w-8 h-8 sm:w-10 sm:h-10">
                       <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary hover:fill-primary transition-all" />
                     </Button>
@@ -355,19 +370,28 @@ export default function Home() {
                     <span className="text-xs sm:text-sm text-foreground/60 ml-1 sm:ml-2">(24 reviews)</span>
                   </div>
                   
-                  <h3 className="text-lg sm:text-xl font-semibold text-foreground group-hover:text-primary transition-colors">{product}</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold text-foreground group-hover:text-primary transition-colors">{product.name}</h3>
                   <p className="text-foreground/60 text-xs sm:text-sm leading-relaxed">
                     Luxurious formula with advanced botanical extracts. Delivers visible results in 7 days.
                   </p>
                   
                   <div className="flex justify-between items-center pt-3 sm:pt-4">
                     <span className="text-xl sm:text-2xl font-bold text-primary">$89.00</span>
-                    <Button variant="default" size="sm" className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-xs sm:text-sm">
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-xs sm:text-sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // TODO: Add to cart
+                      }}
+                    >
                       Add to Cart
                     </Button>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

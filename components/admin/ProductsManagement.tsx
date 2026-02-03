@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, Plus, Pencil, Trash2, Search, Filter, DollarSign, Box, TrendingUp, X, Tag, Layers, ShoppingBag, Sparkles, AlertTriangle, TrendingDown } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { Package, Plus, Pencil, Trash2, Search, Filter, DollarSign, Box, TrendingUp, X, Tag, Layers, ShoppingBag, Sparkles, AlertTriangle, TrendingDown, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,7 @@ import { ImageUpload } from '@/components/ui/image-upload';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import type { AdminProduct, ProductRequest, InventoryStats } from '@/types/product.types';
 import type { Brand } from '@/types/brand.types';
@@ -56,11 +58,15 @@ interface ProductsManagementProps {
 }
 
 export default function ProductsManagement({ initialProducts, brands, categories }: ProductsManagementProps) {
+  const { data: session } = useSession();
+  
   console.log('🎨 ProductsManagement rendered with:', {
     productsCount: initialProducts.length,
     brandsCount: brands.length,
     categoriesCount: categories.length,
-    products: initialProducts
+    products: initialProducts,
+    hasSession: !!session,
+    hasToken: !!session?.backendToken
   });
 
   const [products, setProducts] = useState<AdminProduct[]>(initialProducts);
@@ -142,8 +148,13 @@ export default function ProductsManagement({ initialProducts, brands, categories
   // File upload handler
   const handleFileUpload = async (file: File): Promise<string> => {
     try {
+      if (!session?.backendToken) {
+        toast.error('Authentication required');
+        throw new Error('No authentication token');
+      }
+
       toast.info('Uploading image... 📤');
-      const response = await uploadFileAction(file);
+      const response = await uploadFileAction(file, session.backendToken);
       
       if (response.success && response.data?.url) {
         toast.success('Image uploaded successfully! ✅');
@@ -680,6 +691,7 @@ export default function ProductsManagement({ initialProducts, brands, categories
                               alt={product.name}
                               fill
                               className="object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -842,6 +854,7 @@ export default function ProductsManagement({ initialProducts, brands, categories
                       alt={product.name}
                       fill
                       className="object-contain p-4"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -900,6 +913,16 @@ export default function ProductsManagement({ initialProducts, brands, categories
 
                   {/* Actions */}
                   <div className="flex gap-2 pt-2">
+                    <Link href={`/products/${product.id}`} className="flex-1">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
+                    </Link>
                     <Button
                       variant="outline"
                       size="sm"

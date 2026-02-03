@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/images/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'devit.tail473287.ts.net',
+        port: '',
+        pathname: '/api/v1/files/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.tail473287.ts.net',
+        port: '',
+        pathname: '/api/v1/files/**',
+      },
     ],
   },
 };

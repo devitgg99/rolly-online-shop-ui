@@ -131,9 +131,7 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    
-    // Important for mobile: allow camera AND gallery
-    input.capture = 'environment' as any; // This allows camera on mobile
+    // DON'T set capture attribute - let user choose camera OR gallery
     
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];

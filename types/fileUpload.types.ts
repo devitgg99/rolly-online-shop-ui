@@ -1,18 +1,29 @@
 import { ApiResponse } from "./api.types";
 
-export interface FileUpload {
+/**
+ * File upload data object
+ */
+export interface FileUploadData {
+  fileName: string;
   url: string;
+  size: number;
+  contentType: string;
 }
 
-// New API response format: data is the URL string directly
+/**
+ * API response for file upload
+ */
 export interface FileUploadApiResponse {
   success: boolean;
   message: string;
-  data: string; // The URL string
-  createdAt?: string;
-  error?: string;
+  data: FileUploadData;
+  errors?: string[];
+  createdAt: string;
 }
 
-export interface FileUploadResponse extends ApiResponse<FileUpload> {
-  url: string;
+/**
+ * Legacy response format for backward compatibility
+ */
+export interface FileUploadResponse extends ApiResponse<FileUploadData> {
+  url: string; // For backward compatibility
 } 
