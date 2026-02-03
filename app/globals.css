@@ -315,3 +315,16 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* Receipt-specific styles to avoid oklch parsing issues in html2canvas */
+[data-receipt-render="true"],
+[data-receipt-render="true"] * {
+  --background: #fcfcfd !important;
+  --foreground: #101828 !important;
+  --card: #ffffff !important;
+  --card-foreground: #101828 !important;
+  --border: #e2e8f0 !important;
+  --muted-foreground: #64748b !important;
+  background-color: transparent;
+  color: #000000;
+}

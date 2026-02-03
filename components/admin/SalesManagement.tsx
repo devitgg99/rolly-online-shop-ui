@@ -29,6 +29,7 @@ import {
 } from '@/actions/sales/sales.action';
 import { findProductByBarcodeAction } from '@/actions/products/barcode.action';
 import BarcodeScanner from './BarcodeScanner';
+import ReceiptDialog from './ReceiptDialog';
 
 interface SalesManagementProps {
   initialSales: SaleListItem[]; // Changed from Sale[] to SaleListItem[]
@@ -54,6 +55,10 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const [summary, setSummary] = useState<SaleSummary | null>(initialSummary);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewDialog, setViewDialog] = useState<{ open: boolean; sale: Sale | null }>({
+    open: false,
+    sale: null,
+  });
+  const [receiptDialog, setReceiptDialog] = useState<{ open: boolean; sale: Sale | null }>({
     open: false,
     sale: null,
   });
@@ -453,6 +458,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
             totalProfit: summary.totalProfit + response.data.profit,
           });
         }
+
+        // Open receipt dialog
+        setReceiptDialog({ open: true, sale: response.data });
 
         // Reset form
         setDialogOpen(false);
@@ -1020,10 +1028,35 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                   <p className="text-sm text-muted-foreground mt-1">{viewDialog.sale.notes}</p>
                 </div>
               )}
+
+              {/* Receipt Button */}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button
+                  onClick={() => {
+                    if (viewDialog.sale) {
+                      setReceiptDialog({ open: true, sale: viewDialog.sale });
+                    }
+                  }}
+                  className="flex-1"
+                >
+                  <Receipt className="w-4 h-4 mr-2" />
+                  View Receipt
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Receipt Dialog */}
+      <ReceiptDialog
+        open={receiptDialog.open}
+        onClose={() => setReceiptDialog({ open: false, sale: null })}
+        sale={receiptDialog.sale}
+        storeName="Rolly Shop"
+        storeAddress="123 Main Street, City"
+        storePhone="+1 (555) 123-4567"
+      />
 
       {/* Barcode Scanner Dialog */}
       <BarcodeScanner
