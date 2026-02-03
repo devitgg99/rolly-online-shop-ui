@@ -76,6 +76,8 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const barcodeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isProcessingRef = useRef(false); // Prevent concurrent scans
   const isCameraScanningRef = useRef(false); // Prevent camera dialog from reopening
+  const lastScannedBarcodeRef = useRef(''); // Track last scanned barcode
+  const lastScanTimeRef = useRef(0); // Track last scan time
 
   // Clear barcode cache when dialog opens/closes
   useEffect(() => {
@@ -204,7 +206,16 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       return;
     }
     
+    // Prevent scanning same barcode within 1 second (debounce)
+    const now = Date.now();
+    if (barcode === lastScannedBarcodeRef.current && now - lastScanTimeRef.current < 1000) {
+      console.log('⏸️ Same barcode scanned too quickly, ignoring...');
+      return;
+    }
+    
     console.log('🔍 Processing barcode:', barcode);
+    lastScannedBarcodeRef.current = barcode;
+    lastScanTimeRef.current = now;
     isProcessingRef.current = true; // Lock immediately
     isCameraScanningRef.current = true; // Lock camera scanner
     
@@ -247,8 +258,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       setTimeout(() => {
         clearBarcodeCache();
         isCameraScanningRef.current = false; // Unlock camera scanner
+        // Don't clear lastScannedBarcodeRef - keep for 1 second debounce
         console.log('🔓 Ready for next scan');
-      }, 500);
+      }, 800); // Increased to 800ms for more reliable debouncing
     }
   };
 
