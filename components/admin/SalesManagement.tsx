@@ -72,9 +72,10 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scannedBarcode, setScannedBarcode] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
-  const [barcodeBuffer, setBarcodeBuffer] = useState('');
+  const barcodeBufferRef = useRef(''); // Use ref instead of state to avoid re-renders
   const barcodeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isProcessingRef = useRef(false); // Prevent concurrent scans
+  const isCameraScanningRef = useRef(false); // Prevent camera dialog from reopening
 
   // Clear barcode cache when dialog opens/closes
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
 
   // Clear all barcode cache data
   const clearBarcodeCache = () => {
-    setBarcodeBuffer('');
+    barcodeBufferRef.current = '';
     setScannedBarcode('');
     setBarcodeInput('');
     isProcessingRef.current = false;
@@ -120,12 +121,12 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       // Enter key indicates end of barcode scan
       if (e.key === 'Enter') {
         e.preventDefault();
-        const currentBuffer = barcodeBuffer;
+        const currentBuffer = barcodeBufferRef.current;
         
         if (currentBuffer && !isProcessingRef.current) {
           console.log('⌨️ Keyboard scan complete:', currentBuffer);
           isProcessingRef.current = true; // Lock processing
-          setBarcodeBuffer(''); // Clear immediately
+          barcodeBufferRef.current = ''; // Clear immediately
           
           if (barcodeTimeoutRef.current) {
             clearTimeout(barcodeTimeoutRef.current);
@@ -141,7 +142,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       // Build barcode from keystrokes (only printable characters)
       if (e.key.length === 1 && !isProcessingRef.current) {
         e.preventDefault();
-        setBarcodeBuffer(prev => prev + e.key);
+        barcodeBufferRef.current += e.key;
         
         // Clear buffer after 150ms of no input (barcode scanners are fast)
         if (barcodeTimeoutRef.current) {
@@ -149,10 +150,10 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         }
         barcodeTimeoutRef.current = setTimeout(() => {
           if (!isProcessingRef.current) {
-            setBarcodeBuffer('');
+            barcodeBufferRef.current = '';
             console.log('🧹 Buffer auto-cleared (timeout)');
           }
-        }, 150); // Increased to 150ms for better reliability
+        }, 150);
       }
     };
 
@@ -163,7 +164,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         clearTimeout(barcodeTimeoutRef.current);
       }
     };
-  }, [dialogOpen, barcodeBuffer]);
+  }, [dialogOpen]); // REMOVED barcodeBuffer from dependencies!
 
   // Fetch today's summary on mount and periodically
   useEffect(() => {
@@ -205,6 +206,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     
     console.log('🔍 Processing barcode:', barcode);
     isProcessingRef.current = true; // Lock immediately
+    isCameraScanningRef.current = true; // Lock camera scanner
     
     try {
       setIsLoading(true);
@@ -244,8 +246,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       // Delay before allowing next scan (prevents double-scan)
       setTimeout(() => {
         clearBarcodeCache();
+        isCameraScanningRef.current = false; // Unlock camera scanner
         console.log('🔓 Ready for next scan');
-      }, 500); // Increased to 500ms for better debouncing
+      }, 500);
     }
   };
 
@@ -1012,9 +1015,16 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
 
       {/* Barcode Scanner Dialog */}
       <BarcodeScanner
-        open={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        onScan={handleBarcodeScanned}
+        open={scannerOpen && !isCameraScanningRef.current}
+        onClose={() => {
+          setScannerOpen(false);
+          console.log('📷 Camera scanner closed');
+        }}
+        onScan={(barcode) => {
+          console.log('📷 Camera detected barcode:', barcode);
+          setScannerOpen(false); // Close immediately
+          handleBarcodeScanned(barcode);
+        }}
       />
     </div>
   );
