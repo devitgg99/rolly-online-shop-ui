@@ -38,6 +38,7 @@ export async function compressImage(
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    let objectURL: string | null = null;
 
     reader.onload = (e) => {
       const img = new Image();
@@ -60,8 +61,10 @@ export async function compressImage(
           canvas.width = width;
           canvas.height = height;
 
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext('2d', { willReadFrequently: false });
           if (!ctx) {
+            // Cleanup
+            if (objectURL) URL.revokeObjectURL(objectURL);
             reject(new Error('Failed to get canvas context'));
             return;
           }
@@ -71,7 +74,16 @@ export async function compressImage(
 
           canvas.toBlob(
             (blob) => {
+              // Cleanup image object and object URL
+              img.src = '';
+              if (objectURL) {
+                URL.revokeObjectURL(objectURL);
+              }
+
               if (!blob) {
+                // Cleanup canvas
+                canvas.width = 0;
+                canvas.height = 0;
                 reject(new Error('Failed to compress image'));
                 return;
               }
@@ -90,21 +102,34 @@ export async function compressImage(
               console.log(`📦 Original: ${originalSizeKB}KB → Compressed: ${compressedSizeKB}KB`);
               console.log(`💾 Saved: ${savings}% (${width}x${height})`);
 
+              // Cleanup canvas
+              canvas.width = 0;
+              canvas.height = 0;
+
               resolve(compressedFile);
             },
             opts.outputFormat,
             opts.quality
           );
         } catch (error) {
+          // Cleanup on error
+          if (objectURL) URL.revokeObjectURL(objectURL);
+          img.src = '';
           reject(error);
         }
       };
 
       img.onerror = () => {
+        // Cleanup on error
+        if (objectURL) URL.revokeObjectURL(objectURL);
+        img.src = '';
         reject(new Error('Failed to load image'));
       };
 
-      img.src = e.target?.result as string;
+      // Use object URL instead of data URL for better memory management on mobile
+      const dataUrl = e.target?.result as string;
+      objectURL = dataUrl;
+      img.src = dataUrl;
     };
 
     reader.onerror = () => {

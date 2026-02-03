@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -18,6 +18,16 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
 
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      // Revoke any blob URLs when component unmounts
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   const handleFile = useCallback(async (file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -32,12 +42,23 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
       return;
     }
 
-    // Create preview
+    // Create preview with cleanup
     const reader = new FileReader();
+    
     reader.onload = (e) => {
       const result = e.target?.result as string;
+      // Revoke old preview URL if it exists (cleanup)
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
       setPreview(result);
     };
+    
+    reader.onerror = () => {
+      console.error('❌ Failed to read file');
+      alert('Failed to read image file');
+    };
+    
     reader.readAsDataURL(file);
 
     // Upload to server/cloud storage
@@ -49,6 +70,9 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
         const url = await onFileSelect(file);
         onChange(url);
         console.log('✅ Image uploaded successfully:', file.name);
+        
+        // Replace preview with server URL
+        setPreview(url);
       } else {
         // Fallback: convert to base64 (for demo purposes)
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -57,6 +81,9 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
         base64Reader.onload = (e) => {
           const result = e.target?.result as string;
           onChange(result);
+        };
+        base64Reader.onerror = () => {
+          console.error('❌ Failed to convert to base64');
         };
         base64Reader.readAsDataURL(file);
         
@@ -69,7 +96,7 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
     } finally {
       setIsUploading(false);
     }
-  }, [onChange, onFileSelect]);
+  }, [onChange, onFileSelect, preview]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -100,23 +127,47 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
 
   const handleClick = useCallback(() => {
     if (disabled) return;
+    
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
+    
+    // Important for mobile: allow camera AND gallery
+    input.capture = 'environment' as any; // This allows camera on mobile
+    
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         handleFile(file);
       }
+      
+      // Cleanup: Remove the input from DOM after use
+      setTimeout(() => {
+        input.remove();
+      }, 100);
     };
+    
+    // Cleanup if user cancels (doesn't select file)
+    input.oncancel = () => {
+      setTimeout(() => {
+        input.remove();
+      }, 100);
+    };
+    
     input.click();
   }, [disabled, handleFile]);
 
   const handleRemove = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Cleanup blob URL if exists
+    if (preview && preview.startsWith('blob:')) {
+      URL.revokeObjectURL(preview);
+    }
+    
     setPreview(null);
     onChange('');
-  }, [onChange]);
+  }, [onChange, preview]);
 
   return (
     <div className="space-y-2">
