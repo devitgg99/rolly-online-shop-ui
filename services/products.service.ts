@@ -4,7 +4,8 @@ import type {
   ProductListApiResponse,
   ProductDetailApiResponse,
   ProductRequest,
-  InventoryStatsApiResponse
+  InventoryStatsApiResponse,
+  InventoryTableApiResponse
 } from "@/types/product.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
@@ -561,6 +562,50 @@ export async function fetchLowStockProducts(
       success: false,
       message: "Network error while fetching low stock products",
       data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Get inventory table with full sales data
+ */
+export async function fetchInventoryTable(
+  page: number = 0,
+  size: number = 20,
+  sortBy: string = "name",
+  direction: string = "asc",
+  token: string
+): Promise<InventoryTableApiResponse> {
+  try {
+    const url = `${API_URL}/products/admin/inventory?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to fetch inventory table: ${response.statusText}`,
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error fetching inventory table:", error);
+    return {
+      success: false,
+      message: "Network error while fetching inventory table",
+      data: null,
       createdAt: new Date().toISOString(),
     };
   }

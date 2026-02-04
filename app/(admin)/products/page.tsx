@@ -1,17 +1,25 @@
-import { fetchAdminProducts } from '@/services/products.service';
+import { fetchAdminProducts, fetchInventoryTable } from '@/services/products.service';
 import { fetchBrands } from '@/services/brands.service';
 import { fetchCategories } from '@/services/categories.service';
-import { AdminProduct } from '@/types/product.types';
+import { AdminProduct, InventoryTableItem } from '@/types/product.types';
 import { Brand } from '@/types/brand.types';
 import { Category } from '@/types/category.types';
 import ProductsManagement from '@/components/admin/ProductsManagement';
+import InventoryTable from '@/components/admin/InventoryTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // Force dynamic rendering (required for authentication)
 export const dynamic = 'force-dynamic';
 
-async function getInitialData() {
+async function getInitialData(): Promise<{
+  products: AdminProduct[];
+  brands: Brand[];
+  categories: Category[];
+  inventoryData: InventoryTableItem[];
+  inventoryMeta: { page: number; size: number; totalElements: number; totalPages: number };
+}> {
   const session = await getServerSession(authOptions);
   
   console.log('🔍 [Products Page] Session exists:', !!session);
@@ -24,7 +32,13 @@ async function getInitialData() {
   if (!token) {
     console.error('❌ [Products Page] No backend token found in session!');
     console.error('❌ [Products Page] Please log out and log back in to refresh your session');
-    return { products: [], brands: [], categories: [] };
+    return { 
+      products: [], 
+      brands: [], 
+      categories: [],
+      inventoryData: [],
+      inventoryMeta: { page: 0, size: 20, totalElements: 0, totalPages: 0 }
+    };
   }
 
   // Decode token to check expiry (optional)
@@ -46,10 +60,11 @@ async function getInitialData() {
     console.log('🔍 [Products Page] Could not decode token for expiry check');
   }
 
-  const [productsRes, brandsRes, categoriesRes] = await Promise.all([
+  const [productsRes, brandsRes, categoriesRes, inventoryRes] = await Promise.all([
     fetchAdminProducts(0, 20, token),
     fetchBrands(),
     fetchCategories(),
+    fetchInventoryTable(0, 20, 'name', 'asc', token),
   ]);
 
   console.log('📦 [Products Page] Products response:', {
@@ -62,20 +77,60 @@ async function getInitialData() {
   const products: AdminProduct[] = productsRes.success && productsRes.data ? productsRes.data.content : [];
   const brands: Brand[] = brandsRes.success && brandsRes.data ? brandsRes.data : [];
   const categories: Category[] = categoriesRes.success && categoriesRes.data ? categoriesRes.data : [];
+  const inventoryData: InventoryTableItem[] = inventoryRes.success && inventoryRes.data?.content ? inventoryRes.data.content : [];
+  const inventoryMeta = inventoryRes.success && inventoryRes.data ? {
+    page: inventoryRes.data.page,
+    size: inventoryRes.data.size,
+    totalElements: inventoryRes.data.totalElements,
+    totalPages: inventoryRes.data.totalPages,
+  } : { page: 0, size: 20, totalElements: 0, totalPages: 0 };
 
-  return { products, brands, categories };
+  return { products, brands, categories, inventoryData, inventoryMeta };
 }
 
 export default async function ProductsPage() {
   try {
-    const { products, brands, categories } = await getInitialData();
+    const data = await getInitialData();
     
     return (
-      <ProductsManagement
-        initialProducts={products}
-        brands={brands}
-        categories={categories}
-      />
+      <div className="p-3 sm:p-4 md:p-6">
+        <Tabs defaultValue="grid" className="w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">Products 📦</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Manage your product inventory
+              </p>
+            </div>
+            <TabsList className="grid w-full sm:w-auto grid-cols-2 h-9 sm:h-10">
+              <TabsTrigger value="grid" className="text-xs sm:text-sm">
+                Grid View
+              </TabsTrigger>
+              <TabsTrigger value="table" className="text-xs sm:text-sm">
+                Inventory Table
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="grid" className="mt-0">
+            <ProductsManagement
+              initialProducts={data.products}
+              brands={data.brands}
+              categories={data.categories}
+            />
+          </TabsContent>
+
+          <TabsContent value="table" className="mt-0">
+            <InventoryTable
+              initialData={data.inventoryData}
+              initialPage={data.inventoryMeta.page}
+              initialSize={data.inventoryMeta.size}
+              initialTotalElements={data.inventoryMeta.totalElements}
+              initialTotalPages={data.inventoryMeta.totalPages}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
     );
   } catch (error) {
     console.error('❌ [Products Page] Fatal error:', error);

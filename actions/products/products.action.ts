@@ -7,13 +7,15 @@ import {
   updateProductService, 
   deleteProductService,
   fetchInventoryStats,
-  fetchLowStockProducts 
+  fetchLowStockProducts,
+  fetchInventoryTable
 } from "@/services/products.service";
 import { 
   ProductRequest, 
   AdminProductDetailApiResponse,
   InventoryStatsApiResponse,
-  AdminProductListApiResponse 
+  AdminProductListApiResponse,
+  InventoryTableApiResponse
 } from "@/types/product.types";
 import { ApiResponse } from "@/types/api.types";
 import { logger } from "@/lib/logger";
@@ -156,6 +158,39 @@ export async function fetchLowStockProductsAction(
       message: "Failed to fetch low stock products",
       error: sanitizeError(error),
       data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function fetchInventoryTableAction(
+  page: number = 0,
+  size: number = 20,
+  sortBy: string = "name",
+  direction: string = "asc"
+): Promise<InventoryTableApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    const response = await fetchInventoryTable(page, size, sortBy, direction, token);
+    
+    return response;
+  } catch (error) {
+    logger.error("fetchInventoryTableAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch inventory table",
+      data: null,
       createdAt: new Date().toISOString(),
     };
   }

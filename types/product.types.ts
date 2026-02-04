@@ -154,6 +154,50 @@ export interface InventoryStats {
   lowStockThreshold: number;
 }
 
+/**
+ * Inventory table item with full sales data
+ */
+export interface InventoryTableItem {
+  id: string;
+  name: string;
+  barcode: string | null;
+  categoryName: string;
+  brandName: string;
+  costPrice: number;
+  price: number;
+  discountPercent: number;
+  sellingPrice: number;
+  profit: number;
+  stockQuantity: number;
+  stockValue: number;
+  totalSold: number;
+  totalRevenue: number;
+  totalProfit: number;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Inventory table response with pagination
+ */
+export interface InventoryTableResponse {
+  content: InventoryTableItem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+export interface InventoryTableApiResponse {
+  success: boolean;
+  message: string;
+  data: InventoryTableResponse | null;
+  createdAt: string;
+}
+
 export type ProductListApiResponse = ApiResponse<ProductListResponse>;
 export type AdminProductListApiResponse = ApiResponse<AdminProductListResponse>;
 export type ProductDetailApiResponse = ApiResponse<ProductDetail>;
