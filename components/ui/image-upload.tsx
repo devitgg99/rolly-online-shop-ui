@@ -39,6 +39,14 @@ export function ImageUpload({
   }, [preview]);
 
   const handleFile = useCallback(async (file: File) => {
+    console.log('🎯 handleFile called:', { fileName: file.name, isUploading });
+    
+    // CRITICAL: Prevent concurrent uploads
+    if (isUploading) {
+      console.warn('⚠️ Already uploading, ignoring new file');
+      return;
+    }
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please upload an image file (JPG, PNG, GIF, WEBP)');
@@ -53,6 +61,8 @@ export function ImageUpload({
 
     setIsUploading(true);
     setCompressionProgress('Processing image...');
+
+    let previewUrl: string | null = null;
 
     try {
       let processedFile = file;
@@ -85,10 +95,11 @@ export function ImageUpload({
 
       // Create preview from processed file
       setCompressionProgress('Creating preview...');
-      const previewUrl = URL.createObjectURL(processedFile);
+      previewUrl = URL.createObjectURL(processedFile);
       
       // Revoke old preview URL if it exists
       if (preview && preview.startsWith('blob:')) {
+        console.log('🧹 Cleaning up old preview URL');
         URL.revokeObjectURL(preview);
       }
       setPreview(previewUrl);
@@ -97,12 +108,16 @@ export function ImageUpload({
       setCompressionProgress('Uploading...');
       
       if (onFileSelect) {
+        console.log('📤 Starting upload to server...');
         const url = await onFileSelect(processedFile);
         onChange(url);
         console.log('✅ Image uploaded successfully:', processedFile.name);
         
         // Replace preview with server URL and cleanup blob
-        URL.revokeObjectURL(previewUrl);
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+          previewUrl = null;
+        }
         setPreview(url);
       } else {
         // Fallback: convert to base64
@@ -110,7 +125,10 @@ export function ImageUpload({
         base64Reader.onload = (e) => {
           const result = e.target?.result as string;
           onChange(result);
-          URL.revokeObjectURL(previewUrl);
+          if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+          }
         };
         base64Reader.onerror = () => {
           console.error('❌ Failed to convert to base64');
@@ -119,15 +137,23 @@ export function ImageUpload({
       }
       
       setCompressionProgress('');
+      console.log('✅ Upload complete!');
     } catch (error) {
       console.error('❌ Upload error:', error);
       alert('Failed to upload image. Please try again.');
+      
+      // Cleanup preview URL on error
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+      }
       setPreview(null);
       setCompressionProgress('');
     } finally {
+      console.log('🏁 Finally block: resetting isUploading to false');
       setIsUploading(false);
     }
-  }, [onChange, onFileSelect, preview, maxSizeMB]);
+  }, [onChange, onFileSelect, preview, maxSizeMB, isUploading]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -157,7 +183,11 @@ export function ImageUpload({
   }, []);
 
   const handleClick = useCallback(() => {
-    if (disabled) return;
+    // Prevent clicks while uploading
+    if (disabled || isUploading) {
+      console.log('⚠️ Upload in progress, please wait...');
+      return;
+    }
     
     const input = document.createElement('input');
     input.type = 'file';
@@ -167,6 +197,7 @@ export function ImageUpload({
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
+        console.log('📁 File selected:', file.name);
         handleFile(file);
       }
       
@@ -178,13 +209,14 @@ export function ImageUpload({
     
     // Cleanup if user cancels (doesn't select file)
     input.oncancel = () => {
+      console.log('❌ File selection cancelled');
       setTimeout(() => {
         input.remove();
       }, 100);
     };
     
     input.click();
-  }, [disabled, handleFile]);
+  }, [disabled, isUploading, handleFile]);
 
   const handleRemove = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -210,6 +242,7 @@ export function ImageUpload({
           isDragging && "border-primary bg-primary/5 scale-[1.02]",
           !isDragging && "border-border hover:border-primary/50",
           disabled && "opacity-50 cursor-not-allowed",
+          isUploading && "pointer-events-none opacity-75",
           preview ? "h-64" : "h-48"
         )}
       >
