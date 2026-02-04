@@ -100,13 +100,17 @@ export async function compressImage(
 
       img.onload = () => {
         try {
-          // Calculate new dimensions
-          let { width, height } = img;
+          // Get original dimensions
+          const { width: originalWidth, height: originalHeight } = img;
           const maxW = opts.maxWidth!;
           const maxH = opts.maxHeight!;
 
-          // For orientations 5-8, swap width and height
+          // For orientations 5-8 (90° or 270° rotation), we need to swap dimensions
           const shouldSwapDimensions = orientation >= 5 && orientation <= 8;
+          
+          // Calculate dimensions BEFORE rotation
+          let width = originalWidth;
+          let height = originalHeight;
           
           if (width > maxW || height > maxH) {
             const ratio = Math.min(maxW / width, maxH / height);
@@ -114,9 +118,10 @@ export async function compressImage(
             height = Math.round(height * ratio);
           }
 
-          // Create canvas with correct dimensions based on orientation
+          // Create canvas with FINAL dimensions (after rotation)
           const canvas = document.createElement('canvas');
           if (shouldSwapDimensions) {
+            // Swap for 90° and 270° rotations
             canvas.width = height;
             canvas.height = width;
           } else {
@@ -124,44 +129,62 @@ export async function compressImage(
             canvas.height = height;
           }
 
-          const ctx = canvas.getContext('2d', { willReadFrequently: false });
+          const ctx = canvas.getContext('2d', { 
+            alpha: true,
+            willReadFrequently: false 
+          });
+          
           if (!ctx) {
-            // Cleanup
             if (objectURL) URL.revokeObjectURL(objectURL);
             reject(new Error('Failed to get canvas context'));
             return;
           }
 
+          // Fill with white background to prevent black images
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
           // Apply transformations based on EXIF orientation
+          // Reference: https://sirv.com/help/articles/rotate-photos-to-be-upright/
+          ctx.save(); // Save the context state
+          
           switch (orientation) {
             case 2:
+              // Horizontal flip
               ctx.transform(-1, 0, 0, 1, width, 0);
               break;
             case 3:
+              // 180° rotation
               ctx.transform(-1, 0, 0, -1, width, height);
               break;
             case 4:
+              // Vertical flip
               ctx.transform(1, 0, 0, -1, 0, height);
               break;
             case 5:
+              // Vertical flip + 90° rotate right
               ctx.transform(0, 1, 1, 0, 0, 0);
               break;
             case 6:
+              // 90° rotate right
               ctx.transform(0, 1, -1, 0, height, 0);
               break;
             case 7:
+              // Horizontal flip + 90° rotate right
               ctx.transform(0, -1, -1, 0, height, width);
               break;
             case 8:
+              // 90° rotate left
               ctx.transform(0, -1, 1, 0, 0, width);
               break;
             default:
-              // Orientation 1 or undefined - no transformation needed
+              // Orientation 1 - normal, no transformation
               break;
           }
 
           // Draw image with correct orientation
           ctx.drawImage(img, 0, 0, width, height);
+          ctx.restore(); // Restore the context state
 
           canvas.toBlob(
             (blob) => {

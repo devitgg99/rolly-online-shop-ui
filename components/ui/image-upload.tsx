@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { compressImage } from '@/lib/image-compression';
 
 interface ImageUploadProps {
   value?: string;
@@ -11,12 +12,21 @@ interface ImageUploadProps {
   disabled?: boolean;
   showUrlInput?: boolean; // Option to show/hide URL input
   onFileSelect?: (file: File) => Promise<string>; // Custom upload handler
+  maxSizeMB?: number; // Max file size before compression (default: auto-compress all)
 }
 
-export function ImageUpload({ value, onChange, disabled, showUrlInput = true, onFileSelect }: ImageUploadProps) {
+export function ImageUpload({ 
+  value, 
+  onChange, 
+  disabled, 
+  showUrlInput = true, 
+  onFileSelect,
+  maxSizeMB = 10 // Default: compress images larger than 10MB
+}: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
+  const [compressionProgress, setCompressionProgress] = useState('');
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -35,68 +45,89 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
       return;
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    if (file.size > maxSize) {
-      alert('Image size must be less than 5MB');
-      return;
-    }
+    console.log('📸 Original image:', {
+      name: file.name,
+      size: (file.size / 1024 / 1024).toFixed(2) + 'MB',
+      type: file.type
+    });
 
-    // Create preview with cleanup
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      // Revoke old preview URL if it exists (cleanup)
+    setIsUploading(true);
+    setCompressionProgress('Processing image...');
+
+    try {
+      let processedFile = file;
+
+      // Auto-compress if image is large OR if from camera (to fix orientation)
+      const shouldCompress = file.size > (maxSizeMB * 1024 * 1024) || file.type === 'image/jpeg';
+      
+      if (shouldCompress) {
+        setCompressionProgress('Compressing & fixing orientation...');
+        console.log('🔧 Compressing image...');
+        
+        try {
+          processedFile = await compressImage(file, {
+            maxWidth: 2048,
+            maxHeight: 2048,
+            quality: 0.85,
+            outputFormat: 'image/jpeg'
+          });
+          
+          console.log('✅ Compressed:', {
+            originalSize: (file.size / 1024 / 1024).toFixed(2) + 'MB',
+            compressedSize: (processedFile.size / 1024 / 1024).toFixed(2) + 'MB',
+            savings: (((file.size - processedFile.size) / file.size) * 100).toFixed(1) + '%'
+          });
+        } catch (compressionError) {
+          console.warn('⚠️ Compression failed, using original:', compressionError);
+          processedFile = file;
+        }
+      }
+
+      // Create preview from processed file
+      setCompressionProgress('Creating preview...');
+      const previewUrl = URL.createObjectURL(processedFile);
+      
+      // Revoke old preview URL if it exists
       if (preview && preview.startsWith('blob:')) {
         URL.revokeObjectURL(preview);
       }
-      setPreview(result);
-    };
-    
-    reader.onerror = () => {
-      console.error('❌ Failed to read file');
-      alert('Failed to read image file');
-    };
-    
-    reader.readAsDataURL(file);
+      setPreview(previewUrl);
 
-    // Upload to server/cloud storage
-    setIsUploading(true);
-    
-    try {
-      // Use custom upload handler if provided
+      // Upload to server
+      setCompressionProgress('Uploading...');
+      
       if (onFileSelect) {
-        const url = await onFileSelect(file);
+        const url = await onFileSelect(processedFile);
         onChange(url);
-        console.log('✅ Image uploaded successfully:', file.name);
+        console.log('✅ Image uploaded successfully:', processedFile.name);
         
-        // Replace preview with server URL
+        // Replace preview with server URL and cleanup blob
+        URL.revokeObjectURL(previewUrl);
         setPreview(url);
       } else {
-        // Fallback: convert to base64 (for demo purposes)
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
+        // Fallback: convert to base64
         const base64Reader = new FileReader();
         base64Reader.onload = (e) => {
           const result = e.target?.result as string;
           onChange(result);
+          URL.revokeObjectURL(previewUrl);
         };
         base64Reader.onerror = () => {
           console.error('❌ Failed to convert to base64');
         };
-        base64Reader.readAsDataURL(file);
-        
-        console.log('✅ Image converted to base64:', file.name);
+        base64Reader.readAsDataURL(processedFile);
       }
+      
+      setCompressionProgress('');
     } catch (error) {
       console.error('❌ Upload error:', error);
       alert('Failed to upload image. Please try again.');
       setPreview(null);
+      setCompressionProgress('');
     } finally {
       setIsUploading(false);
     }
-  }, [onChange, onFileSelect, preview]);
+  }, [onChange, onFileSelect, preview, maxSizeMB]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -217,7 +248,9 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <div className="text-white text-center">
                   <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-2"></div>
-                  <p className="text-sm">Uploading...</p>
+                  <p className="text-sm font-semibold">
+                    {compressionProgress || 'Uploading...'}
+                  </p>
                 </div>
               </div>
             )}
@@ -233,9 +266,14 @@ export function ImageUpload({ value, onChange, disabled, showUrlInput = true, on
             <p className="text-sm text-muted-foreground mb-4">
               Drag and drop or click to browse
             </p>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Upload className="w-4 h-4" />
-              <span>Supports: JPG, PNG, GIF, WEBP</span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+                <Upload className="w-4 h-4" />
+                <span>Supports: JPG, PNG, GIF, WEBP</span>
+              </div>
+              <p className="text-xs text-green-600 font-medium">
+                ✅ Auto-compresses large images
+              </p>
             </div>
 
             {isUploading && (
