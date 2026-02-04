@@ -1,3 +1,5 @@
+import { ApiResponse } from "./api.types";
+
 export interface SaleItem {
   productId: string;
   quantity: number;
@@ -67,8 +69,8 @@ export interface SaleListResponse {
   size: number;
   totalElements: number;
   totalPages: number;
-  first: boolean; // NOT isFirst!
-  last: boolean; // NOT isLast!
+  isFirst: boolean; // Changed from 'first' to match API
+  isLast: boolean; // Changed from 'last' to match API
 }
 
 // API Response Types
@@ -90,5 +92,40 @@ export interface SaleSummaryApiResponse {
   success: boolean;
   message: string;
   data: SaleSummary | null;
+  createdAt: string;
+}
+
+/**
+ * Product sales statistics
+ */
+export interface ProductSalesStats {
+  productId: string;
+  productName: string;
+  totalQuantitySold: number;
+  totalRevenue: number;
+  totalProfit: number;
+  currentStock: number;
+}
+
+/**
+ * Top selling product item
+ */
+export interface TopSellingProduct {
+  productId: string;
+  productName: string;
+  totalQuantitySold: number;
+}
+
+export interface ProductSalesStatsApiResponse {
+  success: boolean;
+  message: string;
+  data: ProductSalesStats | null;
+  createdAt: string;
+}
+
+export interface TopSellingProductsApiResponse {
+  success: boolean;
+  message: string;
+  data: TopSellingProduct[] | null;
   createdAt: string;
 }

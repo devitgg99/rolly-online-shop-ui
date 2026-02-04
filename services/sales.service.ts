@@ -3,6 +3,8 @@ import type {
   SaleApiResponse,
   SaleListApiResponse,
   SaleSummaryApiResponse,
+  ProductSalesStatsApiResponse,
+  TopSellingProductsApiResponse,
 } from "@/types/sales.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -295,6 +297,133 @@ export async function fetchSummaryByDateRange(
     return {
       success: false,
       message: "Network error while fetching summary by date range",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Get product sales statistics
+ * NOTE: This endpoint may not be available on backend yet
+ */
+export async function fetchProductSalesStats(
+  productId: string,
+  token: string
+): Promise<ProductSalesStatsApiResponse> {
+  try {
+    const url = `${API_URL}/sales/product/${productId}/stats`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.warn(`⚠️ Product stats endpoint not available: ${response.status}`);
+      return {
+        success: false,
+        message: `Product stats endpoint not available (${response.status})`,
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error fetching product sales stats:", error);
+    return {
+      success: false,
+      message: "Network error while fetching product sales stats",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Get top selling products (all time)
+ */
+export async function fetchTopSellingProducts(
+  limit: number = 10,
+  token: string
+): Promise<TopSellingProductsApiResponse> {
+  try {
+    const url = `${API_URL}/sales/top-selling?limit=${limit}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to fetch top selling products: ${response.statusText}`,
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error fetching top selling products:", error);
+    return {
+      success: false,
+      message: "Network error while fetching top selling products",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Get top selling products by date range
+ */
+export async function fetchTopSellingProductsByRange(
+  startDate: string,
+  endDate: string,
+  limit: number = 10,
+  token: string
+): Promise<TopSellingProductsApiResponse> {
+  try {
+    const url = `${API_URL}/sales/top-selling/range?startDate=${startDate}&endDate=${endDate}&limit=${limit}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to fetch top selling products by range: ${response.statusText}`,
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error fetching top selling products by range:", error);
+    return {
+      success: false,
+      message: "Network error while fetching top selling products by range",
       data: null,
       createdAt: new Date().toISOString(),
     };

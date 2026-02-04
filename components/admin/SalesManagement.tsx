@@ -30,6 +30,7 @@ import {
 import { findProductByBarcodeAction } from '@/actions/products/barcode.action';
 import BarcodeScanner from './BarcodeScanner';
 import ReceiptDialog from './ReceiptDialog';
+import TopSellingProducts from './TopSellingProducts';
 
 interface SalesManagementProps {
   initialSales: SaleListItem[]; // Changed from Sale[] to SaleListItem[]
@@ -504,49 +505,56 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Sales</h1>
-          <p className="text-muted-foreground">Point of Sale & Transaction Management</p>
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      {/* Header - Mobile Optimized */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold">Sales 🛒</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Point of Sale & Transactions</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} size="lg">
+        <Button 
+          onClick={() => setDialogOpen(true)} 
+          size="lg"
+          className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-all"
+        >
           <ShoppingCart className="w-4 h-4 mr-2" />
           New Sale
         </Button>
       </div>
 
-      {/* Summary Dashboard */}
+      {/* Top Selling Products Section */}
+      <TopSellingProducts />
+
+      {/* Summary Dashboard - Mobile Optimized */}
       {summary && (
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Sales Today</CardTitle>
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Sales Today</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{summary.totalSales}</div>
-              <p className="text-xs text-muted-foreground mt-1">Transactions</p>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-2xl sm:text-3xl font-bold">{summary.totalSales}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Transactions</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Revenue</CardTitle>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Revenue</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">${summary.totalRevenue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Total collected</p>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-xl sm:text-3xl font-bold">${summary.totalRevenue.toFixed(2)}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Total collected</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Cost</CardTitle>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Cost</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">${summary.totalCost.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Goods sold</p>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-xl sm:text-3xl font-bold text-orange-600">${summary.totalCost.toFixed(2)}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Goods sold</p>
             </CardContent>
           </Card>
 
@@ -741,6 +749,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                               <Image
                                 src={product.imageUrl}
                                 alt={product.name}
+                                unoptimized={true}
                                 fill
                                 className={`object-contain p-1 md:p-2 ${isOutOfStock ? 'grayscale' : ''}`}
                               />

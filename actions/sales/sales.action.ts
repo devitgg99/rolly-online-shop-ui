@@ -7,13 +7,20 @@ import {
   fetchSaleDetail, 
   fetchTodaySummary, 
   fetchSummaryByDateRange,
-  fetchTodaySales 
+  fetchTodaySales,
+  fetchSales,
+  fetchSalesByDateRange,
+  fetchProductSalesStats,
+  fetchTopSellingProducts,
+  fetchTopSellingProductsByRange
 } from "@/services/sales.service";
 import { 
   SaleRequest, 
   SaleApiResponse, 
   SaleSummaryApiResponse,
-  SaleListApiResponse 
+  SaleListApiResponse,
+  ProductSalesStatsApiResponse,
+  TopSellingProductsApiResponse
 } from "@/types/sales.types";
 import { logger } from "@/lib/logger";
 import { sanitizeError } from "@/lib/security";
@@ -166,6 +173,153 @@ export async function fetchTodaysSalesAction(): Promise<SaleListApiResponse> {
     return {
       success: false,
       message: error instanceof Error ? error.message : "Failed to fetch today's sales",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function fetchAllSalesAction(page: number = 0, size: number = 100): Promise<SaleListApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    const response = await fetchSales(page, size, token);
+    
+    return response;
+  } catch (error) {
+    logger.error("fetchAllSalesAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch all sales",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function fetchSalesByDateRangeAction(
+  startDate: string,
+  endDate: string
+): Promise<SaleListApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    const response = await fetchSalesByDateRange(startDate, endDate, token);
+    
+    return response;
+  } catch (error) {
+    logger.error("fetchSalesByDateRangeAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch sales by date range",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function fetchProductSalesStatsAction(productId: string): Promise<ProductSalesStatsApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    const response = await fetchProductSalesStats(productId, token);
+    
+    return response;
+  } catch (error) {
+    logger.error("fetchProductSalesStatsAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch product sales stats",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function fetchTopSellingProductsAction(limit: number = 10): Promise<TopSellingProductsApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    const response = await fetchTopSellingProducts(limit, token);
+    
+    return response;
+  } catch (error) {
+    logger.error("fetchTopSellingProductsAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch top selling products",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function fetchTopSellingProductsByRangeAction(
+  startDate: string,
+  endDate: string,
+  limit: number = 10
+): Promise<TopSellingProductsApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    const response = await fetchTopSellingProductsByRange(startDate, endDate, limit, token);
+    
+    return response;
+  } catch (error) {
+    logger.error("fetchTopSellingProductsByRangeAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch top selling products by range",
       data: null,
       createdAt: new Date().toISOString(),
     };
