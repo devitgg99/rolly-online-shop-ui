@@ -7,27 +7,14 @@ export async function uploadFileService(file: File, token: string): Promise<File
   try {
     console.log('🔍 [Upload Service] Starting upload...');
     console.log('🔍 [Upload Service] API URL:', API_URL);
-    console.log('🔍 [Upload Service] Original file:', file.name, formatFileSize(file.size));
+    console.log('🔍 [Upload Service] File:', file.name, formatFileSize(file.size));
     console.log('🔑 [Upload Service] Token present:', !!token);
 
-    // Compress image before upload
-    let fileToUpload = file;
-    if (isImageFile(file)) {
-      try {
-        console.log('🗜️  [Upload Service] Compressing image...');
-        fileToUpload = await compressImage(file, {
-          maxWidth: 1920,
-          maxHeight: 1920,
-          quality: 0.85,
-          outputFormat: 'image/jpeg',
-        });
-        console.log('✅ [Upload Service] Compression complete:', formatFileSize(fileToUpload.size));
-      } catch (compressionError) {
-        console.warn('⚠️  [Upload Service] Compression failed, uploading original:', compressionError);
-        // If compression fails, upload original file
-        fileToUpload = file;
-      }
-    }
+    // ✅ OPTIMIZATION: Skip compression here!
+    // Image is already compressed in image-upload.tsx component
+    // Double compression was causing slowness!
+    const fileToUpload = file;
+    console.log('⚡ [Upload Service] Using pre-compressed file (fast path)');
 
     if (!API_URL) {
       console.error('❌ [Upload Service] API_URL is not defined!');
@@ -40,11 +27,17 @@ export async function uploadFileService(file: File, token: string): Promise<File
     }
 
     const formData = new FormData();
-    formData.append('file', fileToUpload); // Backend expects 'file' field name
+    formData.append('file', fileToUpload);
 
     const uploadUrl = `${API_URL}/files/upload`;
     console.log('📤 [Upload Service] Uploading to:', uploadUrl);
-    console.log('📤 [Upload Service] Field name: file');
+
+    // ✅ OPTIMIZATION: Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      console.error('⏱️ [Upload Service] Upload timeout after 30s');
+    }, 30000); // 30 second timeout
 
     const response = await fetch(uploadUrl, {
       method: "POST",
@@ -52,7 +45,10 @@ export async function uploadFileService(file: File, token: string): Promise<File
         "Authorization": `Bearer ${token}`,
       },
       body: formData,
+      signal: controller.signal, // Enable timeout
     });
+
+    clearTimeout(timeoutId); // Clear timeout on success
 
     console.log('📦 [Upload Service] Response status:', response.status);
     console.log('📦 [Upload Service] Response ok:', response.ok);
@@ -83,9 +79,21 @@ export async function uploadFileService(file: File, token: string): Promise<File
       url: apiResponse.data.url, // For backward compatibility
       createdAt: apiResponse.createdAt,
     };
-  }
-  catch (error) {
+  } catch (error) {
     console.error('❌ [Upload Service] Network error:', error);
+    
+    // Handle specific error types
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        return {
+          success: false,
+          message: "Upload timeout. Please check your connection and try again.",
+          error: "Request timed out after 30 seconds",
+          url: "",
+        };
+      }
+    }
+    
     return {
       success: false,
       message: "Unable to reach server. Check if backend is running and accessible.",

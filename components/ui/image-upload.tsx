@@ -67,22 +67,27 @@ export function ImageUpload({
     try {
       let processedFile = file;
 
-      // Auto-compress if image is large OR if from camera (to fix orientation)
+      // ✅ OPTIMIZED: Faster compression with lower resolution for mobile
       const shouldCompress = file.size > (maxSizeMB * 1024 * 1024) || file.type === 'image/jpeg';
       
       if (shouldCompress) {
-        setCompressionProgress('Compressing & fixing orientation...');
-        console.log('🔧 Compressing image...');
+        setCompressionProgress('⚡ Optimizing...');
+        console.log('🔧 Compressing image (fast mode)...');
         
         try {
+          // Use lower resolution for faster compression
+          const compressionStart = performance.now();
+          
           processedFile = await compressImage(file, {
-            maxWidth: 2048,
-            maxHeight: 2048,
-            quality: 0.85,
+            maxWidth: 1920,  // Reduced from 2048 for speed
+            maxHeight: 1920,
+            quality: 0.80,   // Reduced from 0.85 for speed
             outputFormat: 'image/jpeg'
           });
           
-          console.log('✅ Compressed:', {
+          const compressionTime = (performance.now() - compressionStart) / 1000;
+          
+          console.log('✅ Compressed in', compressionTime.toFixed(2) + 's:', {
             originalSize: (file.size / 1024 / 1024).toFixed(2) + 'MB',
             compressedSize: (processedFile.size / 1024 / 1024).toFixed(2) + 'MB',
             savings: (((file.size - processedFile.size) / file.size) * 100).toFixed(1) + '%'
@@ -91,6 +96,8 @@ export function ImageUpload({
           console.warn('⚠️ Compression failed, using original:', compressionError);
           processedFile = file;
         }
+      } else {
+        console.log('⚡ File small enough, skipping compression');
       }
 
       // Create preview from processed file
@@ -104,21 +111,38 @@ export function ImageUpload({
       }
       setPreview(previewUrl);
 
-      // Upload to server
-      setCompressionProgress('Uploading...');
+      // Upload to server with timeout protection
+      setCompressionProgress('📤 Uploading...');
       
       if (onFileSelect) {
         console.log('📤 Starting upload to server...');
-        const url = await onFileSelect(processedFile);
-        onChange(url);
-        console.log('✅ Image uploaded successfully:', processedFile.name);
+        const uploadStart = performance.now();
         
-        // Replace preview with server URL and cleanup blob
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-          previewUrl = null;
+        // Add timeout wrapper around upload
+        const uploadPromise = onFileSelect(processedFile);
+        const timeoutPromise = new Promise<string>((_, reject) => {
+          setTimeout(() => reject(new Error('Upload timeout')), 45000); // 45s timeout
+        });
+        
+        try {
+          const url = await Promise.race([uploadPromise, timeoutPromise]);
+          const uploadTime = (performance.now() - uploadStart) / 1000;
+          
+          onChange(url);
+          console.log('✅ Uploaded in', uploadTime.toFixed(2) + 's:', processedFile.name);
+          
+          // Replace preview with server URL and cleanup blob
+          if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+          }
+          setPreview(url);
+        } catch (uploadError) {
+          if (uploadError instanceof Error && uploadError.message === 'Upload timeout') {
+            throw new Error('Upload timed out. Please check your connection and try again.');
+          }
+          throw uploadError;
         }
-        setPreview(url);
       } else {
         // Fallback: convert to base64
         const base64Reader = new FileReader();
