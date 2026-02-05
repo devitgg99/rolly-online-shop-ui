@@ -93,23 +93,53 @@ export default async function ProductsPage() {
     const data = await getInitialData();
     
     return (
-      <div className="p-3 sm:p-4 md:p-6">
+      <div className="p-3 sm:p-4 md:p-6 bg-gradient-to-br from-background via-background to-background/80">
         <Tabs defaultValue="grid" className="w-full">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">Products 📦</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Manage your product inventory
-              </p>
+          {/* Enhanced Header */}
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    📦
+                  </div>
+                  Products
+                </h1>
+                <p className="text-sm sm:text-base text-muted-foreground mt-2">
+                  Manage inventory with images, brands, and categories
+                </p>
+              </div>
+              <TabsList className="grid w-full sm:w-auto grid-cols-2 h-10">
+                <TabsTrigger value="grid" className="text-sm">
+                  Grid
+                </TabsTrigger>
+                <TabsTrigger value="table" className="text-sm">
+                  Table
+                </TabsTrigger>
+              </TabsList>
             </div>
-            <TabsList className="grid w-full sm:w-auto grid-cols-2 h-9 sm:h-10">
-              <TabsTrigger value="grid" className="text-xs sm:text-sm">
-                Grid View
-              </TabsTrigger>
-              <TabsTrigger value="table" className="text-xs sm:text-sm">
-                Inventory Table
-              </TabsTrigger>
-            </TabsList>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <p className="text-xs text-muted-foreground">Total Products</p>
+                <p className="text-lg sm:text-2xl font-bold">{data.products.length}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <p className="text-xs text-muted-foreground">Brands</p>
+                <p className="text-lg sm:text-2xl font-bold">{data.brands.length}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <p className="text-xs text-muted-foreground">Categories</p>
+                <p className="text-lg sm:text-2xl font-bold">{data.categories.length}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border hidden sm:block">
+                <p className="text-xs text-muted-foreground">Total Stock Value</p>
+                <p className="text-lg sm:text-2xl font-bold">
+                  ${(data.products.reduce((sum, p) => sum + (p.costPrice * p.stockQuantity), 0)).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+            </div>
           </div>
 
           <TabsContent value="grid" className="mt-0">
@@ -137,7 +167,7 @@ export default async function ProductsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">⚠️ Authentication Error</h1>
+          <h1 className="text-2xl font-bold text-red-600 mb-2">Authentication Error</h1>
           <p className="text-red-700 dark:text-red-300 mb-4">
             Unable to load products. Your session may have expired.
           </p>

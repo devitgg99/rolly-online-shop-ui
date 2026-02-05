@@ -58,6 +58,8 @@ import { SalesAnalyticsDashboard } from './SalesAnalyticsDashboard';
 import { RefundDialog } from './RefundDialog';
 import { SalesAdvancedFilters, type SalesFilters } from './SalesAdvancedFilters';
 import { exportSales, getReceiptPdf, fetchSalesWithFilters } from '@/services/sales.service';
+import { POSProductGrid } from './POSProductGrid';
+import { ReceiptList } from './ReceiptList';
 
 interface SalesManagementProps {
   initialSales: SaleListItem[]; // Changed from Sale[] to SaleListItem[]
@@ -953,136 +955,35 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         onApply={handleApplyFilters}
       />
 
-      {/* Sales List */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Recent Transactions</CardTitle>
-              <CardDescription>Latest sales and their details</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport('csv', false)}
-                disabled={isExporting || sales.length === 0}
-              >
-                <Download className="w-3 h-3 mr-1" />
-                CSV
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport('excel', true)}
-                disabled={isExporting || sales.length === 0}
-              >
-                <Download className="w-3 h-3 mr-1" />
-                Excel
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport('pdf', false)}
-                disabled={isExporting || sales.length === 0}
-              >
-                <FileText className="w-3 h-3 mr-1" />
-                PDF
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {sales.length > 0 ? (
-            <div className="space-y-3">
-              {sales.map((sale) => (
-                <Card key={sale.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-semibold">
-                            {sale.customerName || 'Walk-in Customer'}
-                          </h4>
-                          {(() => {
-                            const pmDisplay = getPaymentMethodDisplay(sale.paymentMethod || 'CASH');
-                            return (
-                              <Badge className={pmDisplay.color}>
-                                {pmDisplay.icon} {pmDisplay.label}
-                              </Badge>
-                            );
-                          })()}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{sale.itemCount || 0} items</span>
-                          <span>•</span>
-                          <span>{new Date(sale.createdAt).toLocaleString()}</span>
-                        </div>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <div className="space-y-1">
-                          <div className="text-2xl font-bold">${(sale.totalAmount || 0).toFixed(2)}</div>
-                          <div className="text-sm">
-                            <span className="text-green-600 font-semibold">
-                              +${(sale.profit || 0).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewSale(sale.id)}
-                            title="View Details"
-                          >
-                            <Eye className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenRefund(sale.id)}
-                            title="Process Refund"
-                          >
-                            <Undo2 className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownloadPdf(sale.id)}
-                            title="Download PDF"
-                          >
-                            <FileText className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlePrintReceipt(sale.id)}
-                            title="Print Receipt"
-                          >
-                            <Printer className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Receipt className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No sales yet</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Start by creating your first sale
-              </p>
-              <Button onClick={() => setDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Sale
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Receipt List with Pagination and Filtering */}
+      <ReceiptList
+        sales={sales}
+        onRefresh={async () => {
+          try {
+            setIsLoading(true);
+            const response = await fetchTodaysSummaryAction();
+            if (response.success && response.data) {
+              setSummary(response.data);
+              // Re-fetch sales
+              const salesRes = await (window as any).fetch('/api/sales', {
+                headers: { 'Authorization': `Bearer ${session?.backendToken}` }
+              });
+              if (salesRes.ok) {
+                const data = await salesRes.json();
+                setSales(data.data?.content || []);
+              }
+            }
+          } catch (error) {
+            console.error('Error refreshing:', error);
+            toast.error('Failed to refresh data');
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+        onSelectSale={(sale) => setViewDialog({ open: true, sale })}
+        onDownloadPDF={handleDownloadPdf}
+        onPrint={handlePrintReceipt}
+      />
 
       {/* Create Sale Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -1093,33 +994,10 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="flex flex-col md:flex-row h-[calc(90vh-80px)] md:h-[calc(85vh-100px)]">
-            {/* Left: Product Selection */}
-            <div className="flex-1 flex flex-col px-4 md:px-6 pb-4 md:pb-6 overflow-hidden">
-              {/* Search & Barcode */}
-              <div className="mb-3 md:mb-4 space-y-2">
-                {/* Search Bar with Scan Button */}
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search products..."
-                      className="pl-9 h-9 md:h-10"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 md:h-10 md:w-10 flex-shrink-0"
-                    onClick={() => setScannerOpen(true)}
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                {/* Barcode Input */}
+            {/* Left: Product Selection with Image Grid */}
+            <div className="flex-1 flex flex-col md:border-r border-border overflow-hidden">
+              {/* Barcode Input - Top */}
+              <div className="p-4 border-b border-border space-y-2">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Scan className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1127,26 +1005,35 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                       value={barcodeInput}
                       onChange={(e) => setBarcodeInput(e.target.value)}
                       onKeyPress={handleBarcodeInputKeyPress}
-                      placeholder="Enter barcode manually..."
-                      className="pl-9 h-9 md:h-10"
+                      placeholder="Scan or enter barcode..."
+                      className="pl-9 h-9"
+                      autoFocus
                     />
                   </div>
                   <Button
                     type="button"
-                    variant="default"
-                    size="sm"
-                    className="h-9 md:h-10 px-3 flex-shrink-0"
-                    onClick={handleBarcodeInputSubmit}
-                    disabled={!barcodeInput.trim()}
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 flex-shrink-0"
+                    onClick={() => setScannerOpen(true)}
+                    title="Open camera scanner"
                   >
-                    <Search className="h-4 w-4 mr-1" />
-                    Find
+                    <Camera className="h-4 w-4" />
                   </Button>
                 </div>
-                
-                {/* Barcode Scanner Info */}
-                {scannedBarcode && (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg border border-primary/30">
+              </div>
+
+              {/* Product Grid */}
+              <POSProductGrid
+                products={availableProducts || []}
+                onSelectProduct={handleAddToCart}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+              />
+              
+              {/* Barcode Scanner Info */}
+              {scannedBarcode && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg border border-primary/30 mx-4 mb-4">
                     <Scan className="w-4 h-4 text-primary flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-primary">Last Scanned:</p>
