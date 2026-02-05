@@ -20,4 +20,29 @@ export interface Brand {
     description: string;
   }
 
+  /**
+   * Brand Analytics - Product count and value per brand
+   */
+  export interface BrandAnalytics {
+    brandId: string;
+    brandName: string;
+    productCount: number;
+    totalInventoryValue: number;
+    totalPotentialProfit: number;
+    avgProductPrice: number;
+  }
+
+  /**
+   * Brand Statistics Summary
+   */
+  export interface BrandStats {
+    totalBrands: number;
+    brandsWithProducts: number;
+    brandsWithoutProducts: number;
+    totalProducts: number;
+    totalInventoryValue: number;
+  }
+
   export type BrandListResponse = ApiResponse<Brand[]>;
+  export type BrandAnalyticsResponse = ApiResponse<BrandAnalytics[]>;
+  export type BrandStatsResponse = ApiResponse<BrandStats>;

@@ -1,7 +1,29 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Plus, Receipt, DollarSign, TrendingUp, Package, Eye, Search, Minus, X, Scan, Camera } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { 
+  ShoppingCart, 
+  Plus, 
+  Receipt, 
+  DollarSign, 
+  TrendingUp, 
+  Package, 
+  Eye, 
+  Search, 
+  Minus, 
+  X, 
+  Scan, 
+  Camera,
+  Download,
+  Undo2,
+  BarChart3,
+  FileText,
+  Printer,
+  Box,
+  ShoppingBag,
+  Sparkles
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,8 +51,13 @@ import {
 } from '@/actions/sales/sales.action';
 import { findProductByBarcodeAction } from '@/actions/products/barcode.action';
 import BarcodeScanner from './BarcodeScanner';
+import { downloadReceipt, printReceipt } from '@/lib/receipt-generator';
 import ReceiptDialog from './ReceiptDialog';
 import TopSellingProducts from './TopSellingProducts';
+import { SalesAnalyticsDashboard } from './SalesAnalyticsDashboard';
+import { RefundDialog } from './RefundDialog';
+import { SalesAdvancedFilters, type SalesFilters } from './SalesAdvancedFilters';
+import { exportSales, getReceiptPdf, fetchSalesWithFilters } from '@/services/sales.service';
 
 interface SalesManagementProps {
   initialSales: SaleListItem[]; // Changed from Sale[] to SaleListItem[]
@@ -47,11 +74,26 @@ interface SaleFormData {
   customerName: string;
   customerPhone: string;
   discountAmount: string;
-  paymentMethod: 'CASH' | 'CARD' | 'ONLINE';
+  paymentMethod: 'CASH' | 'CARD' | 'E_WALLET' | 'BANK_TRANSFER' | 'COD';
   notes: string;
 }
 
+// Payment method display helper
+const getPaymentMethodDisplay = (method: string): { label: string; icon: string; color: string } => {
+  const displays: Record<string, { label: string; icon: string; color: string }> = {
+    'CASH': { label: 'Cash', icon: '💵', color: 'bg-green-100 text-green-700 border-green-300' },
+    'CARD': { label: 'Card', icon: '💳', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+    'E_WALLET': { label: 'E-Wallet', icon: '📱', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+    'BANK_TRANSFER': { label: 'Bank Transfer', icon: '🏦', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+    'COD': { label: 'Cash on Delivery', icon: '📦', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+    'ONLINE': { label: 'Online', icon: '🌐', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' }, // Legacy support
+  };
+  return displays[method] || { label: method, icon: '💰', color: 'bg-gray-100 text-gray-700 border-gray-300' };
+};
+
 export default function SalesManagement({ initialSales, initialSummary, availableProducts }: SalesManagementProps) {
+  const { data: session } = useSession();
+  
   const [sales, setSales] = useState<SaleListItem[]>(initialSales || []);
   const [summary, setSummary] = useState<SaleSummary | null>(initialSummary);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -63,7 +105,13 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     open: false,
     sale: null,
   });
+  const [refundDialog, setRefundDialog] = useState<{ open: boolean; sale: Sale | null }>({
+    open: false,
+    sale: null,
+  });
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [formData, setFormData] = useState<SaleFormData>({
@@ -72,6 +120,13 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     discountAmount: '',
     paymentMethod: 'CASH',
     notes: '',
+  });
+
+  // Advanced filters state
+  const [filters, setFilters] = useState<SalesFilters>({
+    paymentMethod: 'ALL',
+    sortBy: 'date',
+    direction: 'desc',
   });
 
   // Barcode scanner states
@@ -451,12 +506,14 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         
         // Update summary
         if (summary && response.data) {
+          const itemsCount = response.data.items.reduce((sum, item) => sum + item.quantity, 0);
           setSummary({
             ...summary,
             totalSales: summary.totalSales + 1,
             totalRevenue: summary.totalRevenue + response.data.totalAmount,
             totalCost: summary.totalCost + response.data.totalCost,
             totalProfit: summary.totalProfit + response.data.profit,
+            totalProductsSold: (summary.totalProductsSold || 0) + itemsCount,
           });
         }
 
@@ -504,6 +561,157 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     }
   };
 
+  // Handle opening refund dialog
+  const handleOpenRefund = async (saleId: string) => {
+    try {
+      setIsLoading(true);
+      const response = await fetchSaleDetailAction(saleId);
+      
+      if (response.success && response.data) {
+        setRefundDialog({ open: true, sale: response.data });
+      } else {
+        toast.error(response.message || 'Failed to load sale details');
+      }
+    } catch (error) {
+      console.error('Error loading sale details:', error);
+      toast.error('Failed to load sale details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle refund created
+  const handleRefundCreated = () => {
+    // Refresh sales list
+    window.location.reload();
+  };
+
+  // Handle export
+  const handleExport = async (format: 'csv' | 'excel' | 'pdf', includeItems: boolean = false) => {
+    if (!session?.backendToken) {
+      toast.error('Authentication required');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const exportFilters = {
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        paymentMethod: filters.paymentMethod !== 'ALL' ? filters.paymentMethod : undefined,
+        includeItems,
+      };
+
+      const response = await exportSales(format, session.backendToken, exportFilters);
+
+      if (response.success) {
+        toast.success(`Sales exported successfully as ${format.toUpperCase()}!`);
+      } else {
+        toast.error(response.message || 'Failed to export sales');
+      }
+    } catch (error) {
+      console.error('Error exporting sales:', error);
+      toast.error('Failed to export sales');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Download receipt PDF - Enhanced version
+  const handleDownloadPdf = async (saleId: string) => {
+    if (!session?.backendToken) {
+      toast.error('Authentication required');
+      return;
+    }
+
+    try {
+      // Fetch full sale details
+      const response = await fetchSaleDetailAction(saleId);
+      
+      if (!response.success || !response.data) {
+        toast.error('Failed to fetch sale details');
+        return;
+      }
+
+      // Generate and download enhanced receipt
+      await downloadReceipt(response.data, {
+        storeName: 'Rolly Online Shop',
+        storeAddress: '123 Business Street, City, Country',
+        storePhone: '+1 234 567 8900',
+        storeEmail: 'info@rollyshop.com',
+      });
+      
+      toast.success('Receipt PDF downloaded!');
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      toast.error('Failed to download receipt');
+    }
+  };
+
+  // Print receipt
+  const handlePrintReceipt = async (saleId: string) => {
+    if (!session?.backendToken) {
+      toast.error('Authentication required');
+      return;
+    }
+
+    try {
+      // Fetch full sale details
+      const response = await fetchSaleDetailAction(saleId);
+      
+      if (!response.success || !response.data) {
+        toast.error('Failed to fetch sale details');
+        return;
+      }
+
+      // Generate and print receipt
+      await printReceipt(response.data, {
+        storeName: 'Rolly Online Shop',
+        storeAddress: '123 Business Street, City, Country',
+        storePhone: '+1 234 567 8900',
+        storeEmail: 'info@rollyshop.com',
+      });
+      
+      toast.success('Receipt sent to printer!');
+    } catch (error) {
+      console.error('Error printing receipt:', error);
+      toast.error('Failed to print receipt');
+    }
+  };
+
+  // Apply filters
+  const handleApplyFilters = async () => {
+    if (!session?.backendToken) return;
+
+    setIsLoading(true);
+    try {
+      const filterParams = {
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        paymentMethod: filters.paymentMethod !== 'ALL' ? filters.paymentMethod : undefined,
+        minAmount: filters.minAmount ? parseFloat(filters.minAmount) : undefined,
+        maxAmount: filters.maxAmount ? parseFloat(filters.maxAmount) : undefined,
+        customerName: filters.customerName,
+        sortBy: filters.sortBy || 'date',
+        direction: filters.direction || 'desc',
+      };
+
+      const response = await fetchSalesWithFilters(filterParams, session.backendToken);
+
+      if (response.success && response.data) {
+        setSales(response.data.content);
+        toast.success(`Found ${response.data.totalElements} sales`);
+      } else {
+        toast.error(response.message || 'Failed to fetch sales');
+      }
+    } catch (error) {
+      console.error('Error fetching sales:', error);
+      toast.error('Failed to fetch sales');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header - Mobile Optimized */}
@@ -512,79 +720,277 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
           <h1 className="text-2xl sm:text-3xl font-bold">Sales 🛒</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Point of Sale & Transactions</p>
         </div>
-        <Button 
-          onClick={() => setDialogOpen(true)} 
-          size="lg"
-          className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-all"
-        >
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          New Sale
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant={showAnalytics ? 'default' : 'outline'}
+            onClick={() => setShowAnalytics(!showAnalytics)}
+            className="flex-1 sm:flex-none"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            {showAnalytics ? 'Hide' : 'Show'} Analytics
+          </Button>
+          <Button 
+            onClick={() => setDialogOpen(true)} 
+            size="lg"
+            className="flex-1 sm:flex-none shadow-lg hover:shadow-xl transition-all"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            New Sale
+          </Button>
+        </div>
       </div>
+
+      {/* Analytics Dashboard */}
+      {showAnalytics && (
+        <SalesAnalyticsDashboard />
+      )}
 
       {/* Top Selling Products Section */}
       <TopSellingProducts />
 
-      {/* Summary Dashboard - Mobile Optimized */}
+      {/* Enhanced Summary Dashboard - Today's Performance */}
       {summary && (
-        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Sales Today</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-              <div className="text-2xl sm:text-3xl font-bold">{summary.totalSales}</div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Transactions</p>
-            </CardContent>
-          </Card>
+        <div className="space-y-4">
+          {/* Main Title */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">Today's Performance 📊</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          </div>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Revenue</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-              <div className="text-xl sm:text-3xl font-bold">${summary.totalRevenue.toFixed(2)}</div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Total collected</p>
-            </CardContent>
-          </Card>
+          {/* Stats Grid - Enhanced Design */}
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {/* Transactions Count */}
+            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-blue-300">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -mr-10 -mt-10" />
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Transactions</CardTitle>
+                  <div className="p-2 bg-blue-100 dark:bg-blue-950 rounded-lg">
+                    <Receipt className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-black text-blue-600">{summary.totalSales}</div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <ShoppingCart className="w-3 h-3" />
+                  Sales completed
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Cost</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-              <div className="text-xl sm:text-3xl font-bold text-orange-600">${summary.totalCost.toFixed(2)}</div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Goods sold</p>
-            </CardContent>
-          </Card>
+            {/* Products Sold */}
+            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-purple-300">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full -mr-10 -mt-10" />
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Products Sold</CardTitle>
+                  <div className="p-2 bg-purple-100 dark:bg-purple-950 rounded-lg">
+                    <Package className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-black text-purple-600">{summary.totalProductsSold || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <Box className="w-3 h-3" />
+                  Total units moved
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Profit</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">${summary.totalProfit.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Net profit</p>
-            </CardContent>
-          </Card>
+            {/* Revenue */}
+            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-emerald-300">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full -mr-10 -mt-10" />
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Revenue</CardTitle>
+                  <div className="p-2 bg-emerald-100 dark:bg-emerald-950 rounded-lg">
+                    <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-black text-emerald-600">${summary.totalRevenue.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Total collected
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Margin</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{summary.profitMargin.toFixed(1)}%</div>
-              <p className="text-xs text-muted-foreground mt-1">Profit margin</p>
-            </CardContent>
-          </Card>
+            {/* Cost */}
+            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-orange-300">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full -mr-10 -mt-10" />
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Cost</CardTitle>
+                  <div className="p-2 bg-orange-100 dark:bg-orange-950 rounded-lg">
+                    <Minus className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-black text-orange-600">${summary.totalCost.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <ShoppingBag className="w-3 h-3" />
+                  Goods cost
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Profit - Highlighted */}
+            <Card className="relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-300 hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/20 rounded-full -mr-12 -mt-12" />
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold text-green-700 dark:text-green-300">💰 Profit</CardTitle>
+                  <div className="p-2 bg-green-200 dark:bg-green-900 rounded-lg shadow-md">
+                    <TrendingUp className="w-5 h-5 text-green-700 dark:text-green-300" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-black text-green-600 dark:text-green-400">${summary.totalProfit.toFixed(2)}</div>
+                <p className="text-xs font-semibold text-green-700 dark:text-green-300 mt-1 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  Net earnings today
+                </p>
+                <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-800">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Per transaction:</span>
+                    <span className="font-bold text-green-600">
+                      ${summary.totalSales > 0 ? (summary.totalProfit / summary.totalSales).toFixed(2) : '0.00'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Margin */}
+            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-cyan-300">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full -mr-10 -mt-10" />
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Margin</CardTitle>
+                  <div className="p-2 bg-cyan-100 dark:bg-cyan-950 rounded-lg">
+                    <BarChart3 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-black text-cyan-600">{summary.profitMargin.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Profit margin
+                </p>
+                {/* Progress bar */}
+                <div className="mt-2">
+                  <div className="h-2 bg-cyan-100 dark:bg-cyan-950 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
+                      style={{ width: `${Math.min(summary.profitMargin, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Insights */}
+          {summary.totalSales > 0 && (
+            <Card className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border-2">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                      <ShoppingCart className="w-5 h-5 text-blue-600 dark:text-blue-300" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Average Order Value</p>
+                      <p className="text-lg font-bold">
+                        ${(summary.totalRevenue / summary.totalSales).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                      <Package className="w-5 h-5 text-purple-600 dark:text-purple-300" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Products per Order</p>
+                      <p className="text-lg font-bold">
+                        {((summary.totalProductsSold || 0) / summary.totalSales).toFixed(1)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                      <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-300" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Profit per Product</p>
+                      <p className="text-lg font-bold text-green-600">
+                        ${((summary.totalProductsSold || 0) > 0 ? summary.totalProfit / (summary.totalProductsSold || 1) : 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
+
+      {/* Advanced Filters */}
+      <SalesAdvancedFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        onApply={handleApplyFilters}
+      />
 
       {/* Sales List */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Latest sales and their details</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>Latest sales and their details</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport('csv', false)}
+                disabled={isExporting || sales.length === 0}
+              >
+                <Download className="w-3 h-3 mr-1" />
+                CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport('excel', true)}
+                disabled={isExporting || sales.length === 0}
+              >
+                <Download className="w-3 h-3 mr-1" />
+                Excel
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport('pdf', false)}
+                disabled={isExporting || sales.length === 0}
+              >
+                <FileText className="w-3 h-3 mr-1" />
+                PDF
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {sales.length > 0 ? (
@@ -594,11 +1000,18 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h4 className="font-semibold">
                             {sale.customerName || 'Walk-in Customer'}
                           </h4>
-                          <Badge variant="outline">{sale.paymentMethod || 'CASH'}</Badge>
+                          {(() => {
+                            const pmDisplay = getPaymentMethodDisplay(sale.paymentMethod || 'CASH');
+                            return (
+                              <Badge className={pmDisplay.color}>
+                                {pmDisplay.icon} {pmDisplay.label}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span>{sale.itemCount || 0} items</span>
@@ -606,21 +1019,49 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                           <span>{new Date(sale.createdAt).toLocaleString()}</span>
                         </div>
                       </div>
-                      <div className="text-right space-y-1">
-                        <div className="text-2xl font-bold">${(sale.totalAmount || 0).toFixed(2)}</div>
-                        <div className="text-sm">
-                          <span className="text-green-600 font-semibold">
-                            +${(sale.profit || 0).toFixed(2)}
-                          </span>
+                      <div className="text-right space-y-2">
+                        <div className="space-y-1">
+                          <div className="text-2xl font-bold">${(sale.totalAmount || 0).toFixed(2)}</div>
+                          <div className="text-sm">
+                            <span className="text-green-600 font-semibold">
+                              +${(sale.profit || 0).toFixed(2)}
+                            </span>
+                          </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewSale(sale.id)}
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          Details
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewSale(sale.id)}
+                            title="View Details"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenRefund(sale.id)}
+                            title="Process Refund"
+                          >
+                            <Undo2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadPdf(sale.id)}
+                            title="Download PDF"
+                          >
+                            <FileText className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handlePrintReceipt(sale.id)}
+                            title="Print Receipt"
+                          >
+                            <Printer className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -909,7 +1350,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                 <div className="grid grid-cols-2 gap-2">
                   <Select
                     value={formData.paymentMethod}
-                    onValueChange={(value: 'CASH' | 'CARD' | 'ONLINE') => 
+                    onValueChange={(value: 'CASH' | 'CARD' | 'E_WALLET' | 'BANK_TRANSFER' | 'COD') => 
                       setFormData({ ...formData, paymentMethod: value })
                     }
                   >
@@ -919,7 +1360,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                     <SelectContent>
                       <SelectItem value="CASH">💵 Cash</SelectItem>
                       <SelectItem value="CARD">💳 Card</SelectItem>
-                      <SelectItem value="ONLINE">🌐 Online</SelectItem>
+                      <SelectItem value="E_WALLET">📱 E-Wallet</SelectItem>
+                      <SelectItem value="BANK_TRANSFER">🏦 Bank Transfer</SelectItem>
+                      <SelectItem value="COD">📦 Cash on Delivery</SelectItem>
                     </SelectContent>
                   </Select>
                   <Input
@@ -991,8 +1434,15 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                   <p>{viewDialog.sale.customerPhone || '-'}</p>
                 </div>
                 <div>
-                  <Label>Payment</Label>
-                  <p>{viewDialog.sale.paymentMethod}</p>
+                  <Label>Payment Method</Label>
+                  {(() => {
+                    const pmDisplay = getPaymentMethodDisplay(viewDialog.sale.paymentMethod);
+                    return (
+                      <Badge className={`${pmDisplay.color} mt-1`}>
+                        {pmDisplay.icon} {pmDisplay.label}
+                      </Badge>
+                    );
+                  })()}
                 </div>
                 <div>
                   <Label>Date</Label>
@@ -1079,6 +1529,14 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
           setScannerOpen(false); // Close immediately
           handleBarcodeScanned(barcode);
         }}
+      />
+
+      {/* Refund Dialog */}
+      <RefundDialog
+        open={refundDialog.open}
+        onOpenChange={(open) => setRefundDialog({ open, sale: null })}
+        sale={refundDialog.sale}
+        onRefundCreated={handleRefundCreated}
       />
     </div>
   );

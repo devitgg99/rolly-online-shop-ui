@@ -1,5 +1,7 @@
 import { ApiResponse } from "./api.types";
 
+export type PaymentMethod = 'CASH' | 'CARD' | 'E_WALLET' | 'BANK_TRANSFER' | 'COD';
+
 export interface SaleItem {
   productId: string;
   quantity: number;
@@ -21,7 +23,7 @@ export interface SaleRequest {
   customerPhone?: string;
   items: SaleItem[];
   discountAmount?: number;
-  paymentMethod: 'CASH' | 'CARD' | 'ONLINE';
+  paymentMethod: PaymentMethod;
   notes?: string;
 }
 
@@ -59,6 +61,7 @@ export interface SaleSummary {
   totalCost: number;
   totalProfit: number;
   profitMargin: number;
+  totalProductsSold?: number; // Total quantity of products sold (optional until backend implements)
   periodStart?: string;
   periodEnd?: string;
 }
@@ -128,4 +131,120 @@ export interface TopSellingProductsApiResponse {
   message: string;
   data: TopSellingProduct[] | null;
   createdAt: string;
+}
+
+/**
+ * Sales Analytics Data
+ */
+export interface SalesAnalytics {
+  totalSales: number;
+  totalRevenue: number;
+  totalProfit: number;
+  avgOrderValue: number;
+  salesByDay: {
+    date: string;
+    sales: number;
+    revenue: number;
+    profit: number;
+  }[];
+  salesByPaymentMethod: {
+    CASH: number;
+    CARD: number;
+    ONLINE: number;
+  };
+  salesByHour: {
+    hour: number;
+    sales: number;
+  }[];
+  topCustomers: {
+    name: string;
+    totalSpent: number;
+    orderCount: number;
+  }[];
+  profitMarginTrend: {
+    date: string;
+    margin: number;
+  }[];
+}
+
+export interface SalesAnalyticsApiResponse {
+  success: boolean;
+  message: string;
+  data: SalesAnalytics | null;
+  createdAt: string;
+}
+
+/**
+ * Refund & Return Types
+ */
+export interface RefundItemRequest {
+  productId: string;
+  quantity: number;
+  reason: string;
+}
+
+export interface RefundRequest {
+  items: RefundItemRequest[];
+  refundMethod: 'CASH' | 'CARD' | 'STORE_CREDIT';
+  notes?: string;
+}
+
+export interface RefundItem {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  refundAmount: number;
+  reason: string;
+}
+
+export interface Refund {
+  id: string;
+  saleId: string;
+  items: RefundItem[];
+  totalRefundAmount: number;
+  refundMethod: string;
+  processedBy: string;
+  processedByName: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface RefundListResponse {
+  content: Refund[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+export interface RefundApiResponse {
+  success: boolean;
+  message: string;
+  data: Refund | null;
+  createdAt: string;
+}
+
+export interface RefundListApiResponse {
+  success: boolean;
+  message: string;
+  data: RefundListResponse | null;
+  createdAt: string;
+}
+
+/**
+ * Sale Status Type
+ */
+export type SaleStatus = 'COMPLETED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
+
+/**
+ * Enhanced Sale with refund info
+ */
+export interface SaleWithRefunds extends Sale {
+  status: SaleStatus;
+  refundedAmount?: number;
+  refunds?: Refund[];
 }

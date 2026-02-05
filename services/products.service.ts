@@ -5,7 +5,14 @@ import type {
   ProductDetailApiResponse,
   ProductRequest,
   InventoryStatsApiResponse,
-  InventoryTableApiResponse
+  InventoryTableApiResponse,
+  ProductImagesApiResponse,
+  ProductImageApiResponse,
+  AddProductImageRequest,
+  ReorderImagesRequest,
+  StockHistoryApiResponse,
+  StockAdjustmentRequest,
+  StockAdjustmentApiResponse
 } from "@/types/product.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
@@ -607,6 +614,394 @@ export async function fetchInventoryTable(
       message: "Network error while fetching inventory table",
       data: null,
       createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+// ===================================
+// MULTI-IMAGE SUPPORT
+// ===================================
+
+/**
+ * Get all images for a product
+ */
+export async function fetchProductImages(
+  productId: string,
+  token: string
+): Promise<ProductImagesApiResponse> {
+  try {
+    const url = `${API_URL}/products/${productId}/images`;
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to fetch product images: ${response.statusText}`,
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error fetching product images:", error);
+    return {
+      success: false,
+      message: "Network error while fetching product images",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Add a new image to a product
+ */
+export async function addProductImage(
+  productId: string,
+  imageData: AddProductImageRequest,
+  token: string
+): Promise<ProductImageApiResponse> {
+  try {
+    const url = `${API_URL}/products/${productId}/images`;
+    
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(imageData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        message: errorData.message || `Failed to add product image: ${response.statusText}`,
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error adding product image:", error);
+    return {
+      success: false,
+      message: "Network error while adding product image",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Set an image as primary
+ */
+export async function setPrimaryProductImage(
+  productId: string,
+  imageId: string,
+  token: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const url = `${API_URL}/products/${productId}/images/${imageId}/set-primary`;
+    
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to set primary image: ${response.statusText}`,
+      };
+    }
+
+    return {
+      success: true,
+      message: "Primary image updated successfully",
+    };
+  } catch (error) {
+    console.error("Error setting primary image:", error);
+    return {
+      success: false,
+      message: "Network error while setting primary image",
+    };
+  }
+}
+
+/**
+ * Reorder product images
+ */
+export async function reorderProductImages(
+  productId: string,
+  orderData: ReorderImagesRequest,
+  token: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const url = `${API_URL}/products/${productId}/images/reorder`;
+    
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(orderData),
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to reorder images: ${response.statusText}`,
+      };
+    }
+
+    return {
+      success: true,
+      message: "Image order updated successfully",
+    };
+  } catch (error) {
+    console.error("Error reordering images:", error);
+    return {
+      success: false,
+      message: "Network error while reordering images",
+    };
+  }
+}
+
+/**
+ * Delete a product image
+ */
+export async function deleteProductImage(
+  productId: string,
+  imageId: string,
+  token: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const url = `${API_URL}/products/${productId}/images/${imageId}`;
+    
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        message: errorData.message || `Failed to delete image: ${response.statusText}`,
+      };
+    }
+
+    return {
+      success: true,
+      message: "Image deleted successfully",
+    };
+  } catch (error) {
+    console.error("Error deleting product image:", error);
+    return {
+      success: false,
+      message: "Network error while deleting image",
+    };
+  }
+}
+
+// ===================================
+// STOCK HISTORY LOG
+// ===================================
+
+/**
+ * Get stock change history for a product
+ */
+export async function fetchStockHistory(
+  productId: string,
+  page: number = 0,
+  size: number = 20,
+  startDate?: string,
+  endDate?: string,
+  token?: string
+): Promise<StockHistoryApiResponse> {
+  try {
+    let url = `${API_URL}/products/${productId}/stock-history?page=${page}&size=${size}`;
+    
+    if (startDate) {
+      url += `&startDate=${encodeURIComponent(startDate)}`;
+    }
+    if (endDate) {
+      url += `&endDate=${encodeURIComponent(endDate)}`;
+    }
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to fetch stock history: ${response.statusText}`,
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error fetching stock history:", error);
+    return {
+      success: false,
+      message: "Network error while fetching stock history",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Manually adjust stock (creates history entry)
+ */
+export async function adjustProductStock(
+  productId: string,
+  adjustmentData: StockAdjustmentRequest,
+  token: string
+): Promise<StockAdjustmentApiResponse> {
+  try {
+    const url = `${API_URL}/products/${productId}/stock-adjustment`;
+    
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(adjustmentData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        message: errorData.message || `Failed to adjust stock: ${response.statusText}`,
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error adjusting stock:", error);
+    return {
+      success: false,
+      message: "Network error while adjusting stock",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+// ===================================
+// EXPORT TO EXCEL/CSV
+// ===================================
+
+/**
+ * Export products to Excel or CSV
+ */
+export async function exportProducts(
+  format: 'csv' | 'excel',
+  token: string,
+  filters?: {
+    brandId?: string;
+    categoryId?: string;
+    lowStock?: boolean;
+    search?: string;
+    sortBy?: string;
+    direction?: 'asc' | 'desc';
+  }
+): Promise<{ success: boolean; message: string; blob?: Blob }> {
+  try {
+    let url = `${API_URL}/products/export?format=${format}`;
+    
+    if (filters) {
+      if (filters.brandId) url += `&brandId=${filters.brandId}`;
+      if (filters.categoryId) url += `&categoryId=${filters.categoryId}`;
+      if (filters.lowStock) url += `&lowStock=true`;
+      if (filters.search) url += `&search=${encodeURIComponent(filters.search)}`;
+      if (filters.sortBy) url += `&sortBy=${filters.sortBy}`;
+      if (filters.direction) url += `&direction=${filters.direction}`;
+    }
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to export products: ${response.statusText}`,
+      };
+    }
+
+    const blob = await response.blob();
+    
+    // Get filename from Content-Disposition header or create default
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let filename = `products-export-${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`;
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+
+    // Trigger download
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+
+    return {
+      success: true,
+      message: `Products exported successfully as ${format.toUpperCase()}`,
+      blob,
+    };
+  } catch (error) {
+    console.error("Error exporting products:", error);
+    return {
+      success: false,
+      message: "Network error while exporting products",
     };
   }
 }

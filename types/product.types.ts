@@ -198,8 +198,100 @@ export interface InventoryTableApiResponse {
   createdAt: string;
 }
 
+/**
+ * Product Image object (multi-image support)
+ */
+export interface ProductImage {
+  id: string;
+  productId: string;
+  url: string;
+  isPrimary: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Stock History Entry
+ */
+export interface StockHistoryEntry {
+  id: string;
+  productId: string;
+  productName: string;
+  previousStock: number;
+  newStock: number;
+  adjustment: number;
+  adjustmentType: 'SALE' | 'RESTOCK' | 'DAMAGE' | 'MANUAL' | 'RETURN' | 'CORRECTION';
+  reason?: string;
+  referenceId?: string;
+  referenceType?: 'SALE' | 'PURCHASE_ORDER' | 'ADJUSTMENT';
+  updatedBy: string;
+  updatedByName: string;
+  createdAt: string;
+}
+
+/**
+ * Stock History Response
+ */
+export interface StockHistoryResponse {
+  content: StockHistoryEntry[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+/**
+ * Stock Adjustment Request
+ */
+export interface StockAdjustmentRequest {
+  adjustment: number;
+  adjustmentType: 'SALE' | 'RESTOCK' | 'DAMAGE' | 'MANUAL' | 'RETURN' | 'CORRECTION';
+  reason?: string;
+}
+
+/**
+ * Stock Adjustment Response
+ */
+export interface StockAdjustmentResponse {
+  productId: string;
+  previousStock: number;
+  newStock: number;
+  adjustment: number;
+  adjustmentType: string;
+  reason?: string;
+  historyEntryId: string;
+  updatedBy: string;
+  updatedAt: string;
+}
+
+/**
+ * Add Product Image Request
+ */
+export interface AddProductImageRequest {
+  url: string;
+  isPrimary?: boolean;
+  displayOrder?: number;
+}
+
+/**
+ * Reorder Images Request
+ */
+export interface ReorderImagesRequest {
+  imageOrders: {
+    imageId: string;
+    displayOrder: number;
+  }[];
+}
+
 export type ProductListApiResponse = ApiResponse<ProductListResponse>;
 export type AdminProductListApiResponse = ApiResponse<AdminProductListResponse>;
 export type ProductDetailApiResponse = ApiResponse<ProductDetail>;
 export type AdminProductDetailApiResponse = ApiResponse<AdminProductDetail>;
 export type InventoryStatsApiResponse = ApiResponse<InventoryStats>;
+export type ProductImagesApiResponse = ApiResponse<ProductImage[]>;
+export type ProductImageApiResponse = ApiResponse<ProductImage>;
+export type StockHistoryApiResponse = ApiResponse<StockHistoryResponse>;
+export type StockAdjustmentApiResponse = ApiResponse<StockAdjustmentResponse>;

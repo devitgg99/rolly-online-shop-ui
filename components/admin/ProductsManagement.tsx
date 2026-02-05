@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { Package, Plus, Pencil, Trash2, Search, Filter, DollarSign, Box, TrendingUp, X, Tag, Layers, ShoppingBag, Sparkles, AlertTriangle, TrendingDown, Eye } from 'lucide-react';
+import { Package, Plus, Pencil, Trash2, Search, Filter, DollarSign, Box, TrendingUp, X, Tag, Layers, ShoppingBag, Sparkles, AlertTriangle, TrendingDown, Eye, Minus, Download, Keyboard, History, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 import type { AdminProduct, ProductRequest, InventoryStats } from '@/types/product.types';
 import type { Brand } from '@/types/brand.types';
@@ -37,6 +38,13 @@ import {
 } from '@/actions/products/products.action';
 import { uploadFileAction } from '@/actions/fileupload/fileupload.action';
 import BarcodeScanner from './BarcodeScanner';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { getStockBadgeClasses, getStockLevelInfo, SMART_FILTER_PRESETS, getActiveSmartFilters } from '@/lib/stock-utils';
+import { SmartFilterDropdown } from './SmartFilterDropdown';
+import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+import { StockHistoryDialog } from './StockHistoryDialog';
+import { MultiImageUpload } from './MultiImageUpload';
+import { exportProducts } from '@/services/products.service';
 
 type ProductFormData = {
   name: string;
@@ -81,11 +89,32 @@ export default function ProductsManagement({ initialProducts, brands, categories
   const [filterBrand, setFilterBrand] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false); // Added barcode scanner state
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [inventoryStats, setInventoryStats] = useState<InventoryStats | null>(null);
   const [lowStockProducts, setLowStockProducts] = useState<AdminProduct[]>([]);
   const [showLowStock, setShowLowStock] = useState(false);
   const [lowStockThreshold, setLowStockThreshold] = useState(10);
+  const [smartFilter, setSmartFilter] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  // New feature dialogs
+  const [stockHistoryDialog, setStockHistoryDialog] = useState<{
+    open: boolean;
+    productId: string | null;
+    productName: string;
+    currentStock: number;
+  }>({ open: false, productId: null, productName: '', currentStock: 0 });
+  
+  const [multiImageDialog, setMultiImageDialog] = useState<{
+    open: boolean;
+    productId: string | null;
+    productName: string;
+  }>({ open: false, productId: null, productName: '' });
+  
+  const [isExporting, setIsExporting] = useState(false);
+  
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
@@ -352,13 +381,95 @@ export default function ProductsManagement({ initialProducts, brands, categories
     setEditingProduct(null);
   };
 
+  // Stock History handlers
+  const handleOpenStockHistory = (product: AdminProduct) => {
+    setStockHistoryDialog({
+      open: true,
+      productId: product.id,
+      productName: product.name,
+      currentStock: product.stockQuantity,
+    });
+  };
+
+  const handleStockAdjusted = async () => {
+    // Refresh products list after stock adjustment
+    window.location.reload();
+  };
+
+  // Multi-Image handlers
+  const handleOpenMultiImage = (product: AdminProduct) => {
+    setMultiImageDialog({
+      open: true,
+      productId: product.id,
+      productName: product.name,
+    });
+  };
+
+  const handleImagesUpdated = async () => {
+    // Refresh products list after image changes
+    window.location.reload();
+  };
+
+  // Export handler
+  const handleExport = async (format: 'csv' | 'excel') => {
+    if (!session?.backendToken) {
+      toast.error('Authentication required');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const filters = {
+        brandId: filterBrand !== 'all' ? filterBrand : undefined,
+        categoryId: filterCategory !== 'all' ? filterCategory : undefined,
+        search: searchTerm || undefined,
+        lowStock: smartFilter === 'low-stock' ? true : undefined,
+      };
+
+      const response = await exportProducts(format, session.backendToken, filters);
+
+      if (response.success) {
+        toast.success(`Products exported successfully as ${format.toUpperCase()}!`);
+      } else {
+        toast.error(response.message || 'Failed to export products');
+      }
+    } catch (error) {
+      console.error('Error exporting products:', error);
+      toast.error('Failed to export products');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.barcode?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesBrand = filterBrand === 'all' || 
       brands.find(b => b.id === filterBrand)?.name === product.brandName;
     const matchesCategory = filterCategory === 'all' || 
       categories.find(c => c.id === filterCategory)?.name === product.categoryName;
-    return matchesSearch && matchesBrand && matchesCategory;
+    
+    // Smart filters
+    let matchesSmartFilter = true;
+    if (smartFilter) {
+      switch (smartFilter) {
+        case 'low-stock':
+          matchesSmartFilter = product.stockQuantity > 0 && product.stockQuantity <= lowStockThreshold;
+          break;
+        case 'out-of-stock':
+          matchesSmartFilter = product.stockQuantity === 0;
+          break;
+        case 'high-profit':
+          const profitMargin = product.price > 0 ? ((product.profit / product.price) * 100) : 0;
+          matchesSmartFilter = profitMargin >= 20;
+          break;
+        case 'on-sale':
+          matchesSmartFilter = product.discountPercent > 0;
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesBrand && matchesCategory && matchesSmartFilter;
   });
 
   const activeFiltersCount = (searchTerm ? 1 : 0) + (filterBrand !== 'all' ? 1 : 0) + (filterCategory !== 'all' ? 1 : 0);
@@ -376,31 +487,84 @@ export default function ProductsManagement({ initialProducts, brands, categories
   const totalProfit = products.reduce((sum, p) => sum + (p.profit * p.stockQuantity), 0);
   const avgPrice = products.length > 0 ? (products.reduce((sum, p) => sum + p.discountedPrice, 0) / products.length) : 0;
 
-  return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/50">
-                <Package className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight">Products</h1>
-                <p className="text-muted-foreground">Manage your product inventory</p>
-              </div>
-            </div>
-          </div>
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'k',
+      ctrl: true,
+      callback: () => searchInputRef.current?.focus(),
+      description: 'Focus search',
+    },
+    {
+      key: 'n',
+      ctrl: true,
+      callback: () => handleOpenDialog(),
+      description: 'New product',
+    },
+    {
+      key: 'Escape',
+      callback: () => {
+        if (dialogOpen) setDialogOpen(false);
+        if (scannerOpen) setScannerOpen(false);
+      },
+      description: 'Close dialogs',
+    },
+  ]);
 
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" className="shadow-lg" onClick={() => { setEditingProduct(null); resetForm(); }}>
-                <Plus className="w-5 h-5 mr-2" />
-                Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
+  // Bulk selection handlers
+  const handleSelectAll = () => {
+    if (selectedProducts.size === filteredProducts.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(filteredProducts.map(p => p.id)));
+    }
+  };
+
+  const handleSelectProduct = (productId: string) => {
+    const newSelection = new Set(selectedProducts);
+    if (newSelection.has(productId)) {
+      newSelection.delete(productId);
+    } else {
+      newSelection.add(productId);
+    }
+    setSelectedProducts(newSelection);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.size === 0) return;
+    
+    if (!confirm(`Delete ${selectedProducts.size} products? This cannot be undone.`)) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const promises = Array.from(selectedProducts).map(id => deleteProductAction(id));
+      await Promise.all(promises);
+      
+      setProducts(products.filter(p => !selectedProducts.has(p.id)));
+      setSelectedProducts(new Set());
+      toast.success(`${selectedProducts.size} products deleted successfully!`);
+    } catch (error) {
+      toast.error('Failed to delete some products');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Add Product Button */}
+      <div className="flex justify-end">
+        <Button size="lg" className="shadow-lg" onClick={handleOpenDialog}>
+          <Plus className="w-5 h-5 mr-2" />
+          Add Product
+        </Button>
+      </div>
+
+      {/* Product Form Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
               <DialogHeader>
                 <DialogTitle className="text-2xl">{editingProduct ? 'Edit Product' : 'Create New Product'}</DialogTitle>
                 <DialogDescription>
@@ -565,7 +729,7 @@ export default function ProductsManagement({ initialProducts, brands, categories
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
+
                   <div className="space-y-2 md:col-span-2">
                     <Label>Product Image *</Label>
                     <ImageUpload
@@ -576,9 +740,7 @@ export default function ProductsManagement({ initialProducts, brands, categories
                       disabled={isLoading}
                     />
                   </div>
-
-                  
-
+                </div>
 
                 <DialogFooter className="gap-2">
                   <Button type="button" variant="outline" onClick={resetForm} disabled={isLoading}>
@@ -589,11 +751,10 @@ export default function ProductsManagement({ initialProducts, brands, categories
                   </Button>
                 </DialogFooter>
               </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Inventory Stats Cards */}
+      {/* Inventory Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -726,85 +887,169 @@ export default function ProductsManagement({ initialProducts, brands, categories
           </Card>
         )}
 
-        {/* Search & Filters - Clean & Simple */}
+        {/* Search & Filters - Enhanced */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CardTitle className="text-lg">Filters</CardTitle>
                 <span className="text-sm text-muted-foreground">
                   ({filteredProducts.length} of {products.length})
                 </span>
-              </div>
-              {activeFiltersCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="h-8 text-xs"
-                >
-                  Clear all
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                {selectedProducts.size > 0 && (
+                  <Badge variant="secondary">
+                    {selectedProducts.size} selected
+                  </Badge>
                 )}
               </div>
-
-              {/* Brand */}
-              <Select value={filterBrand} onValueChange={setFilterBrand}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Brands" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Brands</SelectItem>
-                  {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Category */}
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 flex-wrap">
+                {selectedProducts.size > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    disabled={isLoading}
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Delete Selected ({selectedProducts.size})
+                  </Button>
+                )}
+                
+                {/* Export Buttons */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport('csv')}
+                  disabled={isExporting || products.length === 0}
+                  className="h-8"
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Export CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport('excel')}
+                  disabled={isExporting || products.length === 0}
+                  className="h-8"
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Export Excel
+                </Button>
+                
+                {activeFiltersCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="h-8 text-xs"
+                  >
+                    Clear all
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Search Bar with Keyboard Hint */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                ref={searchInputRef}
+                placeholder="Search products... (Ctrl+K)"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-20"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-14 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <kbd className="hidden sm:inline-flex h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                  <Keyboard className="w-3 h-3" />
+                </kbd>
+              </div>
             </div>
 
-            {/* Active Filters */}
+            {/* Filters Grid */}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Brand */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Brand</Label>
+                <Select value={filterBrand} onValueChange={setFilterBrand}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Brands" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Brands</SelectItem>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Category */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Category</Label>
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quick Filters */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Quick Filters</Label>
+                <Select value={smartFilter || 'all'} onValueChange={(val) => setSmartFilter(val === 'all' ? null : val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Products" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Products</SelectItem>
+                    <SelectItem value="low-stock">
+                      <AlertTriangle className="w-3 h-3 inline mr-1" />
+                      Low Stock (≤{lowStockThreshold})
+                    </SelectItem>
+                    <SelectItem value="out-of-stock">
+                      <TrendingDown className="w-3 h-3 inline mr-1" />
+                      Out of Stock
+                    </SelectItem>
+                    <SelectItem value="high-profit">
+                      <TrendingUp className="w-3 h-3 inline mr-1" />
+                      High Profit (&gt;20%)
+                    </SelectItem>
+                    <SelectItem value="on-sale">
+                      <Tag className="w-3 h-3 inline mr-1" />
+                      On Sale (Discounted)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Active Filters Tags */}
             {activeFiltersCount > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
+              <div className="flex flex-wrap gap-2 pt-3 border-t">
                 {searchTerm && (
                   <Badge variant="secondary" className="gap-1">
+                    <Search className="w-3 h-3" />
                     {searchTerm}
                     <button
                       onClick={() => setSearchTerm('')}
@@ -816,6 +1061,7 @@ export default function ProductsManagement({ initialProducts, brands, categories
                 )}
                 {filterBrand !== 'all' && (
                   <Badge variant="secondary" className="gap-1">
+                    <Sparkles className="w-3 h-3" />
                     {getActiveBrandName()}
                     <button
                       onClick={() => setFilterBrand('all')}
@@ -827,6 +1073,7 @@ export default function ProductsManagement({ initialProducts, brands, categories
                 )}
                 {filterCategory !== 'all' && (
                   <Badge variant="secondary" className="gap-1">
+                    <Layers className="w-3 h-3" />
                     {getActiveCategoryName()}
                     <button
                       onClick={() => setFilterCategory('all')}
@@ -841,113 +1088,469 @@ export default function ProductsManagement({ initialProducts, brands, categories
           </CardContent>
         </Card>
 
-        {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                {/* Image */}
-                <div className="relative h-48 bg-muted">
-                  {product.imageUrl ? (
-                    <Image
-                      src={product.imageUrl}
-                      alt={product.name}
-                      fill
-                      className="object-contain p-4"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-12 h-12 text-muted-foreground" />
-                    </div>
+        {/* Products View - Grid or Table */}
+        {filteredProducts.length > 0 ? viewMode === 'grid' ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredProducts.map((product) => {
+              const stockInfo = getStockLevelInfo(product.stockQuantity);
+              const profitMargin = product.price > 0 ? ((product.profit / product.price) * 100) : 0;
+              
+              return (
+                <Card 
+                  key={product.id} 
+                  className={cn(
+                    "group relative overflow-hidden transition-all duration-300",
+                    "hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2",
+                    "border-2 hover:border-primary/50",
+                    "bg-gradient-to-br from-card via-card to-card/80"
                   )}
-                  {product.discountPercent > 0 && (
-                    <Badge variant="destructive" className="absolute top-2 left-2">
-                      -{product.discountPercent}%
-                    </Badge>
-                  )}
-                  <Badge 
-                    variant={product.stockQuantity < 20 ? 'destructive' : 'secondary'}
-                    className="absolute top-2 right-2"
-                  >
-                    Stock: {product.stockQuantity}
-                  </Badge>
-                </div>
-
-                {/* Content */}
-                <CardContent className="p-4 space-y-3">
-                  {/* Product Name */}
-                  <h3 className="font-semibold line-clamp-2">{product.name}</h3>
-
-                  {/* Brand & Category */}
-                  <div className="flex gap-2 text-xs">
-                    <Badge variant="outline">{product.brandName}</Badge>
-                    <Badge variant="outline">{product.categoryName}</Badge>
-                  </div>
-
-                  {/* Prices */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Cost:</span>
-                      <span className="font-medium">${product.costPrice.toFixed(2)}</span>
+                >
+                  {/* Gradient Border Glow Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  {/* Image with Quick Actions Overlay */}
+                  <div className="relative h-56 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 overflow-hidden">
+                    {/* Animated Background Pattern */}
+                    <div className="absolute inset-0 opacity-5">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.3),transparent_50%)] group-hover:animate-pulse" />
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Price:</span>
-                      <span className="font-medium">${product.price.toFixed(2)}</span>
-                    </div>
-                    {product.discountPercent > 0 && (
-                      <div className="flex justify-between text-primary">
-                        <span>Discounted:</span>
-                        <span className="font-semibold">${product.discountedPrice.toFixed(2)}</span>
+                    
+                    {product.imageUrl ? (
+                      <div className="relative w-full h-full p-4">
+                        <Image
+                          src={product.imageUrl}
+                          alt={product.name}
+                          fill
+                          className="object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="relative">
+                          <Package className="w-16 h-16 text-muted-foreground/40 group-hover:text-primary/60 transition-colors duration-300" />
+                          <div className="absolute inset-0 animate-ping opacity-20">
+                            <Package className="w-16 h-16 text-primary" />
+                          </div>
+                        </div>
                       </div>
                     )}
-                    <div className="flex justify-between pt-2 border-t">
-                      <span className="text-muted-foreground">Profit/unit:</span>
-                      <span className="font-semibold text-green-600">${product.profit.toFixed(2)}</span>
+                    
+                    {/* Quick Actions Overlay (appears on hover) */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-end gap-2 p-4">
+                      <div className="flex gap-2 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <Link href={`/products/${product.id}`} className="flex-1">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="w-full h-9 shadow-lg hover:shadow-xl transition-shadow bg-white/95 hover:bg-white backdrop-blur"
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1.5" />
+                            View
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleEdit(product)}
+                          disabled={isLoading}
+                          className="h-9 px-3 shadow-lg bg-white/95 hover:bg-white backdrop-blur"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(product.id)}
+                          disabled={isLoading}
+                          className="h-9 px-3 shadow-lg hover:shadow-xl transition-shadow"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                      <div className="flex gap-2 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleOpenStockHistory(product)}
+                          className="flex-1 h-8 shadow-md bg-white/90 hover:bg-white backdrop-blur"
+                        >
+                          <History className="w-3 h-3 mr-1" />
+                          History
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleOpenMultiImage(product)}
+                          className="flex-1 h-8 shadow-md bg-white/90 hover:bg-white backdrop-blur"
+                        >
+                          <ImageIcon className="w-3 h-3 mr-1" />
+                          Images
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total profit:</span>
-                      <span className="font-bold text-green-600">${(product.profit * product.stockQuantity).toFixed(2)}</span>
+
+                    {/* Badges - Enhanced Design */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+                      {product.discountPercent > 0 && (
+                        <Badge className="bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/50 border-0 px-3 py-1 text-sm font-bold animate-pulse">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          {product.discountPercent}% OFF
+                        </Badge>
+                      )}
+                      {product.barcode && (
+                        <Badge variant="secondary" className="bg-background/95 backdrop-blur-md shadow-lg border-2 border-white/50">
+                          <Tag className="w-3 h-3 mr-1.5 text-blue-500" />
+                          <span className="font-mono text-xs">{product.barcode.slice(0, 10)}</span>
+                        </Badge>
+                      )}
                     </div>
+                    
+                    {/* Stock Badge - Enhanced */}
+                    <Badge 
+                      className={cn(
+                        "absolute top-3 right-3 shadow-xl font-bold px-3 py-1.5 text-xs z-10 transition-transform group-hover:scale-110",
+                        getStockBadgeClasses(product.stockQuantity)
+                      )}
+                    >
+                      <Package className="w-3 h-3 mr-1.5" />
+                      {product.stockQuantity} {stockInfo.label}
+                    </Badge>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <Link href={`/products/${product.id}`} className="flex-1">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(product)}
-                      className="flex-1"
-                      disabled={isLoading}
-                    >
-                      <Pencil className="w-3 h-3 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(product.id)}
-                      className="flex-1"
-                      disabled={isLoading}
-                    >
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  {/* Content - Enhanced Design */}
+                  <CardContent className="p-5 space-y-4 relative">
+                    {/* Product Name with Tooltip - Enhanced */}
+                    <div className="min-h-[48px] relative">
+                      <h3 className="font-bold line-clamp-2 text-base leading-tight text-foreground group-hover:text-primary transition-colors duration-300" title={product.name}>
+                        {product.name}
+                      </h3>
+                      <div className="absolute -bottom-1 left-0 h-0.5 w-0 bg-gradient-to-r from-primary to-purple-500 group-hover:w-full transition-all duration-500" />
+                    </div>
+
+                    {/* Brand & Category Tags - Enhanced */}
+                    <div className="flex flex-wrap gap-2 min-h-[28px]">
+                      <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-md hover:shadow-lg transition-shadow px-2.5 py-1">
+                        <Sparkles className="w-3 h-3 mr-1.5" />
+                        {product.brandName}
+                      </Badge>
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-md hover:shadow-lg transition-shadow px-2.5 py-1">
+                        <Layers className="w-3 h-3 mr-1.5" />
+                        {product.categoryName}
+                      </Badge>
+                    </div>
+
+                    {/* Key Metrics - Enhanced with Gradients */}
+                    <div className="space-y-3 text-xs">
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Cost Card */}
+                        <div className="relative overflow-hidden flex flex-col p-3 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-slate-300/20 dark:bg-slate-600/20 rounded-full -mr-8 -mt-8" />
+                          <span className="text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
+                            <DollarSign className="w-3 h-3" />
+                            Cost
+                          </span>
+                          <span className="font-black text-lg mt-1 text-slate-900 dark:text-slate-100">
+                            ${product.costPrice.toFixed(2)}
+                          </span>
+                        </div>
+                        
+                        {/* Price Card */}
+                        <div className="relative overflow-hidden flex flex-col p-3 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/40 dark:to-blue-950/40 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-300/20 dark:bg-blue-600/20 rounded-full -mr-8 -mt-8" />
+                          <span className="text-blue-600 dark:text-blue-400 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
+                            <Tag className="w-3 h-3" />
+                            Price
+                          </span>
+                          <div className="flex items-baseline gap-1 mt-1">
+                            <span className="font-black text-lg text-blue-700 dark:text-blue-300">
+                              ${product.discountedPrice.toFixed(2)}
+                            </span>
+                            {product.discountPercent > 0 && (
+                              <span className="text-[10px] text-slate-500 line-through">
+                                ${product.price.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Profit Summary - Enhanced with Animation */}
+                      <div className="relative overflow-hidden flex flex-col p-3 bg-gradient-to-br from-emerald-100 via-green-100 to-teal-100 dark:from-emerald-950/40 dark:via-green-950/40 dark:to-teal-950/40 rounded-xl border-2 border-emerald-300 dark:border-emerald-800 shadow-lg group/profit hover:shadow-xl transition-all duration-300">
+                        {/* Animated Background */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/profit:translate-x-full transition-transform duration-1000" />
+                        
+                        <div className="relative flex items-center justify-between mb-2">
+                          <span className="text-emerald-700 dark:text-emerald-300 text-[11px] uppercase tracking-wider font-bold flex items-center gap-1.5">
+                            <TrendingUp className="w-4 h-4 animate-bounce" />
+                            Profit Margin
+                          </span>
+                          <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 text-[10px] px-2 py-0.5 h-5 shadow-md font-bold">
+                            {profitMargin.toFixed(1)}%
+                          </Badge>
+                        </div>
+                        
+                        <div className="relative flex items-baseline justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Per Unit</span>
+                            <span className="text-emerald-700 dark:text-emerald-300 font-black text-xl">
+                              ${product.profit.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Total</span>
+                            <span className="text-emerald-700 dark:text-emerald-300 font-bold text-base">
+                              ${(product.profit * product.stockQuantity).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Progress Bar for Profit Margin */}
+                        <div className="mt-2 h-1.5 bg-emerald-200 dark:bg-emerald-900 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000 shadow-sm"
+                            style={{ width: `${Math.min(profitMargin, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile-optimized Actions - Enhanced */}
+                    <div className="flex flex-col gap-2 pt-3 sm:hidden border-t border-dashed">
+                      <div className="flex gap-2">
+                        <Link href={`/products/${product.id}`} className="flex-1">
+                          <Button
+                            size="sm"
+                            className="w-full text-xs h-9 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1.5" />
+                            View Details
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(product)}
+                          className="flex-1 text-xs h-9 border-2 hover:bg-primary/10"
+                          disabled={isLoading}
+                        >
+                          <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                          Edit
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenStockHistory(product)}
+                          className="flex-1 text-xs h-8 border-2 hover:bg-purple-50 dark:hover:bg-purple-950/20"
+                        >
+                          <History className="w-3 h-3 mr-1" />
+                          History
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenMultiImage(product)}
+                          className="flex-1 text-xs h-8 border-2 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+                        >
+                          <ImageIcon className="w-3 h-3 mr-1" />
+                          Images
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+        ) : (
+          /* Inventory Table View */
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 sticky top-0">
+                    <tr className="border-b">
+                      <th className="px-4 py-3 text-left font-semibold">
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.size === filteredProducts.length && filteredProducts.length > 0}
+                          onChange={handleSelectAll}
+                          className="rounded border-gray-300"
+                        />
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold">Product</th>
+                      <th className="px-4 py-3 text-left font-semibold hidden md:table-cell">Brand/Category</th>
+                      <th className="px-4 py-3 text-right font-semibold">Cost</th>
+                      <th className="px-4 py-3 text-right font-semibold">Price</th>
+                      <th className="px-4 py-3 text-right font-semibold hidden lg:table-cell">Profit</th>
+                      <th className="px-4 py-3 text-center font-semibold">Stock</th>
+                      <th className="px-4 py-3 text-right font-semibold hidden xl:table-cell">Total Value</th>
+                      <th className="px-4 py-3 text-center font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((product) => {
+                      const profitMargin = product.price > 0 ? ((product.profit / product.price) * 100) : 0;
+                      const isSelected = selectedProducts.has(product.id);
+                      
+                      return (
+                        <tr 
+                          key={product.id} 
+                          className={cn(
+                            "border-b hover:bg-muted/50 transition-colors",
+                            isSelected && "bg-primary/5"
+                          )}
+                        >
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleSelectProduct(product.id)}
+                              className="rounded border-gray-300"
+                            />
+                          </td>
+                          
+                          {/* Product Info */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                                {product.imageUrl ? (
+                                  <Image
+                                    src={product.imageUrl}
+                                    alt={product.name}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Package className="w-6 h-6 text-muted-foreground" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium truncate max-w-[200px]" title={product.name}>
+                                  {product.name}
+                                </p>
+                                {product.barcode && (
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Tag className="w-3 h-3" />
+                                    {product.barcode}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Brand & Category */}
+                          <td className="px-4 py-3 hidden md:table-cell">
+                            <div className="space-y-1">
+                              <Badge variant="outline" className="text-xs">{product.brandName}</Badge>
+                              <br className="hidden lg:block" />
+                              <Badge variant="outline" className="text-xs">{product.categoryName}</Badge>
+                            </div>
+                          </td>
+
+                          {/* Cost */}
+                          <td className="px-4 py-3 text-right font-medium">
+                            ${product.costPrice.toFixed(2)}
+                          </td>
+
+                          {/* Price */}
+                          <td className="px-4 py-3 text-right">
+                            <div className="text-right">
+                              <div className="font-semibold">${product.discountedPrice.toFixed(2)}</div>
+                              {product.discountPercent > 0 && (
+                                <div className="text-xs text-muted-foreground line-through">
+                                  ${product.price.toFixed(2)}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Profit */}
+                          <td className="px-4 py-3 text-right hidden lg:table-cell">
+                            <div className="text-right">
+                              <div className="font-semibold text-green-600">${product.profit.toFixed(2)}</div>
+                              <div className="text-xs text-muted-foreground">{profitMargin.toFixed(1)}%</div>
+                            </div>
+                          </td>
+
+                          {/* Stock */}
+                          <td className="px-4 py-3 text-center">
+                            <Badge className={getStockBadgeClasses(product.stockQuantity)}>
+                              {product.stockQuantity}
+                            </Badge>
+                          </td>
+
+                          {/* Total Value */}
+                          <td className="px-4 py-3 text-right hidden xl:table-cell">
+                            <div className="text-right">
+                              <div className="font-medium">${(product.costPrice * product.stockQuantity).toFixed(2)}</div>
+                              <div className="text-xs text-green-600">
+                                +${(product.profit * product.stockQuantity).toFixed(2)}
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-center gap-1">
+                              <Link href={`/products/${product.id}`}>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="View Product">
+                                  <Eye className="w-3 h-3" />
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(product)}
+                                disabled={isLoading}
+                                className="h-8 w-8 p-0"
+                                title="Edit Product"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenStockHistory(product)}
+                                className="h-8 w-8 p-0"
+                                title="Stock History"
+                              >
+                                <History className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenMultiImage(product)}
+                                className="h-8 w-8 p-0"
+                                title="Manage Images"
+                              >
+                                <ImageIcon className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(product.id)}
+                                disabled={isLoading}
+                                className="h-8 w-8 p-0 hover:text-destructive"
+                                title="Delete Product"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <Card className="text-center py-12">
             <CardContent>
@@ -968,26 +1571,48 @@ export default function ProductsManagement({ initialProducts, brands, categories
             </CardContent>
           </Card>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => setDeleteDialog({ open, productId: null })}
+          onConfirm={confirmDelete}
+          title="Delete Product"
+          description="Are you sure you want to delete this product? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          variant="destructive"
+        />
+
+        {/* Barcode Scanner Dialog */}
+        <BarcodeScanner
+          open={scannerOpen}
+          onClose={() => setScannerOpen(false)}
+          onScan={handleBarcodeScanned}
+        />
+
+        {/* Stock History Dialog */}
+        <StockHistoryDialog
+          open={stockHistoryDialog.open}
+          onOpenChange={(open) =>
+            setStockHistoryDialog({ open, productId: null, productName: '', currentStock: 0 })
+          }
+          productId={stockHistoryDialog.productId || ''}
+          productName={stockHistoryDialog.productName}
+          currentStock={stockHistoryDialog.currentStock}
+          onStockAdjusted={handleStockAdjusted}
+        />
+
+        {/* Multi-Image Upload Dialog */}
+        <MultiImageUpload
+          open={multiImageDialog.open}
+          onOpenChange={(open) =>
+            setMultiImageDialog({ open, productId: null, productName: '' })
+          }
+          productId={multiImageDialog.productId || ''}
+          productName={multiImageDialog.productName}
+          onImagesUpdated={handleImagesUpdated}
+        />
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={deleteDialog.open}
-        onOpenChange={(open) => setDeleteDialog({ open, productId: null })}
-        onConfirm={confirmDelete}
-        title="Delete Product"
-        description="Are you sure you want to delete this product? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
-        variant="destructive"
-      />
-
-      {/* Barcode Scanner Dialog */}
-      <BarcodeScanner
-        open={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        onScan={handleBarcodeScanned}
-      />
-    </div>
-  );
-}
+    );
+  }
