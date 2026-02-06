@@ -7,7 +7,7 @@ export interface Category {
   id: string;
   name: string;
   description: string;
-  imageUrl: string;
+  imageUrl?: string; // Optional - image is no longer required
   parentId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -19,7 +19,7 @@ export interface Category {
 export interface CategoryRequest {
   name: string;
   description: string;
-  imageUrl: string;
+  imageUrl?: string; // Optional - image is no longer required
   parentId?: string | null; // Optional: null for root category, UUID for subcategory
 }
 

@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -20,12 +20,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ImageUpload } from '@/components/ui/image-upload';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
 import { Category } from '@/types/category.types';
 import { createCategoryAction, updateCategoryAction, deleteCategoryAction } from '@/actions/categories/categories.action';
-import { uploadFileAction } from '@/actions/fileupload/fileupload.action';
 import { useRouter } from 'next/navigation';
 
 interface CategoriesManagementProps {
@@ -46,7 +44,6 @@ export default function CategoriesManagement({ categories: initialCategories }: 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    imageUrl: '',
     parentId: 'none', // 'none' for root, or UUID for subcategory
   });
 
@@ -58,11 +55,6 @@ export default function CategoriesManagement({ categories: initialCategories }: 
       return;
     }
 
-    if (!formData.imageUrl.trim()) {
-      toast.error('Category image is required');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -70,7 +62,6 @@ export default function CategoriesManagement({ categories: initialCategories }: 
       const categoryData = {
         name: formData.name,
         description: formData.description,
-        imageUrl: formData.imageUrl,
         // If 'none' is selected, don't send parentId (creates root category)
         // If UUID is selected, send it (creates subcategory)
         ...(formData.parentId !== 'none' && { parentId: formData.parentId }),
@@ -112,7 +103,6 @@ export default function CategoriesManagement({ categories: initialCategories }: 
     setFormData({
       name: category.name,
       description: category.description,
-      imageUrl: category.imageUrl,
       parentId: category.parentId || 'none',
     });
     setDialogOpen(true);
@@ -153,33 +143,9 @@ export default function CategoriesManagement({ categories: initialCategories }: 
   };
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', imageUrl: '', parentId: 'none' });
+    setFormData({ name: '', description: '', parentId: 'none' });
     setDialogOpen(false);
     setEditingCategory(null);
-  };
-
-  const handleFileUpload = async (file: File): Promise<string> => {
-    try {
-      if (!session?.backendToken) {
-        toast.error('Authentication required');
-        throw new Error('No authentication token');
-      }
-
-      toast.info('Uploading image... 📤');
-      
-      const response = await uploadFileAction(file, session.backendToken);
-      
-      if (response.success && response.data?.url) {
-        toast.success('Image uploaded successfully! ✅');
-        return response.data.url;
-      } else {
-        toast.error(response.message || 'Failed to upload image');
-        throw new Error(response.message || 'Upload failed');
-      }
-    } catch (error) {
-      toast.error('Failed to upload image. Please try again.');
-      throw error;
-    }
   };
 
   const getParentCategories = () => {
@@ -238,12 +204,13 @@ export default function CategoriesManagement({ categories: initialCategories }: 
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Category Image *</Label>
-                  <ImageUpload
-                    value={formData.imageUrl}
-                    onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-                    showUrlInput={false}
-                    onFileSelect={handleFileUpload}
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Enter category description..."
+                    rows={4}
                     disabled={isLoading}
                   />
                 </div>
@@ -270,18 +237,6 @@ export default function CategoriesManagement({ categories: initialCategories }: 
                   <p className="text-xs text-muted-foreground">
                     Leave as "None" to create a root category, or select a parent to create a subcategory
                   </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Enter category description..."
-                    rows={4}
-                    disabled={isLoading}
-                  />
                 </div>
 
                 <DialogFooter className="gap-2">
@@ -341,170 +296,84 @@ export default function CategoriesManagement({ categories: initialCategories }: 
           </Card>
         </div>
 
-        {/* Categories Grid */}
+        {/* Categories Table */}
         {categories.length > 0 ? (
-          <div className="space-y-8">
-            {/* Root Categories Section */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <FolderTree className="w-6 h-6 text-purple-600" />
-                Root Categories
-              </h2>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {getParentCategories().map((category) => (
-                  <Card key={category.id} className="group overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 hover:border-purple-500/20">
-                    {/* Image Section with Gradient Background */}
-                    <div className="relative h-48 bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 dark:from-purple-950/20 dark:via-pink-950/20 dark:to-indigo-950/20 flex items-center justify-center overflow-hidden">
-                      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-                      <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-800 shadow-xl group-hover:scale-110 transition-transform duration-300 relative z-10">
-                        <AvatarImage src={category.imageUrl} alt={category.name} className="object-cover" />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-3xl font-bold">
-                          {category.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      {/* Floating Badge */}
-                      <div className="absolute top-3 right-3">
-                        <Badge className="shadow-lg backdrop-blur-sm bg-purple-600/90">
-                          Root Category
-                        </Badge>
-                      </div>
-
-                      {/* Subcategory Count Badge */}
-                      {getSubCategories(category.id).length > 0 && (
-                        <div className="absolute bottom-3 left-3">
-                          <Badge variant="secondary" className="shadow-lg backdrop-blur-sm">
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Parent</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {categories.map((category) => {
+                  const parentCategory = categories.find(c => c.id === category.parentId);
+                  const subcategoryCount = getSubCategories(category.id).length;
+                  
+                  return (
+                    <TableRow key={category.id}>
+                      <TableCell className="font-medium">{category.name}</TableCell>
+                      <TableCell className="max-w-md">
+                        <span className="text-sm text-muted-foreground line-clamp-2">
+                          {category.description || 'No description'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {category.parentId ? (
+                          <Badge variant="secondary">
                             <Layers className="w-3 h-3 mr-1" />
-                            {getSubCategories(category.id).length} Subcategories
+                            Subcategory
                           </Badge>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content Section */}
-                    <CardHeader className="text-center pb-3 space-y-2">
-                      <CardTitle className="text-xl font-bold group-hover:text-purple-600 transition-colors">
-                        {category.name}
-                      </CardTitle>
-                      <CardDescription className="text-sm line-clamp-2 min-h-[40px] px-2">
-                        {category.description || 'No description available'}
-                      </CardDescription>
-                    </CardHeader>
-
-                    {/* Action Buttons */}
-                    <CardContent className="pt-0 pb-4">
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(category)}
-                          className="flex-1 h-9 hover:bg-purple-600 hover:text-white transition-all"
-                          disabled={isLoading}
-                        >
-                          <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(category.id)}
-                          className="flex-1 h-9 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30 transition-all"
-                          disabled={isLoading}
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                          Delete
-                        </Button>
-                      </div>
-                    </CardContent>
-
-                    {/* Subcategories Preview */}
-                    {getSubCategories(category.id).length > 0 && (
-                      <CardContent className="pt-0 pb-4 border-t">
-                        <div className="flex -space-x-2 mt-3">
-                          {getSubCategories(category.id).slice(0, 3).map((sub) => (
-                            <Avatar key={sub.id} className="w-8 h-8 border-2 border-white dark:border-gray-800">
-                              <AvatarImage src={sub.imageUrl} alt={sub.name} className="object-cover" />
-                              <AvatarFallback className="text-xs">{sub.name[0]}</AvatarFallback>
-                            </Avatar>
-                          ))}
-                          {getSubCategories(category.id).length > 3 && (
-                            <div className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-xs font-bold">
-                              +{getSubCategories(category.id).length - 3}
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    )}
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Subcategories Section */}
-            {getParentCategories().some(cat => getSubCategories(cat.id).length > 0) && (
-              <div>
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Layers className="w-6 h-6 text-blue-600" />
-                  All Subcategories
-                </h2>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {getParentCategories().flatMap(parent => 
-                    getSubCategories(parent.id).map((subCategory) => (
-                      <Card key={subCategory.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 border hover:border-blue-500/20">
-                        {/* Compact Image Header */}
-                        <div className="relative h-32 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 flex items-center justify-center">
-                          <Avatar className="w-20 h-20 border-2 border-white shadow-lg group-hover:scale-110 transition-transform">
-                            <AvatarImage src={subCategory.imageUrl} alt={subCategory.name} className="object-cover" />
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white text-xl">
-                              {subCategory.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-
-                        <CardHeader className="text-center pb-2">
-                          <Badge variant="outline" className="mx-auto mb-2 text-xs">
-                            <Layers className="w-3 h-3 mr-1" />
-                            {parent.name}
+                        ) : (
+                          <Badge className="bg-purple-600">
+                            <FolderTree className="w-3 h-3 mr-1" />
+                            Root
                           </Badge>
-                          <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
-                            {subCategory.name}
-                          </CardTitle>
-                          <CardDescription className="text-xs line-clamp-2 mt-1">
-                            {subCategory.description}
-                          </CardDescription>
-                        </CardHeader>
-
-                        <CardContent className="pt-0 pb-3">
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(subCategory)}
-                              className="flex-1 h-8 text-xs"
-                              disabled={isLoading}
-                            >
-                              <Pencil className="w-3 h-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(subCategory.id)}
-                              className="flex-1 h-8 text-xs text-destructive hover:bg-destructive/10"
-                              disabled={isLoading}
-                            >
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {parentCategory ? (
+                          <span className="text-sm">{parentCategory.name}</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">-</span>
+                        )}
+                        {subcategoryCount > 0 && !category.parentId && (
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            {subcategoryCount} sub
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(category)}
+                            disabled={isLoading}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(category.id)}
+                            className="text-destructive hover:bg-destructive/10"
+                            disabled={isLoading}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Card>
         ) : (
           <Card className="text-center py-16">
             <CardContent className="space-y-4">

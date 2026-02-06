@@ -1,11 +1,10 @@
 import { fetchAdminProducts, fetchInventoryTable } from '@/services/products.service';
-import { fetchBrands } from '@/services/brands.service';
 import { fetchCategories } from '@/services/categories.service';
 import { AdminProduct, InventoryTableItem } from '@/types/product.types';
-import { Brand } from '@/types/brand.types';
 import { Category } from '@/types/category.types';
 import ProductsManagement from '@/components/admin/ProductsManagement';
 import InventoryTable from '@/components/admin/InventoryTable';
+import ProductsByCategory from '@/components/admin/ProductsByCategory';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -15,7 +14,6 @@ export const dynamic = 'force-dynamic';
 
 async function getInitialData(): Promise<{
   products: AdminProduct[];
-  brands: Brand[];
   categories: Category[];
   inventoryData: InventoryTableItem[];
   inventoryMeta: { page: number; size: number; totalElements: number; totalPages: number };
@@ -34,7 +32,6 @@ async function getInitialData(): Promise<{
     console.error('❌ [Products Page] Please log out and log back in to refresh your session');
     return { 
       products: [], 
-      brands: [], 
       categories: [],
       inventoryData: [],
       inventoryMeta: { page: 0, size: 20, totalElements: 0, totalPages: 0 }
@@ -60,9 +57,8 @@ async function getInitialData(): Promise<{
     console.log('🔍 [Products Page] Could not decode token for expiry check');
   }
 
-  const [productsRes, brandsRes, categoriesRes, inventoryRes] = await Promise.all([
+  const [productsRes, categoriesRes, inventoryRes] = await Promise.all([
     fetchAdminProducts(0, 20, token),
-    fetchBrands(),
     fetchCategories(),
     fetchInventoryTable(0, 20, 'name', 'asc', token),
   ]);
@@ -75,7 +71,6 @@ async function getInitialData(): Promise<{
   });
 
   const products: AdminProduct[] = productsRes.success && productsRes.data ? productsRes.data.content : [];
-  const brands: Brand[] = brandsRes.success && brandsRes.data ? brandsRes.data : [];
   const categories: Category[] = categoriesRes.success && categoriesRes.data ? categoriesRes.data : [];
   const inventoryData: InventoryTableItem[] = inventoryRes.success && inventoryRes.data?.content ? inventoryRes.data.content : [];
   const inventoryMeta = inventoryRes.success && inventoryRes.data ? {
@@ -85,7 +80,7 @@ async function getInitialData(): Promise<{
     totalPages: inventoryRes.data.totalPages,
   } : { page: 0, size: 20, totalElements: 0, totalPages: 0 };
 
-  return { products, brands, categories, inventoryData, inventoryMeta };
+  return { products, categories, inventoryData, inventoryMeta };
 }
 
 export default async function ProductsPage() {
@@ -102,7 +97,10 @@ export default async function ProductsPage() {
                 Manage your product inventory
               </p>
             </div>
-            <TabsList className="grid w-full sm:w-auto grid-cols-2 h-9 sm:h-10">
+            <TabsList className="grid w-full sm:w-auto grid-cols-3 h-9 sm:h-10">
+              <TabsTrigger value="category" className="text-xs sm:text-sm">
+                By Category
+              </TabsTrigger>
               <TabsTrigger value="grid" className="text-xs sm:text-sm">
                 Grid View
               </TabsTrigger>
@@ -112,10 +110,15 @@ export default async function ProductsPage() {
             </TabsList>
           </div>
 
+          <TabsContent value="category" className="mt-0">
+            <ProductsByCategory
+              categories={data.categories}
+            />
+          </TabsContent>
+
           <TabsContent value="grid" className="mt-0">
             <ProductsManagement
               initialProducts={data.products}
-              brands={data.brands}
               categories={data.categories}
             />
           </TabsContent>
@@ -127,6 +130,7 @@ export default async function ProductsPage() {
               initialSize={data.inventoryMeta.size}
               initialTotalElements={data.inventoryMeta.totalElements}
               initialTotalPages={data.inventoryMeta.totalPages}
+              categories={data.categories}
             />
           </TabsContent>
         </Tabs>

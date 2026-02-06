@@ -25,14 +25,32 @@ export async function fetchAdminProducts(
   size: number = 10,
   token: string,
   sortBy: string = "createdAt",
-  direction: string = "desc"
+  direction: string = "desc",
+  categoryId?: string,
+  search?: string
 ): Promise<AdminProductListApiResponse> {
   try {
-    const url = `${API_URL}/products/admin/all?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`;
+    // Build query params
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+    params.append('sortBy', sortBy);
+    params.append('direction', direction);
+    
+    if (categoryId) {
+      params.append('categoryId', categoryId);
+    }
+    
+    if (search) {
+      params.append('search', search);
+    }
+    
+    const url = `${API_URL}/products/admin/all?${params.toString()}`;
     
     console.log('📡 Fetching admin products from:', url);
     console.log('🔑 Token present:', !!token);
     console.log('🔑 Token length:', token?.length || 0);
+    console.log('🔍 Filters:', { categoryId, search });
 
     const response = await fetch(url, {
       method: "GET",
@@ -582,10 +600,26 @@ export async function fetchInventoryTable(
   size: number = 20,
   sortBy: string = "name",
   direction: string = "asc",
-  token: string
+  token: string,
+  categoryId?: string,
+  search?: string
 ): Promise<InventoryTableApiResponse> {
   try {
-    const url = `${API_URL}/products/admin/inventory?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`;
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+    params.append('sortBy', sortBy);
+    params.append('direction', direction);
+    
+    if (categoryId) {
+      params.append('categoryId', categoryId);
+    }
+    
+    if (search) {
+      params.append('search', search);
+    }
+    
+    const url = `${API_URL}/products/admin/inventory?${params.toString()}`;
 
     const response = await fetch(url, {
       method: "GET",

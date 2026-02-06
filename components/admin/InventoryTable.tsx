@@ -40,7 +40,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import type { InventoryTableItem } from '@/types/product.types';
+import type { Category } from '@/types/category.types';
 import { fetchInventoryTableAction } from '@/actions/products/products.action';
+import { Label } from '@/components/ui/label';
 
 interface InventoryTableProps {
   initialData: InventoryTableItem[];
@@ -48,6 +50,7 @@ interface InventoryTableProps {
   initialSize: number;
   initialTotalElements: number;
   initialTotalPages: number;
+  categories: Category[];
 }
 
 export default function InventoryTable({ 
@@ -55,10 +58,13 @@ export default function InventoryTable({
   initialPage, 
   initialSize, 
   initialTotalElements,
-  initialTotalPages 
+  initialTotalPages,
+  categories
 }: InventoryTableProps) {
   const [data, setData] = useState<InventoryTableItem[]>(initialData);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [direction, setDirection] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(initialPage);
@@ -67,11 +73,28 @@ export default function InventoryTable({
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load data
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(0); // Reset to first page when search changes
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Load data with filters
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetchInventoryTableAction(page, size, sortBy, direction);
+      const response = await fetchInventoryTableAction(
+        page, 
+        size, 
+        sortBy, 
+        direction,
+        filterCategory !== 'all' ? filterCategory : undefined,
+        debouncedSearch || undefined
+      );
       if (response.success && response.data) {
         setData(response.data.content);
         setTotalElements(response.data.totalElements);
@@ -87,10 +110,10 @@ export default function InventoryTable({
     }
   };
 
-  // Reload when sorting changes
+  // Reload when filters or sorting changes
   useEffect(() => {
     loadData();
-  }, [page, size, sortBy, direction]);
+  }, [page, size, sortBy, direction, filterCategory, debouncedSearch]);
 
   // Handle sort
   const handleSort = (field: string) => {
@@ -103,13 +126,8 @@ export default function InventoryTable({
     setPage(0); // Reset to first page
   };
 
-  // Filter data by search
-  const filteredData = data.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.barcode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.categoryName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.brandName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Data is already filtered by backend
+  const filteredData = data;
 
   // Calculate summary
   const summary = {
@@ -117,6 +135,14 @@ export default function InventoryTable({
     totalRevenue: data.reduce((sum, item) => sum + item.totalRevenue, 0),
     totalProfit: data.reduce((sum, item) => sum + item.totalProfit, 0),
     totalStock: data.reduce((sum, item) => sum + item.stockQuantity, 0),
+  };
+
+  const activeFiltersCount = (debouncedSearch ? 1 : 0) + (filterCategory !== 'all' ? 1 : 0);
+  
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setFilterCategory('all');
+    setPage(0);
   };
 
   // Sort indicator
@@ -219,23 +245,63 @@ export default function InventoryTable({
       {/* Table Card */}
       <Card>
         <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <CardTitle className="text-lg sm:text-xl">Inventory Details</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                {totalElements} products with full sales data
-              </CardDescription>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg sm:text-xl">Inventory Details</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  {totalElements} products with full sales data
+                </CardDescription>
+              </div>
             </div>
-            
-            {/* Search */}
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search products..."
-                className="pl-8 sm:pl-9 h-9 sm:h-10 text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+
+            {/* Filters & Search */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Category Filter */}
+              <div className="flex-1 sm:max-w-xs">
+                <Select 
+                  value={filterCategory} 
+                  onValueChange={(value) => {
+                    setFilterCategory(value);
+                    setPage(0);
+                  }}
+                >
+                  <SelectTrigger className="h-9 sm:h-10">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Search */}
+              <div className="relative flex-1 sm:max-w-xs">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search products..."
+                  className="pl-8 sm:pl-9 h-9 sm:h-10 text-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              {/* Clear Filters Button */}
+              {activeFiltersCount > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearAllFilters}
+                  className="h-9 sm:h-10"
+                >
+                  Clear Filters
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -275,9 +341,6 @@ export default function InventoryTable({
                         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                           <Badge variant="outline" className="text-[10px]">
                             {item.categoryName}
-                          </Badge>
-                          <Badge variant="secondary" className="text-[10px]">
-                            {item.brandName}
                           </Badge>
                         </div>
                         
@@ -412,12 +475,9 @@ export default function InventoryTable({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1">
-                          <Badge variant="outline" className="text-xs">
-                            {item.categoryName}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground">{item.brandName}</p>
-                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {item.categoryName}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-orange-600 font-medium">
                         ${item.costPrice.toFixed(2)}

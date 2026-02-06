@@ -35,7 +35,7 @@ export interface Product {
   discountedPrice: number;
   stockQuantity: number;
   imageUrl: string;
-  brandName: string;
+  brandName?: string; // Optional - brand is no longer required
   categoryName: string;
 }
 
@@ -46,7 +46,7 @@ export interface Product {
 export interface AdminProduct {
   id: string;
   name: string;
-  barcode?: string; // Added barcode
+  barcode?: string;
   costPrice: number;
   price: number;
   discountPercent: number;
@@ -54,7 +54,7 @@ export interface AdminProduct {
   profit: number;
   stockQuantity: number;
   imageUrl: string;
-  brandName: string;
+  brandName?: string; // Optional - brand is no longer required
   categoryName: string;
 }
 
@@ -66,13 +66,13 @@ export interface ProductDetail {
   id: string;
   name: string;
   description: string;
-  barcode?: string; // Added barcode
+  barcode?: string;
   price: number;
   discountPercent: number;
   discountedPrice: number;
   stockQuantity: number;
   imageUrl: string;
-  brand: ProductBrand;
+  brand?: ProductBrand | null; // Optional - brand is no longer required
   category: ProductCategory;
   averageRating: number;
   createdAt: string;
@@ -86,7 +86,7 @@ export interface AdminProductDetail {
   id: string;
   name: string;
   description: string;
-  barcode?: string; // Added barcode
+  barcode?: string;
   costPrice: number;
   price: number;
   discountPercent: number;
@@ -94,7 +94,7 @@ export interface AdminProductDetail {
   profit: number;
   stockQuantity: number;
   imageUrl: string;
-  brand: ProductBrand;
+  brand?: ProductBrand | null; // Optional - brand is no longer required
   category: ProductCategory;
   averageRating: number;
   createdAt: string;
@@ -107,13 +107,13 @@ export interface AdminProductDetail {
 export interface ProductRequest {
   name: string;
   description: string;
-  barcode?: string; // Added barcode
+  barcode?: string;
   costPrice: number;
   price: number;
   discountPercent: number;
   stockQuantity: number;
   imageUrl: string;
-  brandId: string;
+  brandId?: string; // Optional - brand is no longer required
   categoryId: string;
 }
 
@@ -162,7 +162,7 @@ export interface InventoryTableItem {
   name: string;
   barcode: string | null;
   categoryName: string;
-  brandName: string;
+  brandName?: string; // Optional - brand is no longer required
   costPrice: number;
   price: number;
   discountPercent: number;

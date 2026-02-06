@@ -8,7 +8,8 @@ import {
   deleteProductService,
   fetchInventoryStats,
   fetchLowStockProducts,
-  fetchInventoryTable
+  fetchInventoryTable,
+  fetchAdminProducts
 } from "@/services/products.service";
 import { 
   ProductRequest, 
@@ -163,11 +164,56 @@ export async function fetchLowStockProductsAction(
   }
 }
 
+export async function fetchAdminProductsAction(
+  page: number = 0,
+  size: number = 20,
+  sortBy: string = "createdAt",
+  direction: string = "desc",
+  categoryId?: string,
+  search?: string
+): Promise<AdminProductListApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    const response = await fetchAdminProducts(
+      page, 
+      size, 
+      token, 
+      sortBy, 
+      direction,
+      categoryId,
+      search
+    );
+    
+    return response;
+  } catch (error) {
+    logger.error("fetchAdminProductsAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch admin products",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
 export async function fetchInventoryTableAction(
   page: number = 0,
   size: number = 20,
   sortBy: string = "name",
-  direction: string = "asc"
+  direction: string = "asc",
+  categoryId?: string,
+  search?: string
 ): Promise<InventoryTableApiResponse> {
   try {
     const session = await getServerSession(authOptions);
@@ -182,7 +228,15 @@ export async function fetchInventoryTableAction(
     }
 
     const token = (session as any).backendToken;
-    const response = await fetchInventoryTable(page, size, sortBy, direction, token);
+    const response = await fetchInventoryTable(
+      page, 
+      size, 
+      sortBy, 
+      direction, 
+      token,
+      categoryId,
+      search
+    );
     
     return response;
   } catch (error) {
