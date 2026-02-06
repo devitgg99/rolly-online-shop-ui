@@ -172,10 +172,12 @@ export default function AdminProductDetailPage() {
                     </div>
                   )}
                   
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Brand:</span>
-                    <span className="font-medium">{product.brand.name}</span>
-                  </div>
+                  {product.brand && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Brand:</span>
+                      <span className="font-medium">{product.brand.name}</span>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Category:</span>
