@@ -190,8 +190,12 @@ export default function ProductDetailPage() {
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{product.category.name}</span>
-              <span>/</span>
-              <span>{product.brand.name}</span>
+              {product.brand && (
+                <>
+                  <span>/</span>
+                  <span>{product.brand.name}</span>
+                </>
+              )}
             </div>
 
             {/* Title */}
@@ -271,23 +275,25 @@ export default function ProductDetailPage() {
 
             {/* Brand & Category */}
             <div className="border-t pt-4 space-y-3">
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted-foreground w-20">Brand:</span>
-                <div className="flex items-center gap-2">
-                  {product.brand.logoUrl && (
-                    <div className="relative w-8 h-8 rounded overflow-hidden">
-                      <Image
-                        src={product.brand.logoUrl}
-                        alt={product.brand.name}
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  )}
-                  <span className="font-medium">{product.brand.name}</span>
+              {product.brand && (
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground w-20">Brand:</span>
+                  <div className="flex items-center gap-2">
+                    {product.brand.logoUrl && (
+                      <div className="relative w-8 h-8 rounded overflow-hidden">
+                        <Image
+                          src={product.brand.logoUrl}
+                          alt={product.brand.name}
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    )}
+                    <span className="font-medium">{product.brand.name}</span>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="flex items-center gap-4">
                 <span className="text-sm text-muted-foreground w-20">Category:</span>
                 <span className="font-medium">{product.category.name}</span>

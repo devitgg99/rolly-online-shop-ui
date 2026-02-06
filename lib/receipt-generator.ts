@@ -174,7 +174,7 @@ export async function generateEnhancedReceipt(
     
     // Total
     doc.setFont('helvetica', 'bold');
-    doc.text(`$${item.totalPrice.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+    doc.text(`$${item.subtotal.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
     doc.setFont('helvetica', 'normal');
     
     yPos += 6;
@@ -185,29 +185,23 @@ export async function generateEnhancedReceipt(
   // ==========================================
   yPos += 5;
   
+  // Calculate subtotal from items
+  const subtotal = sale.items.reduce((sum, item) => sum + item.subtotal, 0);
+  
   // Subtotal
   doc.setFontSize(10);
   doc.setTextColor(lightGray);
   doc.text('Subtotal:', pageWidth - margin - 40, yPos);
   doc.setTextColor(darkGray);
-  doc.text(`$${sale.subtotal.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+  doc.text(`$${subtotal.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
   yPos += 6;
 
   // Discount (if any)
-  if (sale.discount > 0) {
+  if (sale.discountAmount && sale.discountAmount > 0) {
     doc.setTextColor(lightGray);
     doc.text('Discount:', pageWidth - margin - 40, yPos);
     doc.setTextColor('#dc2626'); // Red
-    doc.text(`-$${sale.discount.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
-    yPos += 6;
-  }
-
-  // Tax (if any)
-  if (sale.tax > 0) {
-    doc.setTextColor(lightGray);
-    doc.text('Tax:', pageWidth - margin - 40, yPos);
-    doc.setTextColor(darkGray);
-    doc.text(`$${sale.tax.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+    doc.text(`-$${sale.discountAmount.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
     yPos += 6;
   }
 
@@ -221,27 +215,14 @@ export async function generateEnhancedReceipt(
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL:', pageWidth - margin - 55, yPos + 3);
   doc.setFontSize(16);
-  doc.text(`$${sale.total.toFixed(2)}`, pageWidth - margin - 3, yPos + 3, { align: 'right' });
+  doc.text(`$${sale.totalAmount.toFixed(2)}`, pageWidth - margin - 3, yPos + 3, { align: 'right' });
 
   // ==========================================
-  // PAYMENT INFO
+  // PAYMENT INFO - Skipped (amountPaid and changeGiven don't exist in Sale type)
   // ==========================================
-  if (sale.amountPaid && sale.changeGiven !== undefined) {
-    yPos += 18;
-    doc.setFontSize(9);
-    doc.setTextColor(lightGray);
-    doc.setFont('helvetica', 'normal');
-    
-    doc.text('Amount Paid:', pageWidth - margin - 40, yPos);
-    doc.setTextColor(darkGray);
-    doc.text(`$${sale.amountPaid.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
-    yPos += 5;
-    
-    doc.setTextColor(lightGray);
-    doc.text('Change:', pageWidth - margin - 40, yPos);
-    doc.setTextColor(darkGray);
-    doc.text(`$${sale.changeGiven.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
-  }
+  // These fields would need to be added to the Sale type if needed:
+  // - amountPaid: number
+  // - changeGiven: number
 
   // ==========================================
   // FOOTER - Thank You Message

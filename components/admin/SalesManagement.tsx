@@ -297,7 +297,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
           profit: response.data.profit,
           stockQuantity: response.data.stockQuantity,
           imageUrl: response.data.imageUrl,
-          brandName: response.data.brand.name,
+          brandName: response.data.brand?.name,
           categoryName: response.data.category.name,
         };
         
@@ -355,7 +355,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   // Filter products by search (with safety check)
   const filteredProducts = (availableProducts || []).filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.brandName.toLowerCase().includes(searchTerm.toLowerCase())
+    p.brandName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Calculate cart total

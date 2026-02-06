@@ -311,35 +311,37 @@ export default function AdminProductDetailPage() {
 
             {/* Brand & Category Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Brand Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-start gap-3">
-                    {product.brand.logoUrl && (
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                        <Image
-                          src={product.brand.logoUrl}
-                          alt={product.brand.name}
-                          fill
-                          className="object-contain p-2"
-                          unoptimized
-                        />
+              {product.brand && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Brand Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start gap-3">
+                      {product.brand.logoUrl && (
+                        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                          <Image
+                            src={product.brand.logoUrl}
+                            alt={product.brand.name}
+                            fill
+                            className="object-contain p-2"
+                            unoptimized
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-1">{product.brand.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {product.brand.description || 'No description available'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Created: {new Date(product.brand.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-1">{product.brand.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {product.brand.description || 'No description available'}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Created: {new Date(product.brand.createdAt).toLocaleDateString()}
-                      </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               <Card>
                 <CardHeader>

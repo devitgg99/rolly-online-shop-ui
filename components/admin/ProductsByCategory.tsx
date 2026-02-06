@@ -365,22 +365,26 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
       />
 
       {/* Stock History Dialog */}
-      <StockHistoryDialog
-        open={stockHistoryDialog.open}
-        onOpenChange={(open) => !open && setStockHistoryDialog({ open: false, productId: null, productName: '', currentStock: 0 })}
-        productId={stockHistoryDialog.productId}
-        productName={stockHistoryDialog.productName}
-        currentStock={stockHistoryDialog.currentStock}
-      />
+      {stockHistoryDialog.productId && (
+        <StockHistoryDialog
+          open={stockHistoryDialog.open}
+          onOpenChange={(open) => !open && setStockHistoryDialog({ open: false, productId: null, productName: '', currentStock: 0 })}
+          productId={stockHistoryDialog.productId}
+          productName={stockHistoryDialog.productName}
+          currentStock={stockHistoryDialog.currentStock}
+        />
+      )}
 
       {/* Multi Image Upload Dialog */}
-      <MultiImageUpload
-        open={multiImageDialog.open}
-        onOpenChange={(open) => !open && setMultiImageDialog({ open: false, productId: null, productName: '' })}
-        productId={multiImageDialog.productId}
-        productName={multiImageDialog.productName}
-        onImagesUpdated={handleImagesUpdated}
-      />
+      {multiImageDialog.productId && (
+        <MultiImageUpload
+          open={multiImageDialog.open}
+          onOpenChange={(open) => !open && setMultiImageDialog({ open: false, productId: null, productName: '' })}
+          productId={multiImageDialog.productId}
+          productName={multiImageDialog.productName}
+          onImagesUpdated={handleImagesUpdated}
+        />
+      )}
     </>
   );
 }
