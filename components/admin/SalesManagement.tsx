@@ -44,6 +44,7 @@ import Image from 'next/image';
 
 import type { Sale, SaleListItem, SaleSummary, SaleRequest, SaleItem } from '@/types/sales.types';
 import type { AdminProduct } from '@/types/product.types';
+import type { Category } from '@/types/category.types';
 import { 
   createSaleAction, 
   fetchSaleDetailAction, 
@@ -63,6 +64,7 @@ interface SalesManagementProps {
   initialSales: SaleListItem[]; // Changed from Sale[] to SaleListItem[]
   initialSummary: SaleSummary | null;
   availableProducts?: AdminProduct[]; // Make it optional with safety
+  categories?: Category[]; // Add categories for filtering
 }
 
 interface CartItem extends SaleItem {
@@ -91,7 +93,7 @@ const getPaymentMethodDisplay = (method: string): { label: string; icon: string;
   return displays[method] || { label: method, icon: '💰', color: 'bg-gray-100 text-gray-700 border-gray-300' };
 };
 
-export default function SalesManagement({ initialSales, initialSummary, availableProducts }: SalesManagementProps) {
+export default function SalesManagement({ initialSales, initialSummary, availableProducts, categories }: SalesManagementProps) {
   const { data: session } = useSession();
   
   const [sales, setSales] = useState<SaleListItem[]>(initialSales || []);
@@ -113,6 +115,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all'); // Add category filter
   const [cart, setCart] = useState<CartItem[]>([]);
   const [formData, setFormData] = useState<SaleFormData>({
     customerName: '',
@@ -352,11 +355,17 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     }
   };
 
-  // Filter products by search (with safety check)
-  const filteredProducts = (availableProducts || []).filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.brandName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter products by search and category (with safety check)
+  const filteredProducts = (availableProducts || []).filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.brandName?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Match by category name since AdminProduct doesn't have categoryId
+    const matchesCategory = filterCategory === 'all' || 
+      (categories && categories.find(c => c.id === filterCategory)?.name === p.categoryName);
+    
+    return matchesSearch && matchesCategory;
+  });
 
   // Calculate cart total
   const cartSubtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
@@ -1161,6 +1170,36 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                     >
                       <X className="w-3 h-3" />
                     </Button>
+                  </div>
+                )}
+
+                {/* Category Filter - Horizontal Scrolling */}
+                {categories && categories.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Filter by Category</Label>
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+                      <Button
+                        type="button"
+                        variant={filterCategory === 'all' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setFilterCategory('all')}
+                        className="flex-shrink-0 snap-start text-xs h-8"
+                      >
+                        All
+                      </Button>
+                      {categories.map((category) => (
+                        <Button
+                          key={category.id}
+                          type="button"
+                          variant={filterCategory === category.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setFilterCategory(category.id)}
+                          className="flex-shrink-0 snap-start text-xs h-8"
+                        >
+                          {category.name}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

@@ -968,29 +968,37 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
             </div>
 
             {/* Filters Grid */}
-            <div className="grid gap-3">
-              {/* Category */}
-              <div className="space-y-1.5">
+            <div className="space-y-3">
+              {/* Category - Horizontal Scrolling */}
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Category</Label>
-                <Select 
-                  value={filterCategory} 
-                  onValueChange={(value) => {
-                    setFilterCategory(value);
-                    setCurrentPage(0);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+                  <Button
+                    variant={filterCategory === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setFilterCategory('all');
+                      setCurrentPage(0);
+                    }}
+                    className="flex-shrink-0 snap-start"
+                  >
+                    All Categories
+                  </Button>
+                  {categories.map((category) => (
+                    <Button
+                      key={category.id}
+                      variant={filterCategory === category.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setFilterCategory(category.id);
+                        setCurrentPage(0);
+                      }}
+                      className="flex-shrink-0 snap-start"
+                    >
+                      {category.name}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1039,7 +1047,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
           </Card>
         ) : filteredProducts.length > 0 ? (
           viewMode === 'grid' ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {filteredProducts.map((product) => {
               const stockInfo = getStockLevelInfo(product.stockQuantity);
               const profitMargin = product.price > 0 ? ((product.profit / product.price) * 100) : 0;
@@ -1050,7 +1058,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                   className="group relative overflow-hidden hover:shadow-lg transition-all duration-200 border hover:border-primary/50"
                 >
                   {/* Product Image */}
-                  <div className="relative h-64 bg-muted/30 overflow-hidden">
+                  <div className="relative h-32 sm:h-40 md:h-48 bg-muted/30 overflow-hidden">
                     {product.imageUrl ? (
                       <Image
                         src={product.imageUrl}
@@ -1061,29 +1069,29 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-12 h-12 text-muted-foreground/40" />
+                        <Package className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/40" />
                       </div>
                     )}
                     
                     {/* Discount Badge */}
                     {product.discountPercent > 0 && (
-                      <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0 shadow-md">
-                        -{product.discountPercent}% OFF
+                      <Badge className="absolute top-1 left-1 text-[10px] sm:text-xs bg-red-500 text-white border-0 shadow-md px-1.5 py-0.5">
+                        -{product.discountPercent}%
                       </Badge>
                     )}
                     
                     {/* Stock Badge */}
                     <Badge 
                       className={cn(
-                        "absolute top-2 right-2 shadow-md",
+                        "absolute top-1 right-1 text-[10px] sm:text-xs shadow-md px-1.5 py-0.5",
                         getStockBadgeClasses(product.stockQuantity)
                       )}
                     >
-                      {product.stockQuantity} in stock
+                      {product.stockQuantity}
                     </Badge>
 
-                    {/* Quick Actions on Hover */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    {/* Quick Actions on Hover - Hidden on Mobile */}
+                    <div className="hidden sm:flex absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center gap-2">
                       <Link href={`/products/${product.id}`}>
                         <Button size="sm" variant="secondary">
                           <Eye className="w-3 h-3 mr-1" />
@@ -1097,53 +1105,54 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                   </div>
 
                   {/* Product Info */}
-                  <CardContent className="p-4 space-y-3">
+                  <CardContent className="p-2 sm:p-3 space-y-1.5 sm:space-y-2">
                     {/* Product Name */}
-                    <h3 className="font-semibold text-sm line-clamp-2 min-h-[40px]" title={product.name}>
+                    <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 min-h-[32px] sm:min-h-[40px]" title={product.name}>
                       {product.name}
                     </h3>
 
-                    {/* Category */}
-                    <Badge variant="secondary" className="w-fit">
+                    {/* Category - Hidden on smallest mobile */}
+                    <Badge variant="secondary" className="w-fit text-[10px] sm:text-xs hidden xs:inline-flex">
                       {product.categoryName}
                     </Badge>
 
                     {/* Price Section */}
-                    <div className="space-y-1">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-primary">
+                    <div className="space-y-0.5 sm:space-y-1">
+                      <div className="flex items-baseline gap-1 sm:gap-2">
+                        <span className="text-base sm:text-xl md:text-2xl font-bold text-primary">
                           ${product.discountedPrice.toFixed(2)}
                         </span>
                         {product.discountPercent > 0 && (
-                          <span className="text-sm text-muted-foreground line-through">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
                             ${product.price.toFixed(2)}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Cost: ${product.costPrice.toFixed(2)}</span>
-                        <span className="text-green-600 font-semibold">
-                          +${product.profit.toFixed(2)} profit
+                      <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
+                        <span className="hidden sm:inline">Cost: ${product.costPrice.toFixed(2)}</span>
+                        <span className="text-green-600 font-semibold text-[10px] sm:text-xs">
+                          +${product.profit.toFixed(2)}
                         </span>
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 pt-2 border-t">
+                    {/* Action Buttons - Compact on Mobile */}
+                    <div className="flex gap-1 sm:gap-2 pt-1 sm:pt-2 border-t">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEdit(product)}
-                        className="flex-1"
+                        className="flex-1 h-7 sm:h-8 text-[10px] sm:text-xs px-1 sm:px-2"
                         disabled={isLoading}
                       >
-                        <Pencil className="w-3 h-3 mr-1" />
-                        Edit
+                        <Pencil className="w-3 h-3 sm:mr-1" />
+                        <span className="hidden sm:inline">Edit</span>
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleOpenStockHistory(product)}
+                        className="h-7 sm:h-8 px-1.5 sm:px-2"
                         title="Stock History"
                       >
                         <History className="w-3 h-3" />
@@ -1152,7 +1161,8 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         variant="outline"
                         size="sm"
                         onClick={() => handleOpenMultiImage(product)}
-                        title="Manage Images"
+                        className="h-7 sm:h-8 px-1.5 sm:px-2"
+                        title="Images"
                       >
                         <ImageIcon className="w-3 h-3" />
                       </Button>
@@ -1160,7 +1170,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         variant="outline"
                         size="sm"
                         onClick={() => handleDelete(product.id)}
-                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        className="h-7 sm:h-8 px-1.5 sm:px-2 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                         disabled={isLoading}
                         title="Delete"
                       >
@@ -1172,7 +1182,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
               );
             })}
           </div>
-          ) : (
+        ) : viewMode === 'table' ? (
           /* Table View */
           <Card>
             <CardContent className="p-0">
@@ -1355,7 +1365,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
               </div>
             </CardContent>
           </Card>
-          )
+        ) : null
         ) : (
           <Card className="text-center py-12">
             <CardContent>
