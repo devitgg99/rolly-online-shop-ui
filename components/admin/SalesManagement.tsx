@@ -1095,119 +1095,121 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
 
       {/* Create Sale Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-[95vw] md:max-w-4xl max-h-[90vh] p-0 gap-0">
-          <DialogHeader className="px-4 md:px-6 pt-4 md:pt-6 pb-3 md:pb-4">
-            <DialogTitle className="text-lg md:text-xl">Point of Sale</DialogTitle>
-            <DialogDescription className="text-xs md:text-sm">Select products and complete the transaction</DialogDescription>
+        <DialogContent className="max-w-[98vw] sm:max-w-[95vw] md:max-w-5xl lg:max-w-6xl max-h-[95vh] p-0 gap-0">
+          <DialogHeader className="px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6 pb-2 sm:pb-3 md:pb-4 border-b">
+            <DialogTitle className="text-base sm:text-lg md:text-xl">Point of Sale 💰</DialogTitle>
+            <DialogDescription className="text-[10px] sm:text-xs md:text-sm">Select products and complete the transaction</DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="flex flex-col md:flex-row h-[calc(90vh-80px)] md:h-[calc(85vh-100px)]">
+          <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row h-[calc(95vh-70px)] sm:h-[calc(92vh-80px)] md:h-[calc(88vh-100px)]">
             {/* Left: Product Selection */}
-            <div className="flex-1 flex flex-col px-4 md:px-6 pb-4 md:pb-6 overflow-hidden">
+            <div className="flex-1 flex flex-col px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6 overflow-hidden border-r-0 lg:border-r">
               {/* Search & Barcode */}
-              <div className="mb-3 md:mb-4 space-y-2">
+              <div className="mb-2 sm:mb-3 md:mb-4 space-y-2">
                 {/* Search Bar with Scan Button */}
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                     <Input
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Search products..."
-                      className="pl-9 h-9 md:h-10"
+                      className="pl-7 sm:pl-9 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"
                     />
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-9 w-9 md:h-10 md:w-10 flex-shrink-0"
+                    className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 flex-shrink-0"
                     onClick={() => setScannerOpen(true)}
                   >
-                    <Camera className="h-4 w-4" />
+                    <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
                 
                 {/* Barcode Input */}
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   <div className="relative flex-1">
-                    <Scan className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Scan className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                     <Input
                       value={barcodeInput}
                       onChange={(e) => setBarcodeInput(e.target.value)}
                       onKeyPress={handleBarcodeInputKeyPress}
                       placeholder="Enter barcode manually..."
-                      className="pl-9 h-9 md:h-10"
+                      className="pl-7 sm:pl-9 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"
                     />
                   </div>
                   <Button
                     type="button"
                     variant="default"
                     size="sm"
-                    className="h-9 md:h-10 px-3 flex-shrink-0"
+                    className="h-8 sm:h-9 md:h-10 px-2 sm:px-3 flex-shrink-0 text-xs sm:text-sm"
                     onClick={handleBarcodeInputSubmit}
                     disabled={!barcodeInput.trim()}
                   >
-                    <Search className="h-4 w-4 mr-1" />
-                    Find
+                    <Search className="h-3 w-3 sm:h-4 sm:w-4 mr-0 sm:mr-1" />
+                    <span className="hidden sm:inline">Find</span>
                   </Button>
                 </div>
                 
                 {/* Barcode Scanner Info */}
                 {scannedBarcode && (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg border border-primary/30">
-                    <Scan className="w-4 h-4 text-primary flex-shrink-0" />
+                  <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-primary/10 rounded-lg border border-primary/30">
+                    <Scan className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-primary">Last Scanned:</p>
-                      <p className="text-sm font-mono font-bold truncate">{scannedBarcode}</p>
+                      <p className="text-[10px] sm:text-xs font-medium text-primary">Last Scanned:</p>
+                      <p className="text-xs sm:text-sm font-mono font-bold truncate">{scannedBarcode}</p>
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => setScannedBarcode('')}
-                      className="h-6 w-6 p-0 flex-shrink-0"
+                      className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex-shrink-0"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     </Button>
                   </div>
                 )}
 
-                {/* Category Filter - Horizontal Scrolling */}
+                {/* Category Filter - Horizontal Scrolling with better mobile support */}
                 {categories && categories.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Filter by Category</Label>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-                      <Button
-                        type="button"
-                        variant={filterCategory === 'all' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setFilterCategory('all')}
-                        className="flex-shrink-0 snap-start text-xs h-8"
-                      >
-                        All
-                      </Button>
-                      {categories.map((category) => (
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-[10px] sm:text-xs text-muted-foreground">Filter by Category</Label>
+                    <div className="relative">
+                      <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory -mx-1 px-1">
                         <Button
-                          key={category.id}
                           type="button"
-                          variant={filterCategory === category.id ? 'default' : 'outline'}
+                          variant={filterCategory === 'all' ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => setFilterCategory(category.id)}
-                          className="flex-shrink-0 snap-start text-xs h-8"
+                          onClick={() => setFilterCategory('all')}
+                          className="flex-shrink-0 snap-start text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3"
                         >
-                          {category.name}
+                          All
                         </Button>
-                      ))}
+                        {categories.map((category) => (
+                          <Button
+                            key={category.id}
+                            type="button"
+                            variant={filterCategory === category.id ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setFilterCategory(category.id)}
+                            className="flex-shrink-0 snap-start text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3 whitespace-nowrap"
+                          >
+                            {category.name}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Products Grid */}
-              <div className="flex-1 overflow-y-auto">
+              {/* Products Grid - More Responsive */}
+              <div className="flex-1 overflow-y-auto -mx-1 px-1">
                 {filteredProducts.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2 md:gap-3">
                     {filteredProducts.map((product) => {
                       const isOutOfStock = product.stockQuantity <= 0;
                       const isLowStock = product.stockQuantity > 0 && product.stockQuantity < 10;
@@ -1218,42 +1220,41 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                           type="button"
                           onClick={() => handleAddToCart(product)}
                           disabled={isOutOfStock}
-                          className={`text-left p-2 md:p-3 border rounded-lg transition-colors bg-card ${
+                          className={`text-left p-1.5 sm:p-2 md:p-3 border rounded-lg transition-all bg-card ${
                             isOutOfStock 
                               ? 'opacity-50 cursor-not-allowed border-destructive/30' 
-                              : 'hover:border-primary cursor-pointer'
+                              : 'hover:border-primary hover:shadow-md cursor-pointer active:scale-95'
                           }`}
                         >
-                          <div className="aspect-square relative mb-2 bg-muted rounded overflow-hidden">
+                          <div className="aspect-square relative mb-1 sm:mb-1.5 md:mb-2 bg-muted rounded overflow-hidden">
                             {product.imageUrl ? (
                               <Image
                                 src={product.imageUrl}
                                 alt={product.name}
                                 unoptimized={true}
                                 fill
-                                className={`object-contain p-1 md:p-2 ${isOutOfStock ? 'grayscale' : ''}`}
+                                className={`object-contain p-0.5 sm:p-1 md:p-2 ${isOutOfStock ? 'grayscale' : ''}`}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Package className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />
+                                <Package className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-muted-foreground" />
                               </div>
                             )}
                             {isOutOfStock && (
                               <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                                <Badge variant="destructive" className="text-xs">OUT OF STOCK</Badge>
+                                <Badge variant="destructive" className="text-[8px] sm:text-[10px] px-1 py-0">OUT</Badge>
                               </div>
                             )}
+                            {!isOutOfStock && isLowStock && (
+                              <Badge className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 bg-orange-500 text-white text-[8px] sm:text-[10px] px-1 py-0">
+                                Low
+                              </Badge>
+                            )}
                           </div>
-                          <h4 className="font-medium text-xs md:text-sm line-clamp-2 mb-1">{product.name}</h4>
-                          <p className="text-[10px] md:text-xs text-muted-foreground mb-1 md:mb-2">{product.brandName}</p>
+                          <h4 className="font-medium text-[10px] sm:text-xs md:text-sm line-clamp-2 mb-0.5 sm:mb-1 min-h-[24px] sm:min-h-[28px]">{product.name}</h4>
                           <div className="flex items-center justify-between gap-1">
-                            <span className="font-bold text-xs md:text-sm">${product.discountedPrice.toFixed(2)}</span>
-                            <Badge 
-                              variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"} 
-                              className="text-[10px] md:text-xs px-1 md:px-2"
-                            >
-                              {isOutOfStock ? '0' : product.stockQuantity}
-                            </Badge>
+                            <span className="font-bold text-[10px] sm:text-xs md:text-sm text-primary">${product.discountedPrice.toFixed(2)}</span>
+                            <span className="text-[8px] sm:text-[10px] text-muted-foreground">×{isOutOfStock ? '0' : product.stockQuantity}</span>
                           </div>
                         </button>
                       );
@@ -1270,20 +1271,23 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
               </div>
             </div>
 
-            {/* Right: Cart & Checkout */}
-            <div className="w-full md:w-[380px] flex flex-col md:border-l border-t md:border-t-0 max-h-[50vh] md:max-h-none">
+            {/* Right: Cart & Checkout - Improved Responsiveness */}
+            <div className="w-full lg:w-[380px] xl:w-[420px] flex flex-col border-t lg:border-t-0 lg:border-l max-h-[40vh] lg:max-h-none">
               {/* Cart Header */}
-              <div className="px-4 md:px-6 py-3 md:py-4 border-b">
+              <div className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 border-b bg-muted/30">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-sm md:text-base">Cart</h3>
-                  <Badge className="text-xs">{cart.length} items</Badge>
+                  <h3 className="font-semibold text-sm sm:text-base md:text-lg flex items-center gap-2">
+                    <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+                    Cart
+                  </h3>
+                  <Badge className="text-[10px] sm:text-xs">{cart.length} items</Badge>
                 </div>
               </div>
 
               {/* Cart Items */}
-              <div className="flex-1 overflow-y-auto px-4 md:px-6 py-3 md:py-4">
+              <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4">
                 {cart.length > 0 ? (
-                  <div className="space-y-2 md:space-y-3">
+                  <div className="space-y-2">
                     {cart.map((item) => {
                       const isMaxQuantity = item.quantity >= item.product.stockQuantity;
                       const exceedsStock = item.quantity > item.product.stockQuantity;
@@ -1291,33 +1295,34 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                       return (
                         <div 
                           key={item.productId} 
-                          className={`border rounded-lg p-2 md:p-3 ${exceedsStock ? 'border-destructive bg-destructive/5' : ''}`}
+                          className={`border rounded-lg p-2 transition-all ${exceedsStock ? 'border-destructive bg-destructive/5' : 'hover:shadow-sm'}`}
                         >
-                          <div className="flex gap-2 md:gap-3 mb-2">
-                            <div className="w-10 h-10 md:w-12 md:h-12 relative bg-muted rounded flex-shrink-0">
+                          <div className="flex gap-2 mb-2">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 relative bg-muted rounded flex-shrink-0">
                               {item.product.imageUrl ? (
                                 <Image
                                   src={item.product.imageUrl}
                                   alt={item.product.name}
                                   fill
-                                  className="object-contain p-1"
+                                  className="object-contain p-0.5 sm:p-1"
+                                  unoptimized
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <Package className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
+                                  <Package className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                                 </div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h5 className="font-medium text-xs md:text-sm line-clamp-1">{item.product.name}</h5>
-                              <p className="text-[10px] md:text-xs text-muted-foreground">${item.product.discountedPrice.toFixed(2)}</p>
+                              <h5 className="font-medium text-[10px] sm:text-xs md:text-sm line-clamp-1">{item.product.name}</h5>
+                              <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground">${item.product.discountedPrice.toFixed(2)}</p>
                               {exceedsStock && (
-                                <p className="text-[10px] text-destructive font-medium mt-0.5">
+                                <p className="text-[9px] sm:text-[10px] text-destructive font-medium mt-0.5">
                                   Only {item.product.stockQuantity} available!
                                 </p>
                               )}
                               {!exceedsStock && isMaxQuantity && (
-                                <p className="text-[10px] text-orange-500 font-medium mt-0.5">
+                                <p className="text-[9px] sm:text-[10px] text-orange-500 font-medium mt-0.5">
                                   Max quantity
                                 </p>
                               )}
@@ -1326,10 +1331,10 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="h-5 w-5 md:h-6 md:w-6"
+                              className="h-6 w-6 flex-shrink-0"
                               onClick={() => handleRemoveFromCart(item.productId)}
                             >
-                              <X className="h-3 w-3 md:h-4 md:w-4" />
+                              <X className="h-3 w-3" />
                             </Button>
                           </div>
                           <div className="flex items-center justify-between">
@@ -1338,24 +1343,24 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 md:h-7 md:w-7"
+                                className="h-6 w-6 sm:h-7 sm:w-7"
                                 onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
                               >
-                                <Minus className="h-2 w-2 md:h-3 md:w-3" />
+                                <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                               </Button>
-                              <span className="w-6 md:w-8 text-center text-xs md:text-sm font-medium">{item.quantity}</span>
+                              <span className="w-7 sm:w-8 text-center text-xs sm:text-sm font-medium">{item.quantity}</span>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 md:h-7 md:w-7"
+                                className="h-6 w-6 sm:h-7 sm:w-7"
                                 disabled={isMaxQuantity}
                                 onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
                               >
-                                <Plus className="h-2 w-2 md:h-3 md:w-3" />
+                                <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                               </Button>
                             </div>
-                            <span className="font-semibold text-xs md:text-sm">${item.subtotal.toFixed(2)}</span>
+                            <span className="font-bold text-xs sm:text-sm text-primary">${item.subtotal.toFixed(2)}</span>
                           </div>
                         </div>
                       );
@@ -1364,9 +1369,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                 ) : (
                   <div className="flex items-center justify-center h-full text-center">
                     <div className="text-muted-foreground">
-                      <ShoppingCart className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 opacity-50" />
-                      <p className="text-xs md:text-sm">Cart is empty</p>
-                      <p className="text-[10px] md:text-xs mt-1">Click products to add</p>
+                      <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 opacity-50" />
+                      <p className="text-xs sm:text-sm">Cart is empty</p>
+                      <p className="text-[10px] sm:text-xs mt-1">Click products to add</p>
                     </div>
                   </div>
                 )}
