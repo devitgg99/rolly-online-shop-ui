@@ -58,7 +58,8 @@ import TopSellingProducts from './TopSellingProducts';
 import { SalesAnalyticsDashboard } from './SalesAnalyticsDashboard';
 import { RefundDialog } from './RefundDialog';
 import { SalesAdvancedFilters, type SalesFilters } from './SalesAdvancedFilters';
-import { exportSales, getReceiptPdf, fetchSalesWithFilters } from '@/services/sales.service';
+import { fetchSalesWithFiltersAction } from '@/actions/sales/sales.action';
+import { exportSales } from '@/services/sales.service';
 
 interface SalesManagementProps {
   initialSales: SaleListItem[]; // Changed from Sale[] to SaleListItem[]
@@ -688,24 +689,22 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     }
   };
 
-  // Apply filters
+  // Apply filters (via server action - avoids client-side CORS/network issues)
   const handleApplyFilters = async () => {
-    if (!session?.backendToken) return;
-
     setIsLoading(true);
     try {
       const filterParams = {
         startDate: filters.startDate,
         endDate: filters.endDate,
-        paymentMethod: filters.paymentMethod !== 'ALL' ? filters.paymentMethod : undefined,
+        paymentMethod: filters.paymentMethod !== 'ALL' ? filters.paymentMethod as any : undefined,
         minAmount: filters.minAmount ? parseFloat(filters.minAmount) : undefined,
         maxAmount: filters.maxAmount ? parseFloat(filters.maxAmount) : undefined,
         customerName: filters.customerName,
-        sortBy: filters.sortBy || 'date',
-        direction: filters.direction || 'desc',
+        sortBy: (filters.sortBy || 'date') as 'date' | 'amount' | 'profit',
+        direction: (filters.direction || 'desc') as 'asc' | 'desc',
       };
 
-      const response = await fetchSalesWithFilters(filterParams, session.backendToken);
+      const response = await fetchSalesWithFiltersAction(filterParams);
 
       if (response.success && response.data) {
         setSales(response.data.content);
@@ -715,7 +714,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       }
     } catch (error) {
       console.error('Error fetching sales:', error);
-      toast.error('Failed to fetch sales');
+      toast.error('Cannot connect to server. Please try again.');
     } finally {
       setIsLoading(false);
     }

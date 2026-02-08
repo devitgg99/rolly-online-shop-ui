@@ -12,7 +12,10 @@ import {
   fetchSalesByDateRange,
   fetchProductSalesStats,
   fetchTopSellingProducts,
-  fetchTopSellingProductsByRange
+  fetchTopSellingProductsByRange,
+  fetchSalesWithFilters,
+  fetchSalesAnalytics,
+  createRefund,
 } from "@/services/sales.service";
 import { 
   SaleRequest, 
@@ -20,7 +23,10 @@ import {
   SaleSummaryApiResponse,
   SaleListApiResponse,
   ProductSalesStatsApiResponse,
-  TopSellingProductsApiResponse
+  TopSellingProductsApiResponse,
+  SalesAnalyticsApiResponse,
+  RefundRequest,
+  RefundApiResponse,
 } from "@/types/sales.types";
 import { logger } from "@/lib/logger";
 import { sanitizeError } from "@/lib/security";
@@ -320,6 +326,117 @@ export async function fetchTopSellingProductsByRangeAction(
     return {
       success: false,
       message: error instanceof Error ? error.message : "Failed to fetch top selling products by range",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+// ===================================
+// ADVANCED FILTERS (server-side proxy)
+// ===================================
+
+export async function fetchSalesWithFiltersAction(
+  filters: {
+    startDate?: string;
+    endDate?: string;
+    paymentMethod?: 'CASH' | 'CARD' | 'E_WALLET' | 'BANK_TRANSFER' | 'COD' | 'ONLINE';
+    minAmount?: number;
+    maxAmount?: number;
+    customerName?: string;
+    productId?: string;
+    sortBy?: 'date' | 'amount' | 'profit';
+    direction?: 'asc' | 'desc';
+    page?: number;
+    size?: number;
+  }
+): Promise<SaleListApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    return await fetchSalesWithFilters(filters, token);
+  } catch (error) {
+    logger.error("fetchSalesWithFiltersAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch sales",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+// ===================================
+// ANALYTICS (server-side proxy)
+// ===================================
+
+export async function fetchSalesAnalyticsAction(
+  startDate: string,
+  endDate: string,
+  groupBy: 'day' | 'week' | 'month' = 'day'
+): Promise<SalesAnalyticsApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    return await fetchSalesAnalytics(startDate, endDate, groupBy, token);
+  } catch (error) {
+    logger.error("fetchSalesAnalyticsAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch analytics",
+      data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+// ===================================
+// REFUND (server-side proxy)
+// ===================================
+
+export async function createRefundAction(
+  saleId: string,
+  refundData: RefundRequest
+): Promise<RefundApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: null,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    return await createRefund(saleId, refundData, token);
+  } catch (error) {
+    logger.error("createRefundAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to create refund",
       data: null,
       createdAt: new Date().toISOString(),
     };

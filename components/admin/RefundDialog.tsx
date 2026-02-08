@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { createRefund } from '@/services/sales.service';
+import { createRefundAction } from '@/actions/sales/sales.action';
 import type { Sale, RefundItemRequest } from '@/types/sales.types';
 import { cn } from '@/lib/utils';
 
@@ -118,7 +118,7 @@ export function RefundDialog({
 
     setIsLoading(true);
     try {
-      const response = await createRefund(
+      const response = await createRefundAction(
         sale.id,
         {
           items: itemsToRefund.map(item => ({
@@ -128,8 +128,7 @@ export function RefundDialog({
           })),
           refundMethod,
           notes: notes || undefined,
-        },
-        session.backendToken
+        }
       );
 
       if (response.success) {
@@ -141,7 +140,7 @@ export function RefundDialog({
       }
     } catch (error) {
       console.error('Error processing refund:', error);
-      toast.error('Failed to process refund');
+      toast.error('Cannot connect to server. Please try again.');
     } finally {
       setIsLoading(false);
     }

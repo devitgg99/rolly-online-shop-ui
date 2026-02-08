@@ -8,34 +8,23 @@ import SalesManagement from '@/components/admin/SalesManagement';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-// Force dynamic rendering (required for authentication)
 export const dynamic = 'force-dynamic';
 
 async function getInitialData() {
   const session = await getServerSession(authOptions);
   const token = (session as any)?.backendToken || '';
 
-  console.log('🔍 Sales Page - Session exists:', !!session);
-  console.log('🔍 Sales Page - Token exists:', !!token);
-  console.log('🔍 Sales Page - Token length:', token?.length || 0);
-
   const [salesRes, summaryRes, productsRes, categoriesRes] = await Promise.all([
     fetchSales(0, 20, token),
     fetchTodaySummary(token),
-    fetchAdminProducts(0, 100, token), // Fetch products for selection
-    fetchCategories(), // Fetch categories for filtering
+    fetchAdminProducts(0, 100, token),
+    fetchCategories(),
   ]);
-
-  console.log('📦 Products fetch result:', productsRes.success, productsRes.message);
-  console.log('📦 Products data:', productsRes.data);
-  console.log('📦 Categories fetch result:', categoriesRes.success);
 
   const sales: SaleListItem[] = salesRes.success && salesRes.data?.content ? salesRes.data.content : [];
   const summary: SaleSummary | null = summaryRes.success && summaryRes.data ? summaryRes.data : null;
   const products: AdminProduct[] = productsRes.success && productsRes.data?.content ? productsRes.data.content : [];
   const categories: Category[] = categoriesRes.success && categoriesRes.data ? categoriesRes.data : [];
-
-  console.log('📦 Final counts - Sales:', sales.length, 'Products:', products.length, 'Categories:', categories.length);
 
   return { sales, summary, products, categories };
 }
@@ -43,14 +32,7 @@ async function getInitialData() {
 export default async function SalesPage() {
   try {
     const { sales, summary, products, categories } = await getInitialData();
-    
-    console.log('🎯 Rendering SalesManagement with:', {
-      sales: sales?.length ?? 'undefined',
-      summary: summary ? 'exists' : 'null',
-      products: products?.length ?? 'undefined',
-      categories: categories?.length ?? 'undefined'
-    });
-    
+
     return (
       <SalesManagement
         initialSales={sales}

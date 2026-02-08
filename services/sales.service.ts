@@ -87,7 +87,7 @@ export async function fetchSales(
     if (!response.ok) {
       return {
         success: false,
-        message: `Failed to fetch sales: ${response.statusText}`,
+        message: `Failed to fetch sales: ${response.status} ${response.statusText}`,
         data: null,
         createdAt: new Date().toISOString(),
       };
@@ -99,7 +99,7 @@ export async function fetchSales(
     console.error("Error fetching sales:", error);
     return {
       success: false,
-      message: "Network error while fetching sales",
+      message: error instanceof Error ? error.message : "Network error while fetching sales",
       data: null,
       createdAt: new Date().toISOString(),
     };
@@ -246,7 +246,7 @@ export async function fetchTodaySummary(token: string): Promise<SaleSummaryApiRe
     if (!response.ok) {
       return {
         success: false,
-        message: `Failed to fetch today's summary: ${response.statusText}`,
+        message: `Failed to fetch today's summary: ${response.status} ${response.statusText}`,
         data: null,
         createdAt: new Date().toISOString(),
       };
@@ -258,7 +258,7 @@ export async function fetchTodaySummary(token: string): Promise<SaleSummaryApiRe
     console.error("Error fetching today's summary:", error);
     return {
       success: false,
-      message: "Network error while fetching today's summary",
+      message: error instanceof Error ? error.message : "Network error while fetching today's summary",
       data: null,
       createdAt: new Date().toISOString(),
     };

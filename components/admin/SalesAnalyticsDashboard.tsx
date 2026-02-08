@@ -23,7 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { fetchSalesAnalytics } from '@/services/sales.service';
+import { fetchSalesAnalyticsAction } from '@/actions/sales/sales.action';
 import type { SalesAnalytics } from '@/types/sales.types';
 
 interface SalesAnalyticsDashboardProps {
@@ -55,12 +55,7 @@ export function SalesAnalyticsDashboard({
 
     setIsLoading(true);
     try {
-      const response = await fetchSalesAnalytics(
-        startDate,
-        endDate,
-        groupBy,
-        session.backendToken
-      );
+      const response = await fetchSalesAnalyticsAction(startDate, endDate, groupBy);
 
       if (response.success && response.data) {
         setAnalytics(response.data);
@@ -69,7 +64,7 @@ export function SalesAnalyticsDashboard({
       }
     } catch (error) {
       console.error('Error loading analytics:', error);
-      toast.error('Failed to load analytics');
+      toast.error('Cannot connect to server. Please try again.');
     } finally {
       setIsLoading(false);
     }
