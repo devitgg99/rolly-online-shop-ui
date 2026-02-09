@@ -13,7 +13,6 @@ import {
   Bell,
   ChevronRight,
   Tag,
-  Award,
   Receipt
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,7 +27,6 @@ import { cn } from '@/lib/utils';
 const navigation = [
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Categories', href: '/categories', icon: Tag },
-  { name: 'Brands', href: '/brands', icon: Award },
   { name: 'Sales', href: '/sales', icon: Receipt },
 ];
 

@@ -1100,9 +1100,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
             <DialogDescription className="text-[10px] sm:text-xs md:text-sm">Select products and complete the transaction</DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
+          <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
             {/* Left: Product Selection */}
-            <div className="flex-1 flex flex-col px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4 min-h-0 overflow-hidden border-r-0 lg:border-r">
+            <div className="flex flex-col h-[50vh] lg:h-auto lg:flex-1 flex-shrink-0 lg:flex-shrink px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4 min-h-0 overflow-hidden border-r-0 lg:border-r">
               {/* Search & Barcode */}
               <div className="mb-1.5 sm:mb-2 md:mb-3 space-y-1.5 sm:space-y-2 flex-shrink-0 pt-2 sm:pt-3">
                 {/* Search Bar with Scan Button */}
@@ -1290,7 +1290,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
             </div>
 
             {/* Right: Cart & Checkout */}
-            <div className="w-full lg:w-[340px] xl:w-[380px] flex flex-col border-t lg:border-t-0 lg:border-l min-h-[200px] max-h-[45vh] lg:max-h-none flex-shrink-0 lg:flex-shrink overflow-hidden">
+            <div className="w-full lg:w-[340px] xl:w-[380px] flex flex-col border-t lg:border-t-0 lg:border-l flex-shrink-0 lg:flex-shrink lg:min-h-0 lg:overflow-hidden">
               {/* Cart Header */}
               <div className="px-2 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-3 border-b bg-muted/30 flex-shrink-0">
                 <div className="flex items-center justify-between">
@@ -1303,7 +1303,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
               </div>
 
               {/* Cart Items */}
-              <div className="flex-1 overflow-y-auto min-h-0 px-2 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-3">
+              <div className="max-h-[25vh] lg:max-h-none lg:flex-1 overflow-y-auto min-h-0 px-2 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-3">
                 {cart.length > 0 ? (
                   <div className="space-y-2">
                     {cart.map((item) => {
