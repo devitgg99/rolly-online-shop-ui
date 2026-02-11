@@ -46,11 +46,6 @@ export async function fetchAdminProducts(
     }
     
     const url = `${API_URL}/products/admin/all?${params.toString()}`;
-    
-    console.log('📡 Fetching admin products from:', url);
-    console.log('🔑 Token present:', !!token);
-    console.log('🔑 Token length:', token?.length || 0);
-    console.log('🔍 Filters:', { categoryId, search });
 
     const response = await fetch(url, {
       method: "GET",
@@ -61,10 +56,7 @@ export async function fetchAdminProducts(
       cache: "no-store",
     });
 
-    console.log('📥 Response status:', response.status, response.statusText);
-
     if (!response.ok) {
-      console.error('❌ Failed to fetch admin products:', response.status, response.statusText);
       return {
         success: false,
         message: `Failed to fetch admin products: ${response.statusText}`,
@@ -74,7 +66,7 @@ export async function fetchAdminProducts(
     }
 
     const result = await response.json();
-    console.log('✅ Admin products fetched successfully:', result.data?.content?.length || 0, 'products');
+    
     return result;
   } catch (error) {
     console.error("❌ Error fetching admin products:", error);
@@ -506,9 +498,6 @@ export async function fetchInventoryStats(
   try {
     const url = `${API_URL}/products/admin/stats?lowStockThreshold=${lowStockThreshold}`;
     
-    console.log('📊 [Service] Fetching inventory stats from:', url);
-    console.log('🔑 [Service] Token present:', !!token);
-    
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -518,10 +507,7 @@ export async function fetchInventoryStats(
       cache: "no-store",
     });
 
-    console.log('📊 [Service] Stats response status:', response.status);
-
     if (!response.ok) {
-      console.log('⚠️ [Service] Stats endpoint failed - backend may not have this endpoint yet');
       return {
         success: false,
         message: `Failed to fetch inventory stats: ${response.statusText}`,
@@ -555,9 +541,6 @@ export async function fetchLowStockProducts(
   try {
     const url = `${API_URL}/products/admin/low-stock?threshold=${threshold}&page=${page}&size=${size}`;
     
-    console.log('📦 [Service] Fetching low stock products from:', url);
-    console.log('🔑 [Service] Token present:', !!token);
-    
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -567,10 +550,7 @@ export async function fetchLowStockProducts(
       cache: "no-store",
     });
 
-    console.log('📦 [Service] Low stock response status:', response.status);
-
     if (!response.ok) {
-      console.log('⚠️ [Service] Low stock endpoint failed - backend may not have this endpoint yet');
       return {
         success: false,
         message: `Failed to fetch low stock products: ${response.statusText}`,

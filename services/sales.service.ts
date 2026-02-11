@@ -23,11 +23,6 @@ export async function createSaleService(
   try {
     const url = `${API_URL}/sales`;
 
-    console.log('🔍 [Service] Creating sale');
-    console.log('🔍 [Service] URL:', url);
-    console.log('🔍 [Service] Token length:', token?.length);
-    console.log('🔍 [Service] Request body:', JSON.stringify(saleData, null, 2));
-
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -37,11 +32,8 @@ export async function createSaleService(
       body: JSON.stringify(saleData),
     });
 
-    console.log('📦 [Service] Response status:', response.status);
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('❌ [Service] Error response:', errorData);
       return {
         success: false,
         message: errorData.message || `Failed to create sale: ${response.statusText}`,
@@ -51,10 +43,8 @@ export async function createSaleService(
     }
 
     const result = await response.json();
-    console.log('✅ [Service] Success:', result.success);
     return result;
   } catch (error) {
-    console.error("❌ [Service] Network error:", error);
     return {
       success: false,
       message: error instanceof Error ? error.message : "Network error while creating sale",

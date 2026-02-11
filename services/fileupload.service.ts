@@ -5,19 +5,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function uploadFileService(file: File, token: string): Promise<FileUploadResponse> {
   try {
-    console.log('🔍 [Upload Service] Starting upload...');
-    console.log('🔍 [Upload Service] API URL:', API_URL);
-    console.log('🔍 [Upload Service] File:', file.name, formatFileSize(file.size));
-    console.log('🔑 [Upload Service] Token present:', !!token);
-
-    // ✅ OPTIMIZATION: Skip compression here!
-    // Image is already compressed in image-upload.tsx component
-    // Double compression was causing slowness!
     const fileToUpload = file;
-    console.log('⚡ [Upload Service] Using pre-compressed file (fast path)');
 
     if (!API_URL) {
-      console.error('❌ [Upload Service] API_URL is not defined!');
       return {
         success: false,
         message: "API URL not configured. Please check .env.local",

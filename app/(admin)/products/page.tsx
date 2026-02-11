@@ -19,17 +19,9 @@ async function getInitialData(): Promise<{
   inventoryMeta: { page: number; size: number; totalElements: number; totalPages: number };
 }> {
   const session = await getServerSession(authOptions);
-  
-  console.log('🔍 [Products Page] Session exists:', !!session);
-  console.log('🔍 [Products Page] Session user:', (session as any)?.user?.email);
-  console.log('🔍 [Products Page] Backend token exists:', !!(session as any)?.backendToken);
-  console.log('🔍 [Products Page] Token length:', (session as any)?.backendToken?.length || 0);
-  
   const token = (session as any)?.backendToken || '';
 
   if (!token) {
-    console.error('❌ [Products Page] No backend token found in session!');
-    console.error('❌ [Products Page] Please log out and log back in to refresh your session');
     return { 
       products: [], 
       categories: [],
@@ -38,37 +30,11 @@ async function getInitialData(): Promise<{
     };
   }
 
-  // Decode token to check expiry (optional)
-  try {
-    const tokenParts = token.split('.');
-    if (tokenParts.length === 3) {
-      const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
-      const exp = payload.exp ? new Date(payload.exp * 1000) : null;
-      const now = new Date();
-      console.log('🔍 [Products Page] Token expires at:', exp?.toISOString());
-      console.log('🔍 [Products Page] Current time:', now.toISOString());
-      console.log('🔍 [Products Page] Token is expired:', exp ? exp < now : 'unknown');
-      
-      if (exp && exp < now) {
-        console.error('❌ [Products Page] Token has expired! Please log out and log back in.');
-      }
-    }
-  } catch (e) {
-    console.log('🔍 [Products Page] Could not decode token for expiry check');
-  }
-
   const [productsRes, categoriesRes, inventoryRes] = await Promise.all([
     fetchAdminProducts(0, 20, token),
     fetchCategories(),
     fetchInventoryTable(0, 20, 'name', 'asc', token),
   ]);
-
-  console.log('📦 [Products Page] Products response:', {
-    success: productsRes.success,
-    hasData: !!productsRes.data,
-    count: productsRes.data?.content?.length || 0,
-    message: productsRes.message
-  });
 
   const products: AdminProduct[] = productsRes.success && productsRes.data ? productsRes.data.content : [];
   const categories: Category[] = categoriesRes.success && categoriesRes.data ? categoriesRes.data : [];
@@ -137,7 +103,6 @@ export default async function ProductsPage() {
       </div>
     );
   } catch (error) {
-    console.error('❌ [Products Page] Fatal error:', error);
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">

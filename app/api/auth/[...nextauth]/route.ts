@@ -14,7 +14,6 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.error("❌ Missing credentials");
           throw new Error("Missing credentials")
         }
 
@@ -25,13 +24,10 @@ export const authOptions: NextAuthOptions = {
         const res = await loginService(request);
         
         if (!res.ok) {
-          // Try to get error message from response
           try {
             const errorData = await res.json();
-            console.error("❌ Login failed:", errorData);
             throw new Error(errorData.message || "Invalid email or password")
-          } catch (e) {
-            console.error("❌ Login failed: Invalid email or password");
+          } catch {
             throw new Error("Invalid email or password")
           }
         }
@@ -62,8 +58,7 @@ export const authOptions: NextAuthOptions = {
             role: role,
             backendToken: token, 
           }
-        } catch (decodeError) {
-          console.error("❌ Failed to decode JWT:", decodeError);
+        } catch {
           throw new Error("Failed to decode authentication token")
         }
       }

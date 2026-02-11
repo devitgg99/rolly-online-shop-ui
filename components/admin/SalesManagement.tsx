@@ -146,15 +146,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
 
   // Clear barcode cache when dialog opens/closes
   useEffect(() => {
-    if (dialogOpen) {
-      // Clear all barcode-related state for fresh start
-      clearBarcodeCache();
-      console.log('🧹 POS opened - barcode cache cleared');
-    } else {
-      // Clean up when closing
-      clearBarcodeCache();
-      console.log('🧹 POS closed - barcode cache cleared');
-    }
+    clearBarcodeCache();
   }, [dialogOpen]);
 
   // Clear all barcode cache data
@@ -179,11 +171,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         return;
       }
 
-      // Ignore if already processing a barcode
-      if (isProcessingRef.current) {
-        console.log('⏸️ Barcode scan in progress, ignoring input...');
-        return;
-      }
+      if (isProcessingRef.current) return;
 
       // Enter key indicates end of barcode scan
       if (e.key === 'Enter') {
@@ -191,8 +179,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         const currentBuffer = barcodeBufferRef.current;
         
         if (currentBuffer && !isProcessingRef.current) {
-          console.log('⌨️ Keyboard scan complete:', currentBuffer);
-          isProcessingRef.current = true; // Lock processing
+          isProcessingRef.current = true;
           barcodeBufferRef.current = ''; // Clear immediately
           
           if (barcodeTimeoutRef.current) {
@@ -218,7 +205,6 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         barcodeTimeoutRef.current = setTimeout(() => {
           if (!isProcessingRef.current) {
             barcodeBufferRef.current = '';
-            console.log('🧹 Buffer auto-cleared (timeout)');
           }
         }, 150);
       }
@@ -240,12 +226,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         const response = await fetchTodaysSummaryAction();
         if (response.success && response.data) {
           setSummary(response.data);
-          console.log('✅ Today\'s summary updated:', response.data);
-        } else {
-          console.log('⚠️ Failed to fetch today\'s summary:', response.message);
         }
-      } catch (error) {
-        console.error('❌ Error fetching today\'s summary:', error);
+      } catch {
+        // Silently retry on next interval
       }
     };
 
@@ -259,26 +242,11 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
   }, []);
 
   const handleBarcodeScanned = async (barcode: string) => {
-    // Prevent duplicate processing
-    if (isProcessingRef.current) {
-      console.log('⏸️ Scan in progress, ignoring...');
-      return;
-    }
+    if (isProcessingRef.current) return;
+    if (!barcode || barcode.trim().length === 0) return;
     
-    // Validate barcode
-    if (!barcode || barcode.trim().length === 0) {
-      console.log('⚠️ Empty barcode, ignoring...');
-      return;
-    }
-    
-    // Prevent scanning same barcode within 1 second (debounce)
     const now = Date.now();
-    if (barcode === lastScannedBarcodeRef.current && now - lastScanTimeRef.current < 1000) {
-      console.log('⏸️ Same barcode scanned too quickly, ignoring...');
-      return;
-    }
-    
-    console.log('🔍 Processing barcode:', barcode);
+    if (barcode === lastScannedBarcodeRef.current && now - lastScanTimeRef.current < 1000) return;
     lastScannedBarcodeRef.current = barcode;
     lastScanTimeRef.current = now;
     isProcessingRef.current = true; // Lock immediately
@@ -305,27 +273,19 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
           categoryName: response.data.category.name,
         };
         
-        // Add to cart (will increase qty if already exists)
         handleAddToCart(product);
-        
-        console.log('✅ Product added via barcode:', product.name);
       } else {
         toast.error(`Product not found`);
-        console.log('❌ Barcode not found:', barcode);
       }
-    } catch (error) {
-      console.error('❌ Barcode scan error:', error);
+    } catch {
       toast.error('Scan failed, try again');
     } finally {
       setIsLoading(false);
       
-      // Delay before allowing next scan (prevents double-scan)
       setTimeout(() => {
         clearBarcodeCache();
-        isCameraScanningRef.current = false; // Unlock camera scanner
-        // Don't clear lastScannedBarcodeRef - keep for 1 second debounce
-        console.log('🔓 Ready for next scan');
-      }, 800); // Increased to 800ms for more reliable debouncing
+        isCameraScanningRef.current = false;
+      }, 800);
     }
   };
 
@@ -337,10 +297,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       return;
     }
     
-    if (isProcessingRef.current) {
-      console.log('⏸️ Already processing, please wait...');
-      return;
-    }
+    if (isProcessingRef.current) return;
     
     // Clear input immediately
     setBarcodeInput('');
@@ -493,11 +450,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         saleRequest.notes = formData.notes.trim();
       }
 
-      console.log('🛒 Submitting sale request:', JSON.stringify(saleRequest, null, 2));
-
       const response = await createSaleAction(saleRequest as SaleRequest);
-
-      console.log('📦 Sale response:', response);
 
       if (response.success && response.data) {
         // Convert full Sale to SaleListItem for the list
@@ -542,11 +495,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
         });
         setSearchTerm('');
       } else {
-        console.error('❌ Sale failed:', response.message);
         toast.error(response.message || 'Failed to create sale');
       }
     } catch (error) {
-      console.error('❌ Sale error:', error);
       toast.error(error instanceof Error ? error.message : 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
@@ -563,8 +514,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       } else {
         toast.error(response.message || 'Failed to load sale details');
       }
-    } catch (error) {
-      console.error('Error loading sale details:', error);
+    } catch {
       toast.error('Failed to load sale details');
     } finally {
       setIsLoading(false);
@@ -582,8 +532,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       } else {
         toast.error(response.message || 'Failed to load sale details');
       }
-    } catch (error) {
-      console.error('Error loading sale details:', error);
+    } catch {
       toast.error('Failed to load sale details');
     } finally {
       setIsLoading(false);
@@ -619,8 +568,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       } else {
         toast.error(response.message || 'Failed to export sales');
       }
-    } catch (error) {
-      console.error('Error exporting sales:', error);
+    } catch {
       toast.error('Failed to export sales');
     } finally {
       setIsExporting(false);
@@ -652,8 +600,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       });
       
       toast.success('Receipt PDF downloaded!');
-    } catch (error) {
-      console.error('Error downloading receipt:', error);
+    } catch {
       toast.error('Failed to download receipt');
     }
   };
@@ -683,8 +630,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       });
       
       toast.success('Receipt sent to printer!');
-    } catch (error) {
-      console.error('Error printing receipt:', error);
+    } catch {
       toast.error('Failed to print receipt');
     }
   };
@@ -712,8 +658,7 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       } else {
         toast.error(response.message || 'Failed to fetch sales');
       }
-    } catch (error) {
-      console.error('Error fetching sales:', error);
+    } catch {
       toast.error('Cannot connect to server. Please try again.');
     } finally {
       setIsLoading(false);
@@ -1584,13 +1529,9 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
       {/* Barcode Scanner Dialog */}
       <BarcodeScanner
         open={scannerOpen && !isCameraScanningRef.current}
-        onClose={() => {
-          setScannerOpen(false);
-          console.log('📷 Camera scanner closed');
-        }}
+        onClose={() => setScannerOpen(false)}
         onScan={(barcode) => {
-          console.log('📷 Camera detected barcode:', barcode);
-          setScannerOpen(false); // Close immediately
+          setScannerOpen(false);
           handleBarcodeScanned(barcode);
         }}
       />

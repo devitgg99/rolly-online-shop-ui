@@ -29,19 +29,12 @@ import {
   RefundApiResponse,
 } from "@/types/sales.types";
 import { logger } from "@/lib/logger";
-import { sanitizeError } from "@/lib/security";
 
 export async function createSaleAction(saleData: SaleRequest): Promise<SaleApiResponse> {
   try {
-    console.log('🔍 [Action] Creating sale, data:', JSON.stringify(saleData, null, 2));
-    
     const session = await getServerSession(authOptions);
-    
-    console.log('🔍 [Action] Session exists:', !!session);
-    console.log('🔍 [Action] Token exists:', !!(session as any)?.backendToken);
-    
+
     if (!session || !(session as any).backendToken) {
-      console.error('❌ [Action] Unauthorized - No session or token');
       return {
         success: false,
         message: "Unauthorized - Please login",
@@ -51,15 +44,9 @@ export async function createSaleAction(saleData: SaleRequest): Promise<SaleApiRe
     }
 
     const token = (session as any).backendToken;
-    console.log('🔍 [Action] Token length:', token?.length);
-    
     const response = await createSaleService(saleData, token);
-    
-    console.log('📦 [Action] Service response:', response.success, response.message);
-    
     return response;
   } catch (error) {
-    console.error('❌ [Action] Error:', error);
     logger.error("createSaleAction error", error);
     return {
       success: false,

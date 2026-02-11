@@ -123,21 +123,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Session Info (Developer) */}
-        {(session as any).backendToken && (
-          <div className="mt-6 bg-muted/50 border border-border rounded-xl p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Key className="w-4 h-4 text-foreground/60" />
-              <h3 className="font-semibold text-sm">Backend JWT Token</h3>
-            </div>
-            <p className="text-xs font-mono break-all text-foreground/60 bg-background rounded-lg p-3">
-              {(session as any).backendToken.substring(0, 60)}...
-            </p>
-            <p className="text-xs text-foreground/50 mt-2">
-              🔒 This token is used for authenticated API calls to your backend
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

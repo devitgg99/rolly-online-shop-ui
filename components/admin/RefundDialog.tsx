@@ -29,7 +29,6 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { createRefundAction } from '@/actions/sales/sales.action';
 import type { Sale, RefundItemRequest } from '@/types/sales.types';
-import { cn } from '@/lib/utils';
 
 interface RefundDialogProps {
   open: boolean;
