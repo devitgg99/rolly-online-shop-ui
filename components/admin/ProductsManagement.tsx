@@ -348,18 +348,22 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
   };
 
   const handleOpenDialog = () => {
-    setEditingProduct(null);
-    setFormData({
-      name: '',
-      description: '',
-      barcode: '',
-      costPrice: '',
-      price: '',
-      discountPercent: '',
-      stockQuantity: '',
-      imageUrl: '',
-      categoryId: '',
-    });
+    // Only reset form when switching from edit → add mode
+    // Keep draft data if user was already adding a product
+    if (editingProduct) {
+      setEditingProduct(null);
+      setFormData({
+        name: '',
+        description: '',
+        barcode: '',
+        costPrice: '',
+        price: '',
+        discountPercent: '',
+        stockQuantity: '',
+        imageUrl: '',
+        categoryId: '',
+      });
+    }
     setDialogOpen(true);
   };
 

@@ -19,7 +19,6 @@ import {
   Undo2,
   BarChart3,
   FileText,
-  Printer,
   Box,
   ShoppingBag,
   Sparkles
@@ -52,7 +51,6 @@ import {
 } from '@/actions/sales/sales.action';
 import { findProductByBarcodeAction } from '@/actions/products/barcode.action';
 import BarcodeScanner from './BarcodeScanner';
-import { downloadReceipt, printReceipt } from '@/lib/receipt-generator';
 import ReceiptDialog from './ReceiptDialog';
 import TopSellingProducts from './TopSellingProducts';
 import { SalesAnalyticsDashboard } from './SalesAnalyticsDashboard';
@@ -575,63 +573,24 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     }
   };
 
-  // Download receipt PDF - Enhanced version
-  const handleDownloadPdf = async (saleId: string) => {
+  // Open receipt dialog for a sale (PDF / Image / Print)
+  const handleOpenReceipt = async (saleId: string) => {
     if (!session?.backendToken) {
       toast.error('Authentication required');
       return;
     }
 
     try {
-      // Fetch full sale details
       const response = await fetchSaleDetailAction(saleId);
-      
+
       if (!response.success || !response.data) {
         toast.error('Failed to fetch sale details');
         return;
       }
 
-      // Generate and download enhanced receipt
-      await downloadReceipt(response.data, {
-        storeName: 'Rolly Online Shop',
-        storeAddress: '123 Business Street, City, Country',
-        storePhone: '+1 234 567 8900',
-        storeEmail: 'info@rollyshop.com',
-      });
-      
-      toast.success('Receipt PDF downloaded!');
+      setReceiptDialog({ open: true, sale: response.data });
     } catch {
-      toast.error('Failed to download receipt');
-    }
-  };
-
-  // Print receipt
-  const handlePrintReceipt = async (saleId: string) => {
-    if (!session?.backendToken) {
-      toast.error('Authentication required');
-      return;
-    }
-
-    try {
-      // Fetch full sale details
-      const response = await fetchSaleDetailAction(saleId);
-      
-      if (!response.success || !response.data) {
-        toast.error('Failed to fetch sale details');
-        return;
-      }
-
-      // Generate and print receipt
-      await printReceipt(response.data, {
-        storeName: 'Rolly Online Shop',
-        storeAddress: '123 Business Street, City, Country',
-        storePhone: '+1 234 567 8900',
-        storeEmail: 'info@rollyshop.com',
-      });
-      
-      toast.success('Receipt sent to printer!');
-    } catch {
-      toast.error('Failed to print receipt');
+      toast.error('Failed to load receipt');
     }
   };
 
@@ -1001,18 +960,10 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDownloadPdf(sale.id)}
-                            title="Download PDF"
+                            onClick={() => handleOpenReceipt(sale.id)}
+                            title="Receipt"
                           >
                             <FileText className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlePrintReceipt(sale.id)}
-                            title="Print Receipt"
-                          >
-                            <Printer className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
