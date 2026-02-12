@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProductDetailSkeleton } from '@/components/skeletons';
+import { formatUSD, formatKHR } from '@/lib/currency';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -238,17 +239,22 @@ export default function ProductDetailPage() {
             <div className="space-y-2">
               <div className="flex items-baseline gap-3">
                 <span className="text-4xl font-bold text-primary">
-                  ${product.discountedPrice.toFixed(2)}
+                  {formatUSD(product.discountedPrice)}
                 </span>
                 {hasDiscount && (
-                  <>
-                    <span className="text-2xl text-muted-foreground line-through">
-                      ${product.price.toFixed(2)}
-                    </span>
-                    <span className="text-lg font-semibold text-green-600">
-                      Save ${discountAmount.toFixed(2)}
-                    </span>
-                  </>
+                  <span className="text-2xl text-muted-foreground line-through">
+                    {formatUSD(product.price)}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-baseline gap-3">
+                <span className="text-2xl font-semibold text-foreground/80">
+                  {formatKHR(product.discountedPrice)}
+                </span>
+                {hasDiscount && (
+                  <span className="text-lg font-semibold text-green-600">
+                    Save {formatUSD(discountAmount)}
+                  </span>
                 )}
               </div>
               {product.barcode && (

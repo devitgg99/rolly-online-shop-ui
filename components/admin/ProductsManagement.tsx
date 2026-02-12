@@ -48,6 +48,7 @@ import { MultiImageUpload } from './MultiImageUpload';
 import { exportProducts } from '@/services/products.service';
 import ProductsByCategory from './ProductsByCategory';
 import { ProductCardSkeletonGrid } from '@/components/skeletons';
+import { formatUSD, formatKHR } from '@/lib/currency';
 
 type ProductFormData = {
   name: string;
@@ -1117,18 +1118,21 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     <div className="space-y-0.5 sm:space-y-1">
                       <div className="flex items-baseline gap-1 sm:gap-2">
                         <span className="text-base sm:text-xl md:text-2xl font-bold text-primary">
-                          ${product.discountedPrice.toFixed(2)}
+                          {formatUSD(product.discountedPrice)}
                         </span>
                         {product.discountPercent > 0 && (
                           <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
-                            ${product.price.toFixed(2)}
+                            {formatUSD(product.price)}
                           </span>
                         )}
                       </div>
+                      <span className="text-[10px] sm:text-xs font-medium text-foreground/70">
+                        {formatKHR(product.discountedPrice)}
+                      </span>
                       <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
-                        <span className="hidden sm:inline">Cost: ${product.costPrice.toFixed(2)}</span>
+                        <span className="hidden sm:inline">Cost: {formatUSD(product.costPrice)}</span>
                         <span className="text-green-600 font-semibold text-[10px] sm:text-xs">
-                          +${product.profit.toFixed(2)}
+                          +{formatUSD(product.profit)}
                         </span>
                       </div>
                     </div>

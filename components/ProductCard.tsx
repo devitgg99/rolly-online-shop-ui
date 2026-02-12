@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatUSD, formatKHR } from '@/lib/currency';
 
 interface ProductCardProps {
   id: string;
@@ -158,11 +159,14 @@ export function ProductCard({
         <div className="flex justify-between items-center pt-3 sm:pt-4">
           <div className="flex flex-col">
             <span className="text-xl sm:text-2xl font-bold text-primary">
-              ${displayPrice.toFixed(2)}
+              {formatUSD(displayPrice)}
+            </span>
+            <span className="text-xs sm:text-sm font-medium text-foreground/70">
+              {formatKHR(displayPrice)}
             </span>
             {hasDiscount && (
-              <span className="text-sm text-muted-foreground line-through">
-                ${price.toFixed(2)}
+              <span className="text-xs text-muted-foreground line-through">
+                {formatUSD(price)}
               </span>
             )}
           </div>

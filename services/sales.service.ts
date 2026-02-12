@@ -256,15 +256,19 @@ export async function fetchTodaySummary(token: string): Promise<SaleSummaryApiRe
 }
 
 /**
- * Get sales summary by date range
+ * Get sales summary by date range (omit dates for all-time)
  */
 export async function fetchSummaryByDateRange(
-  startDate: string,
-  endDate: string,
+  startDate: string | undefined,
+  endDate: string | undefined,
   token: string
 ): Promise<SaleSummaryApiResponse> {
   try {
-    const url = `${API_URL}/sales/summary?startDate=${startDate}&endDate=${endDate}`;
+    const params = new URLSearchParams();
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    const qs = params.toString();
+    const url = `${API_URL}/sales/summary${qs ? `?${qs}` : ''}`;
 
     const response = await fetch(url, {
       method: "GET",

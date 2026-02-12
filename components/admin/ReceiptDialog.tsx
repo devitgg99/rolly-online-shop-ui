@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, Printer, Image as ImageIcon, X } from 'lucide-react';
 import Receipt from './Receipt';
@@ -32,7 +32,12 @@ export default function ReceiptDialog({
 
   if (!sale) return null;
 
-  // Capture receipt as high-res canvas for image/PDF export
+  /**
+   * Capture receipt as high-res canvas.
+   * html2canvas clones the ENTIRE document, so Tailwind v4's oklch()
+   * colors crash the parser. Fix: strip all stylesheets from the clone.
+   * The Receipt uses pure inline styles so it renders fine without them.
+   */
   const captureReceiptAsCanvas = async (): Promise<HTMLCanvasElement> => {
     if (!receiptRef.current) {
       throw new Error('Receipt element not found');
@@ -44,7 +49,15 @@ export default function ReceiptDialog({
       logging: false,
       useCORS: true,
       allowTaint: false,
-      // Receipt uses pure inline styles so no CSS-variable patching needed
+      onclone: (clonedDoc) => {
+        // Remove ALL stylesheets & style tags to eliminate oklch colors
+        clonedDoc.querySelectorAll('link[rel="stylesheet"], style').forEach(el => el.remove());
+
+        // Add minimal safe base styles
+        const safeStyle = clonedDoc.createElement('style');
+        safeStyle.textContent = '* { margin: 0; padding: 0; } body { background: #fff; }';
+        clonedDoc.head.appendChild(safeStyle);
+      },
     });
   };
 
@@ -103,7 +116,6 @@ export default function ReceiptDialog({
 
       const canvas = await captureReceiptAsCanvas();
 
-      // Convert to blob and download
       canvas.toBlob((blob) => {
         if (!blob) {
           toast.error('Failed to generate image');
@@ -119,8 +131,7 @@ export default function ReceiptDialog({
 
         toast.success('Receipt image downloaded!');
       }, 'image/png');
-    } catch (error) {
-      console.error('Download image error:', error);
+    } catch {
       toast.error('Failed to download image');
     } finally {
       setIsProcessing(false);
@@ -135,7 +146,6 @@ export default function ReceiptDialog({
       const canvas = await captureReceiptAsCanvas();
       const imgData = canvas.toDataURL('image/png');
       
-      // Thermal receipt size (80mm width)
       const pdfWidth = 80; // mm
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
@@ -149,8 +159,7 @@ export default function ReceiptDialog({
       pdf.save(`receipt-${sale.id.slice(0, 8)}-${Date.now()}.pdf`);
 
       toast.success('Receipt PDF downloaded!');
-    } catch (error) {
-      console.error('Download PDF error:', error);
+    } catch {
       toast.error('Failed to download PDF');
     } finally {
       setIsProcessing(false);
@@ -159,8 +168,8 @@ export default function ReceiptDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col overflow-hidden" aria-describedby={undefined}>
+        <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
           <DialogTitle className="flex items-center justify-between">
             <span>Receipt Preview</span>
             <Button
@@ -172,10 +181,13 @@ export default function ReceiptDialog({
               <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Preview and download receipt
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Receipt Preview */}
+        {/* Scrollable receipt area */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6">
           <div 
             className="p-4 rounded-lg flex justify-center"
             style={{ backgroundColor: '#f3f4f6' }}
@@ -193,8 +205,10 @@ export default function ReceiptDialog({
               />
             </div>
           </div>
+        </div>
 
-          {/* Action Buttons */}
+        {/* Fixed bottom actions -- always visible */}
+        <div className="flex-shrink-0 border-t px-6 py-4 space-y-3 bg-background">
           <div className="grid grid-cols-3 gap-3">
             <Button
               onClick={handlePrint}
@@ -223,12 +237,9 @@ export default function ReceiptDialog({
               PDF
             </Button>
           </div>
-
-          {/* Info */}
-          <div className="text-xs text-muted-foreground text-center space-y-1">
-            <p>Receipt ID: {sale.id}</p>
-            <p>Standard thermal printer size (80mm width)</p>
-          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            Receipt #{sale.id.slice(0, 8).toUpperCase()} • 80mm thermal format
+          </p>
         </div>
       </DialogContent>
     </Dialog>

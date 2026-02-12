@@ -114,8 +114,8 @@ export async function fetchTodaysSummaryAction(): Promise<SaleSummaryApiResponse
 }
 
 export async function fetchSummaryByDateRangeAction(
-  startDate: string,
-  endDate: string
+  startDate?: string,
+  endDate?: string
 ): Promise<SaleSummaryApiResponse> {
   try {
     const session = await getServerSession(authOptions);

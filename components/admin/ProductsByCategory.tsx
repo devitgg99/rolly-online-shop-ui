@@ -19,6 +19,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { StockHistoryDialog } from './StockHistoryDialog';
 import { MultiImageUpload } from './MultiImageUpload';
 import { CategorySectionSkeleton } from '@/components/skeletons';
+import { formatUSD, formatKHR } from '@/lib/currency';
 
 interface CategoryWithProducts {
   category: Category;
@@ -456,18 +457,21 @@ function ProductCard({
         <div className="space-y-1">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-primary">
-              ${product.discountedPrice.toFixed(2)}
+              {formatUSD(product.discountedPrice)}
             </span>
             {product.discountPercent > 0 && (
               <span className="text-sm text-muted-foreground line-through">
-                ${product.price.toFixed(2)}
+                {formatUSD(product.price)}
               </span>
             )}
           </div>
+          <span className="text-xs font-medium text-foreground/70">
+            {formatKHR(product.discountedPrice)}
+          </span>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Cost: ${product.costPrice.toFixed(2)}</span>
+            <span>Cost: {formatUSD(product.costPrice)}</span>
             <span className="text-green-600 font-semibold">
-              +${product.profit.toFixed(2)} profit
+              +{formatUSD(product.profit)} profit
             </span>
           </div>
         </div>

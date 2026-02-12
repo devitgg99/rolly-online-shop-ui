@@ -1,7 +1,7 @@
 import { fetchSales, fetchTodaySummary } from '@/services/sales.service';
 import { fetchAdminProducts } from '@/services/products.service';
 import { fetchCategories } from '@/services/categories.service';
-import { SaleListItem, SaleSummary } from '@/types/sales.types';
+import { SaleListItem, SaleListResponse, SaleSummary } from '@/types/sales.types';
 import { AdminProduct } from '@/types/product.types';
 import { Category } from '@/types/category.types';
 import SalesManagement from '@/components/admin/SalesManagement';
@@ -21,21 +21,23 @@ async function getInitialData() {
     fetchCategories(),
   ]);
 
-  const sales: SaleListItem[] = salesRes.success && salesRes.data?.content ? salesRes.data.content : [];
+  const salesData: SaleListResponse | null = salesRes.success && salesRes.data ? salesRes.data : null;
+  const sales: SaleListItem[] = salesData?.content ?? [];
   const summary: SaleSummary | null = summaryRes.success && summaryRes.data ? summaryRes.data : null;
   const products: AdminProduct[] = productsRes.success && productsRes.data?.content ? productsRes.data.content : [];
   const categories: Category[] = categoriesRes.success && categoriesRes.data ? categoriesRes.data : [];
 
-  return { sales, summary, products, categories };
+  return { sales, salesData, summary, products, categories };
 }
 
 export default async function SalesPage() {
   try {
-    const { sales, summary, products, categories } = await getInitialData();
+    const { sales, salesData, summary, products, categories } = await getInitialData();
 
     return (
       <SalesManagement
         initialSales={sales}
+        initialSalesData={salesData}
         initialSummary={summary}
         availableProducts={products}
         categories={categories}

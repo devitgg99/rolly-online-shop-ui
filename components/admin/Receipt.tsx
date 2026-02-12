@@ -24,8 +24,6 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
         minute: '2-digit',
       });
 
-    const subtotal = sale.totalAmount + (sale.discountAmount || 0);
-
     return (
       <div
         ref={ref}
@@ -118,7 +116,6 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
             fontSize: '13px',
           }}
         >
-          <Row label="Subtotal" value={fmt(subtotal)} />
           {sale.discountAmount != null && sale.discountAmount > 0 && (
             <Row label="Discount" value={`-${fmt(sale.discountAmount)}`} color="#dc2626" />
           )}
@@ -128,9 +125,7 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
               justifyContent: 'space-between',
               fontWeight: 700,
               fontSize: '18px',
-              borderTop: '1px solid #000',
-              paddingTop: '10px',
-              marginTop: '8px',
+              marginTop: '4px',
             }}
           >
             <span>TOTAL</span>

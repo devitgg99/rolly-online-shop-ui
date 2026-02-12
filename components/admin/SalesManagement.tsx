@@ -17,16 +17,11 @@ import {
   Camera,
   Download,
   Undo2,
-  BarChart3,
   FileText,
-  Box,
-  ShoppingBag,
-  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -41,29 +36,42 @@ import {
 import { toast } from 'sonner';
 import Image from 'next/image';
 
-import type { Sale, SaleListItem, SaleSummary, SaleRequest, SaleItem } from '@/types/sales.types';
+import type { Sale, SaleListItem, SaleListResponse, SaleSummary, SaleRequest, SaleItem } from '@/types/sales.types';
 import type { AdminProduct } from '@/types/product.types';
 import type { Category } from '@/types/category.types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@/components/ui/pagination';
 import { 
   createSaleAction, 
   fetchSaleDetailAction, 
-  fetchTodaysSummaryAction 
+  fetchSummaryByDateRangeAction,
+  fetchSalesWithFiltersAction,
+  fetchTopSellingProductsAction,
+  fetchTopSellingProductsByRangeAction,
 } from '@/actions/sales/sales.action';
 import { findProductByBarcodeAction } from '@/actions/products/barcode.action';
 import BarcodeScanner from './BarcodeScanner';
 import ReceiptDialog from './ReceiptDialog';
-import TopSellingProducts from './TopSellingProducts';
 import { SalesAnalyticsDashboard } from './SalesAnalyticsDashboard';
 import { RefundDialog } from './RefundDialog';
-import { SalesAdvancedFilters, type SalesFilters } from './SalesAdvancedFilters';
-import { fetchSalesWithFiltersAction } from '@/actions/sales/sales.action';
 import { exportSales } from '@/services/sales.service';
+import { formatUSD, formatKHR } from '@/lib/currency';
+import type { TopSellingProduct } from '@/types/sales.types';
 
 interface SalesManagementProps {
-  initialSales: SaleListItem[]; // Changed from Sale[] to SaleListItem[]
+  initialSales: SaleListItem[];
+  initialSalesData?: SaleListResponse | null;
   initialSummary: SaleSummary | null;
-  availableProducts?: AdminProduct[]; // Make it optional with safety
-  categories?: Category[]; // Add categories for filtering
+  availableProducts?: AdminProduct[];
+  categories?: Category[];
 }
 
 interface CartItem extends SaleItem {
@@ -92,7 +100,7 @@ const getPaymentMethodDisplay = (method: string): { label: string; icon: string;
   return displays[method] || { label: method, icon: '💰', color: 'bg-gray-100 text-gray-700 border-gray-300' };
 };
 
-export default function SalesManagement({ initialSales, initialSummary, availableProducts, categories }: SalesManagementProps) {
+export default function SalesManagement({ initialSales, initialSalesData, initialSummary, availableProducts, categories }: SalesManagementProps) {
   const { data: session } = useSession();
   
   const [sales, setSales] = useState<SaleListItem[]>(initialSales || []);
@@ -110,11 +118,10 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     open: false,
     sale: null,
   });
-  const [showAnalytics, setShowAnalytics] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all'); // Add category filter
+  const [filterCategory, setFilterCategory] = useState('all');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [formData, setFormData] = useState<SaleFormData>({
     customerName: '',
@@ -124,12 +131,54 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     notes: '',
   });
 
-  // Advanced filters state
-  const [filters, setFilters] = useState<SalesFilters>({
-    paymentMethod: 'ALL',
-    sortBy: 'date',
-    direction: 'desc',
-  });
+  // Unified date period filter
+  type Period = 'today' | 'yesterday' | 'week' | 'month' | 'all';
+  const [activePeriod, setActivePeriod] = useState<Period>('today');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [topSelling, setTopSelling] = useState<TopSellingProduct[]>([]);
+  const [isLoadingTop, setIsLoadingTop] = useState(false);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(initialSalesData?.page ?? 0);
+  const [totalPages, setTotalPages] = useState(initialSalesData?.totalPages ?? 0);
+  const [totalElements, setTotalElements] = useState(initialSalesData?.totalElements ?? 0);
+  const pageSize = 20;
+
+  // Compute start/end dates from period
+  const getDateRange = (period: Period): { startDate?: string; endDate?: string } => {
+    const today = new Date();
+    const fmt = (d: Date) => d.toISOString().split('T')[0];
+
+    switch (period) {
+      case 'today':
+        return { startDate: fmt(today), endDate: fmt(today) };
+      case 'yesterday': {
+        const y = new Date(today);
+        y.setDate(y.getDate() - 1);
+        return { startDate: fmt(y), endDate: fmt(y) };
+      }
+      case 'week': {
+        const w = new Date(today);
+        w.setDate(w.getDate() - 7);
+        return { startDate: fmt(w), endDate: fmt(today) };
+      }
+      case 'month': {
+        const m = new Date(today);
+        m.setDate(m.getDate() - 30);
+        return { startDate: fmt(m), endDate: fmt(today) };
+      }
+      case 'all':
+        return {};
+    }
+  };
+
+  const periodLabels: Record<Period, string> = {
+    today: 'Today',
+    yesterday: 'Yesterday',
+    week: 'This Week',
+    month: 'This Month',
+    all: 'All Time',
+  };
 
   // Barcode scanner states
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -217,27 +266,53 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     };
   }, [dialogOpen]); // REMOVED barcodeBuffer from dependencies!
 
-  // Fetch today's summary on mount and periodically
-  useEffect(() => {
-    const loadTodaysSummary = async () => {
-      try {
-        const response = await fetchTodaysSummaryAction();
-        if (response.success && response.data) {
-          setSummary(response.data);
-        }
-      } catch {
-        // Silently retry on next interval
+  // Load all data when period changes
+  const loadAllData = async (period: Period, page = 0) => {
+    const { startDate, endDate } = getDateRange(period);
+
+    // Load summary
+    try {
+      const res = await fetchSummaryByDateRangeAction(startDate, endDate);
+      if (res.success && res.data) setSummary(res.data);
+    } catch { /* silent */ }
+
+    // Load transactions with pagination
+    try {
+      const res = await fetchSalesWithFiltersAction({
+        startDate,
+        endDate,
+        sortBy: 'date',
+        direction: 'desc',
+        page,
+        size: pageSize,
+      });
+      if (res.success && res.data) {
+        setSales(res.data.content);
+        setCurrentPage(res.data.page);
+        setTotalPages(res.data.totalPages);
+        setTotalElements(res.data.totalElements);
       }
-    };
+    } catch { /* silent */ }
 
-    // Load immediately
-    loadTodaysSummary();
+    // Load top selling
+    setIsLoadingTop(true);
+    try {
+      if (period === 'all') {
+        const res = await fetchTopSellingProductsAction(10);
+        if (res.success && res.data) setTopSelling(res.data);
+      } else if (startDate && endDate) {
+        const res = await fetchTopSellingProductsByRangeAction(startDate, endDate, 10);
+        if (res.success && res.data) setTopSelling(res.data);
+      }
+    } catch { /* silent */ }
+    setIsLoadingTop(false);
+  };
 
-    // Refresh every 30 seconds to keep stats current
-    const interval = setInterval(loadTodaysSummary, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Fetch on mount and when period changes
+  useEffect(() => {
+    setCurrentPage(0);
+    loadAllData(activePeriod, 0);
+  }, [activePeriod]);
 
   const handleBarcodeScanned = async (barcode: string) => {
     if (isProcessingRef.current) return;
@@ -552,19 +627,13 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
 
     setIsExporting(true);
     try {
-      const exportFilters = {
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        paymentMethod: filters.paymentMethod !== 'ALL' ? filters.paymentMethod : undefined,
-        includeItems,
-      };
-
-      const response = await exportSales(format, session.backendToken, exportFilters);
+      const { startDate, endDate } = getDateRange(activePeriod);
+      const response = await exportSales(format, session.backendToken, { startDate, endDate, includeItems });
 
       if (response.success) {
-        toast.success(`Sales exported successfully as ${format.toUpperCase()}!`);
+        toast.success(`Exported as ${format.toUpperCase()}!`);
       } else {
-        toast.error(response.message || 'Failed to export sales');
+        toast.error(response.message || 'Failed to export');
       }
     } catch {
       toast.error('Failed to export sales');
@@ -594,399 +663,258 @@ export default function SalesManagement({ initialSales, initialSummary, availabl
     }
   };
 
-  // Apply filters (via server action - avoids client-side CORS/network issues)
-  const handleApplyFilters = async () => {
-    setIsLoading(true);
-    try {
-      const filterParams = {
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        paymentMethod: filters.paymentMethod !== 'ALL' ? filters.paymentMethod as any : undefined,
-        minAmount: filters.minAmount ? parseFloat(filters.minAmount) : undefined,
-        maxAmount: filters.maxAmount ? parseFloat(filters.maxAmount) : undefined,
-        customerName: filters.customerName,
-        sortBy: (filters.sortBy || 'date') as 'date' | 'amount' | 'profit',
-        direction: (filters.direction || 'desc') as 'asc' | 'desc',
-      };
+  // Refresh data for current period
+  const handleRefresh = () => loadAllData(activePeriod, currentPage);
 
-      const response = await fetchSalesWithFiltersAction(filterParams);
-
-      if (response.success && response.data) {
-        setSales(response.data.content);
-        toast.success(`Found ${response.data.totalElements} sales`);
-      } else {
-        toast.error(response.message || 'Failed to fetch sales');
-      }
-    } catch {
-      toast.error('Cannot connect to server. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  // Page change handler
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    loadAllData(activePeriod, page);
   };
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-      {/* Header - Mobile Optimized */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold">Sales 🛒</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Point of Sale & Transactions</p>
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Sales</h1>
+          <p className="text-sm text-muted-foreground">Point of Sale & Transactions</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant={showAnalytics ? 'default' : 'outline'}
-            onClick={() => setShowAnalytics(!showAnalytics)}
-            className="flex-1 sm:flex-none"
-          >
-            <BarChart3 className="w-4 h-4 mr-2" />
-            {showAnalytics ? 'Hide' : 'Show'} Analytics
-          </Button>
-          <Button 
-            onClick={() => setDialogOpen(true)} 
-            size="lg"
-            className="flex-1 sm:flex-none shadow-lg hover:shadow-xl transition-all"
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            New Sale
-          </Button>
-        </div>
+        <Button onClick={() => setDialogOpen(true)} size="lg" className="shadow-lg hover:shadow-xl transition-all">
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          New Sale
+        </Button>
       </div>
 
-      {/* Analytics Dashboard */}
-      {showAnalytics && (
-        <SalesAnalyticsDashboard />
-      )}
+      {/* ── Unified Date Period Filter ── */}
+      <div className="flex flex-wrap gap-2">
+        {(Object.keys(periodLabels) as Period[]).map((p) => (
+          <Button
+            key={p}
+            variant={activePeriod === p ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActivePeriod(p)}
+          >
+            {periodLabels[p]}
+          </Button>
+        ))}
+      </div>
 
-      {/* Top Selling Products Section */}
-      <TopSellingProducts />
+      {/* ── Tabs: Overview / Top Selling / Analytics ── */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="top-selling">Top Selling</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-      {/* Enhanced Summary Dashboard - Today's Performance */}
-      {summary && (
-        <div className="space-y-4">
-          {/* Main Title */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight">Today's Performance 📊</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
+        {/* ── TAB: Overview ── */}
+        <TabsContent value="overview" className="space-y-4 mt-4">
+          {/* Performance Summary */}
+          {summary && (
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+              <Card className="hover:shadow-lg transition-all border-2 hover:border-blue-300">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <p className="text-xs text-muted-foreground mb-1">Transactions</p>
+                  <div className="text-2xl font-black text-blue-600">{summary.totalSales}</div>
+                </CardContent>
+              </Card>
+              <Card className="hover:shadow-lg transition-all border-2 hover:border-purple-300">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <p className="text-xs text-muted-foreground mb-1">Products Sold</p>
+                  <div className="text-2xl font-black text-purple-600">{summary.totalProductsSold || 0}</div>
+                </CardContent>
+              </Card>
+              <Card className="hover:shadow-lg transition-all border-2 hover:border-emerald-300">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <p className="text-xs text-muted-foreground mb-1">Revenue</p>
+                  <div className="text-2xl font-black text-emerald-600">{formatUSD(summary.totalRevenue)}</div>
+                  <p className="text-[10px] text-muted-foreground">{formatKHR(summary.totalRevenue)}</p>
+                </CardContent>
+              </Card>
+              <Card className="hover:shadow-lg transition-all border-2 hover:border-orange-300">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <p className="text-xs text-muted-foreground mb-1">Cost</p>
+                  <div className="text-2xl font-black text-orange-600">{formatUSD(summary.totalCost)}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-300">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">Profit</p>
+                  <div className="text-2xl font-black text-green-600">{formatUSD(summary.totalProfit)}</div>
+                  <p className="text-[10px] text-green-600">{formatKHR(summary.totalProfit)}</p>
+                </CardContent>
+              </Card>
+              <Card className="hover:shadow-lg transition-all border-2 hover:border-cyan-300">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <p className="text-xs text-muted-foreground mb-1">Margin</p>
+                  <div className="text-2xl font-black text-cyan-600">{summary.profitMargin.toFixed(1)}%</div>
+                  <div className="mt-1 h-1.5 bg-cyan-100 dark:bg-cyan-950 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all" style={{ width: `${Math.min(summary.profitMargin, 100)}%` }} />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-
-          {/* Stats Grid - Enhanced Design */}
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {/* Transactions Count */}
-            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-blue-300">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -mr-10 -mt-10" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Transactions</CardTitle>
-                  <div className="p-2 bg-blue-100 dark:bg-blue-950 rounded-lg">
-                    <Receipt className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-black text-blue-600">{summary.totalSales}</div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <ShoppingCart className="w-3 h-3" />
-                  Sales completed
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Products Sold */}
-            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-purple-300">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full -mr-10 -mt-10" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Products Sold</CardTitle>
-                  <div className="p-2 bg-purple-100 dark:bg-purple-950 rounded-lg">
-                    <Package className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-black text-purple-600">{summary.totalProductsSold || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Box className="w-3 h-3" />
-                  Total units moved
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Revenue */}
-            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-emerald-300">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full -mr-10 -mt-10" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Revenue</CardTitle>
-                  <div className="p-2 bg-emerald-100 dark:bg-emerald-950 rounded-lg">
-                    <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-black text-emerald-600">${summary.totalRevenue.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  Total collected
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Cost */}
-            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-orange-300">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full -mr-10 -mt-10" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Cost</CardTitle>
-                  <div className="p-2 bg-orange-100 dark:bg-orange-950 rounded-lg">
-                    <Minus className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-black text-orange-600">${summary.totalCost.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <ShoppingBag className="w-3 h-3" />
-                  Goods cost
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Profit - Highlighted */}
-            <Card className="relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-300 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/20 rounded-full -mr-12 -mt-12" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-green-700 dark:text-green-300">💰 Profit</CardTitle>
-                  <div className="p-2 bg-green-200 dark:bg-green-900 rounded-lg shadow-md">
-                    <TrendingUp className="w-5 h-5 text-green-700 dark:text-green-300" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-black text-green-600 dark:text-green-400">${summary.totalProfit.toFixed(2)}</div>
-                <p className="text-xs font-semibold text-green-700 dark:text-green-300 mt-1 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Net earnings today
-                </p>
-                <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-800">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Per transaction:</span>
-                    <span className="font-bold text-green-600">
-                      ${summary.totalSales > 0 ? (summary.totalProfit / summary.totalSales).toFixed(2) : '0.00'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Margin */}
-            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-cyan-300">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full -mr-10 -mt-10" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Margin</CardTitle>
-                  <div className="p-2 bg-cyan-100 dark:bg-cyan-950 rounded-lg">
-                    <BarChart3 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-black text-cyan-600">{summary.profitMargin.toFixed(1)}%</div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  Profit margin
-                </p>
-                {/* Progress bar */}
-                <div className="mt-2">
-                  <div className="h-2 bg-cyan-100 dark:bg-cyan-950 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
-                      style={{ width: `${Math.min(summary.profitMargin, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Insights */}
-          {summary.totalSales > 0 && (
-            <Card className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border-2">
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                      <ShoppingCart className="w-5 h-5 text-blue-600 dark:text-blue-300" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Average Order Value</p>
-                      <p className="text-lg font-bold">
-                        ${(summary.totalRevenue / summary.totalSales).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                      <Package className="w-5 h-5 text-purple-600 dark:text-purple-300" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Products per Order</p>
-                      <p className="text-lg font-bold">
-                        {((summary.totalProductsSold || 0) / summary.totalSales).toFixed(1)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-300" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Profit per Product</p>
-                      <p className="text-lg font-bold text-green-600">
-                        ${((summary.totalProductsSold || 0) > 0 ? summary.totalProfit / (summary.totalProductsSold || 1) : 0).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           )}
-        </div>
-      )}
 
-      {/* Advanced Filters */}
-      <SalesAdvancedFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        onApply={handleApplyFilters}
-      />
-
-      {/* Sales List */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Recent Transactions</CardTitle>
-              <CardDescription>Latest sales and their details</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport('csv', false)}
-                disabled={isExporting || sales.length === 0}
-              >
-                <Download className="w-3 h-3 mr-1" />
-                CSV
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport('excel', true)}
-                disabled={isExporting || sales.length === 0}
-              >
-                <Download className="w-3 h-3 mr-1" />
-                Excel
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport('pdf', false)}
-                disabled={isExporting || sales.length === 0}
-              >
-                <FileText className="w-3 h-3 mr-1" />
-                PDF
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {sales.length > 0 ? (
-            <div className="space-y-3">
-              {sales.map((sale) => (
-                <Card key={sale.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-semibold">
-                            {sale.customerName || 'Walk-in Customer'}
-                          </h4>
-                          {(() => {
-                            const pmDisplay = getPaymentMethodDisplay(sale.paymentMethod || 'CASH');
-                            return (
-                              <Badge className={pmDisplay.color}>
-                                {pmDisplay.icon} {pmDisplay.label}
-                              </Badge>
-                            );
-                          })()}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{sale.itemCount || 0} items</span>
-                          <span>•</span>
-                          <span>{new Date(sale.createdAt).toLocaleString()}</span>
-                        </div>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <div className="space-y-1">
-                          <div className="text-2xl font-bold">${(sale.totalAmount || 0).toFixed(2)}</div>
-                          <div className="text-sm">
-                            <span className="text-green-600 font-semibold">
-                              +${(sale.profit || 0).toFixed(2)}
-                            </span>
+          {/* Transactions List */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Transactions {totalElements > 0 && <span className="text-sm font-normal text-muted-foreground">({totalElements})</span>}</CardTitle>
+                <div className="flex gap-1.5">
+                  <Button variant="outline" size="sm" onClick={() => handleExport('csv', false)} disabled={isExporting || sales.length === 0}>
+                    <Download className="w-3 h-3 mr-1" /> CSV
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleExport('excel', true)} disabled={isExporting || sales.length === 0}>
+                    <Download className="w-3 h-3 mr-1" /> Excel
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {sales.length > 0 ? (
+                <div className="space-y-2">
+                  {sales.map((sale) => {
+                    const pm = getPaymentMethodDisplay(sale.paymentMethod || 'CASH');
+                    return (
+                      <div key={sale.id} className="flex items-center justify-between gap-3 p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-sm truncate">{sale.customerName || 'Walk-in'}</span>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{pm.icon} {pm.label}</Badge>
                           </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {sale.itemCount || 0} items • {new Date(sale.createdAt).toLocaleString()}
+                          </p>
                         </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewSale(sale.id)}
-                            title="View Details"
-                          >
-                            <Eye className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenRefund(sale.id)}
-                            title="Process Refund"
-                          >
-                            <Undo2 className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenReceipt(sale.id)}
-                            title="Receipt"
-                          >
-                            <FileText className="w-3 h-3" />
-                          </Button>
+                        <div className="text-right flex-shrink-0">
+                          <div className="font-bold">{formatUSD(sale.totalAmount || 0)}</div>
+                          <div className="text-xs text-green-600 font-medium">+{formatUSD(sale.profit || 0)}</div>
+                        </div>
+                        <div className="flex gap-0.5 flex-shrink-0">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleViewSale(sale.id)} title="View"><Eye className="w-3 h-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenReceipt(sale.id)} title="Receipt"><FileText className="w-3 h-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenRefund(sale.id)} title="Refund"><Undo2 className="w-3 h-3" /></Button>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Receipt className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No sales yet</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Start by creating your first sale
-              </p>
-              <Button onClick={() => setDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Sale
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Receipt className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="font-semibold mb-1">No sales for this period</p>
+                  <p className="text-sm text-muted-foreground mb-4">Try a different date range or create a new sale</p>
+                  <Button onClick={() => setDialogOpen(true)} size="sm"><Plus className="w-4 h-4 mr-1" /> New Sale</Button>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-4 pt-3 border-t space-y-2">
+                  <p className="text-xs text-muted-foreground text-center">
+                    Page {currentPage + 1} of {totalPages} · {totalElements} total
+                  </p>
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={(e) => { e.preventDefault(); if (currentPage > 0) handlePageChange(currentPage - 1); }}
+                          className={currentPage === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+
+                      {(() => {
+                        const pages: (number | 'ellipsis')[] = [];
+                        if (totalPages <= 7) {
+                          for (let i = 0; i < totalPages; i++) pages.push(i);
+                        } else {
+                          pages.push(0);
+                          if (currentPage > 2) pages.push('ellipsis');
+                          const start = Math.max(1, currentPage - 1);
+                          const end = Math.min(totalPages - 2, currentPage + 1);
+                          for (let i = start; i <= end; i++) pages.push(i);
+                          if (currentPage < totalPages - 3) pages.push('ellipsis');
+                          pages.push(totalPages - 1);
+                        }
+                        return pages.map((p, idx) =>
+                          p === 'ellipsis' ? (
+                            <PaginationItem key={`e-${idx}`}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          ) : (
+                            <PaginationItem key={p}>
+                              <PaginationLink
+                                isActive={p === currentPage}
+                                onClick={(e) => { e.preventDefault(); handlePageChange(p); }}
+                                className="cursor-pointer"
+                              >
+                                {p + 1}
+                              </PaginationLink>
+                            </PaginationItem>
+                          )
+                        );
+                      })()}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={(e) => { e.preventDefault(); if (currentPage < totalPages - 1) handlePageChange(currentPage + 1); }}
+                          className={currentPage >= totalPages - 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── TAB: Top Selling ── */}
+        <TabsContent value="top-selling" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Top Selling Products — {periodLabels[activePeriod]}</CardTitle>
+              <CardDescription>Best performing products by quantity sold</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingTop ? (
+                <div className="text-center py-12 text-muted-foreground">Loading...</div>
+              ) : topSelling.length > 0 ? (
+                <div className="space-y-2">
+                  {topSelling.map((p, i) => {
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+                    return (
+                      <div key={p.productId || i} className="flex items-center gap-3 p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                        <span className="text-lg font-bold w-8 text-center flex-shrink-0">{medal}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{p.productName}</p>
+                          <p className="text-xs text-muted-foreground">{p.totalQuantitySold} units sold</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <Badge variant="secondary" className="text-xs font-bold">{p.totalQuantitySold} units</Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Package className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="font-semibold mb-1">No data for this period</p>
+                  <p className="text-sm text-muted-foreground">Try a different date range</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── TAB: Analytics ── */}
+        <TabsContent value="analytics" className="mt-4">
+          <SalesAnalyticsDashboard />
+        </TabsContent>
+      </Tabs>
 
       {/* Create Sale Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
