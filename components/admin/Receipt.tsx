@@ -10,179 +10,179 @@ interface ReceiptProps {
   storePhone?: string;
 }
 
+// All inline styles -- no Tailwind classes -- so html2canvas renders correctly
 const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
   ({ sale, storeName = 'Rolly Shop', storeAddress, storePhone }, ref) => {
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      return date.toLocaleString('en-US', {
+    const fmt = (n: number) => `$${n.toFixed(2)}`;
+
+    const fmtDate = (s: string) =>
+      new Date(s).toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
       });
-    };
 
-    const formatCurrency = (amount: number) => {
-      return `$${amount.toFixed(2)}`;
-    };
+    const subtotal = sale.totalAmount + (sale.discountAmount || 0);
 
     return (
       <div
         ref={ref}
         data-receipt-render="true"
-        className="font-mono text-sm max-w-[320px] mx-auto"
         style={{
-          width: '80mm', // Standard thermal printer width
-          minHeight: '100mm',
+          width: '320px',
           backgroundColor: '#ffffff',
           color: '#000000',
-          padding: '24px',
+          fontFamily: "'Courier New', Consolas, monospace",
+          fontSize: '13px',
+          lineHeight: '1.5',
+          padding: '28px 24px',
         }}
       >
-        {/* Store Header */}
-        <div 
-          className="text-center pb-3 mb-3"
-          style={{ 
-            borderBottom: '2px solid #000000',
+        {/* ── Store Header ── */}
+        <div
+          style={{
+            textAlign: 'center',
+            paddingBottom: '14px',
+            marginBottom: '14px',
+            borderBottom: '2px solid #000',
           }}
         >
-          <h1 className="text-2xl font-bold mb-1">{storeName}</h1>
-          {storeAddress && <p className="text-xs">{storeAddress}</p>}
-          {storePhone && <p className="text-xs">Tel: {storePhone}</p>}
+          <div style={{ fontSize: '22px', fontWeight: 700, marginBottom: '4px' }}>
+            {storeName}
+          </div>
+          {storeAddress && (
+            <div style={{ fontSize: '11px', color: '#374151' }}>{storeAddress}</div>
+          )}
+          {storePhone && (
+            <div style={{ fontSize: '11px', color: '#374151' }}>Tel: {storePhone}</div>
+          )}
         </div>
 
-        {/* Receipt Info */}
-        <div className="text-xs mb-3 space-y-1">
-          <div className="flex justify-between">
-            <span>Receipt #:</span>
-            <span className="font-bold">{sale.id.slice(0, 8).toUpperCase()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Date:</span>
-            <span>{formatDate(sale.createdAt)}</span>
-          </div>
-          {sale.customerName && (
-            <div className="flex justify-between">
-              <span>Customer:</span>
-              <span>{sale.customerName}</span>
-            </div>
-          )}
-          {sale.customerPhone && (
-            <div className="flex justify-between">
-              <span>Phone:</span>
-              <span>{sale.customerPhone}</span>
-            </div>
-          )}
-          <div className="flex justify-between">
-            <span>Cashier:</span>
-            <span>{sale.soldBy}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Payment:</span>
-            <span className="font-bold">{sale.paymentMethod}</span>
-          </div>
+        {/* ── Receipt Info ── */}
+        <div style={{ fontSize: '12px', marginBottom: '14px' }}>
+          <Row label="Receipt #" value={sale.id.slice(0, 8).toUpperCase()} />
+          <Row label="Date" value={fmtDate(sale.createdAt)} />
+          {sale.customerName && <Row label="Customer" value={sale.customerName} />}
+          {sale.customerPhone && <Row label="Phone" value={sale.customerPhone} />}
+          <Row label="Cashier" value={sale.soldBy} />
+          <Row label="Payment" value={sale.paymentMethod} bold />
         </div>
 
-        {/* Items */}
-        <div 
-          className="pt-2 mb-2"
-          style={{ 
-            borderTop: '2px dashed #000000',
+        {/* ── Dashed Separator ── */}
+        <div style={{ borderTop: '2px dashed #000', marginBottom: '6px' }} />
+
+        {/* ── Items Table ── */}
+        <table
+          style={{
+            width: '100%',
+            fontSize: '12px',
+            borderCollapse: 'collapse',
+            marginBottom: '6px',
           }}
         >
-          <table className="w-full text-xs">
-            <thead>
-              <tr style={{ borderBottom: '1px solid #000000' }}>
-                <th className="text-left py-1">Item</th>
-                <th className="text-center py-1 w-12">Qty</th>
-                <th className="text-right py-1 w-16">Price</th>
-                <th className="text-right py-1 w-20">Total</th>
+          <thead>
+            <tr style={{ borderBottom: '1px solid #000' }}>
+              <th style={{ textAlign: 'left', padding: '6px 0', fontWeight: 700 }}>Item</th>
+              <th style={{ textAlign: 'center', padding: '6px 0', fontWeight: 700, width: '36px' }}>Qty</th>
+              <th style={{ textAlign: 'right', padding: '6px 0', fontWeight: 700, width: '56px' }}>Price</th>
+              <th style={{ textAlign: 'right', padding: '6px 0', fontWeight: 700, width: '64px' }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sale.items.map((item, i) => (
+              <tr key={i} style={{ borderBottom: '1px solid #d1d5db' }}>
+                <td style={{ padding: '8px 6px 8px 0', wordBreak: 'break-word', verticalAlign: 'top' }}>
+                  {item.productName}
+                </td>
+                <td style={{ padding: '8px 0', textAlign: 'center', verticalAlign: 'top' }}>
+                  {item.quantity}
+                </td>
+                <td style={{ padding: '8px 0', textAlign: 'right', verticalAlign: 'top' }}>
+                  {fmt(item.unitPrice)}
+                </td>
+                <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 700, verticalAlign: 'top' }}>
+                  {fmt(item.subtotal)}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {sale.items.map((item, index) => (
-                <tr key={index} style={{ borderBottom: '1px solid #d1d5db' }}>
-                  <td className="py-2 pr-2">
-                    <div className="break-words">{item.productName}</div>
-                  </td>
-                  <td className="text-center py-2">{item.quantity}</td>
-                  <td className="text-right py-2">{formatCurrency(item.unitPrice)}</td>
-                  <td className="text-right py-2 font-bold">
-                    {formatCurrency(item.subtotal)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
 
-        {/* Totals */}
-        <div 
-          className="pt-2 space-y-1 text-sm"
-          style={{ 
-            borderTop: '2px solid #000000',
+        {/* ── Totals ── */}
+        <div
+          style={{
+            borderTop: '2px solid #000',
+            paddingTop: '10px',
+            fontSize: '13px',
           }}
         >
-          <div className="flex justify-between">
-            <span>Subtotal:</span>
-            <span>
-              {formatCurrency(
-                sale.totalAmount + (sale.discountAmount || 0)
-              )}
-            </span>
-          </div>
-          {sale.discountAmount && sale.discountAmount > 0 && (
-            <div className="flex justify-between" style={{ color: '#dc2626' }}>
-              <span>Discount:</span>
-              <span>-{formatCurrency(sale.discountAmount)}</span>
-            </div>
+          <Row label="Subtotal" value={fmt(subtotal)} />
+          {sale.discountAmount != null && sale.discountAmount > 0 && (
+            <Row label="Discount" value={`-${fmt(sale.discountAmount)}`} color="#dc2626" />
           )}
-          <div 
-            className="flex justify-between font-bold text-lg pt-2"
-            style={{ 
-              borderTop: '1px solid #000000',
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontWeight: 700,
+              fontSize: '18px',
+              borderTop: '1px solid #000',
+              paddingTop: '10px',
+              marginTop: '8px',
             }}
           >
-            <span>TOTAL:</span>
-            <span>{formatCurrency(sale.totalAmount)}</span>
+            <span>TOTAL</span>
+            <span>{fmt(sale.totalAmount)}</span>
           </div>
         </div>
 
-        {/* Notes */}
+        {/* ── Notes ── */}
         {sale.notes && (
-          <div 
-            className="mt-3 pt-2 text-xs"
-            style={{ 
-              borderTop: '1px dashed #000000',
+          <div
+            style={{
+              marginTop: '14px',
+              paddingTop: '10px',
+              borderTop: '1px dashed #000',
+              fontSize: '12px',
             }}
           >
-            <p className="font-bold mb-1">Notes:</p>
-            <p className="break-words">{sale.notes}</p>
+            <div style={{ fontWeight: 700, marginBottom: '4px' }}>Notes:</div>
+            <div style={{ wordBreak: 'break-word' }}>{sale.notes}</div>
           </div>
         )}
 
-        {/* Footer */}
-        <div 
-          className="text-center mt-6 pt-3 text-xs space-y-1"
-          style={{ 
-            borderTop: '2px solid #000000',
+        {/* ── Footer ── */}
+        <div
+          style={{
+            textAlign: 'center',
+            marginTop: '24px',
+            paddingTop: '14px',
+            borderTop: '2px solid #000',
+            fontSize: '12px',
           }}
         >
-          <p className="font-bold">Thank You for Your Purchase!</p>
-          <p>Please Come Again</p>
-          <div className="mt-4 text-[10px]" style={{ color: '#4b5563' }}>
-            <p>Items: {sale.items.length}</p>
-            <p>Saved: {formatCurrency(sale.discountAmount || 0)}</p>
+          <div style={{ fontWeight: 700, marginBottom: '4px' }}>
+            Thank You for Your Purchase!
+          </div>
+          <div style={{ color: '#374151' }}>Please Come Again</div>
+
+          <div style={{ marginTop: '14px', fontSize: '11px', color: '#6b7280' }}>
+            <div>Items: {sale.items.length}</div>
+            <div>Saved: {fmt(sale.discountAmount || 0)}</div>
           </div>
         </div>
 
-        {/* Barcode placeholder */}
-        <div className="mt-4 flex justify-center">
-          <div 
-            className="px-4 py-2 font-mono text-xs"
-            style={{ 
-              border: '2px solid #000000',
+        {/* ── Receipt ID Badge ── */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '18px' }}>
+          <div
+            style={{
+              border: '2px solid #000',
+              padding: '6px 14px',
+              fontSize: '12px',
+              fontWeight: 700,
+              letterSpacing: '1px',
             }}
           >
             {sale.id.slice(0, 12).toUpperCase()}
@@ -192,6 +192,33 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
     );
   }
 );
+
+/* ── Helper row component ── */
+function Row({
+  label,
+  value,
+  bold,
+  color,
+}: {
+  label: string;
+  value: string;
+  bold?: boolean;
+  color?: string;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '3px 0',
+        color: color || '#000000',
+      }}
+    >
+      <span>{label}:</span>
+      <span style={{ fontWeight: bold ? 700 : 400 }}>{value}</span>
+    </div>
+  );
+}
 
 Receipt.displayName = 'Receipt';
 

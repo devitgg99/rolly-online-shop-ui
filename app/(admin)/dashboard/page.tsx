@@ -11,19 +11,13 @@ import {
   DollarSign,
   Activity
 } from "lucide-react";
+import { DashboardSkeleton } from "@/components/skeletons";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-foreground/60">Loading...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!session || session.user.role !== "ADMIN") {

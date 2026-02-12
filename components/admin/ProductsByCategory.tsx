@@ -18,6 +18,7 @@ import { getStockBadgeClasses } from '@/lib/stock-utils';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { StockHistoryDialog } from './StockHistoryDialog';
 import { MultiImageUpload } from './MultiImageUpload';
+import { CategorySectionSkeleton } from '@/components/skeletons';
 
 interface CategoryWithProducts {
   category: Category;
@@ -228,15 +229,7 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
 
   if (isInitialLoading) {
     return (
-      <Card className="text-center py-12">
-        <CardContent>
-          <Loader2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground animate-spin" />
-          <h3 className="text-lg font-semibold mb-2">Loading products...</h3>
-          <p className="text-muted-foreground text-sm">
-            Organizing products by category
-          </p>
-        </CardContent>
-      </Card>
+      <CategorySectionSkeleton count={categories.length > 0 ? Math.min(categories.length, 4) : 3} />
     );
   }
 

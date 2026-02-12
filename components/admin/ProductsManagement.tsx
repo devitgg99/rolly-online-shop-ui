@@ -47,6 +47,7 @@ import { StockHistoryDialog } from './StockHistoryDialog';
 import { MultiImageUpload } from './MultiImageUpload';
 import { exportProducts } from '@/services/products.service';
 import ProductsByCategory from './ProductsByCategory';
+import { ProductCardSkeletonGrid } from '@/components/skeletons';
 
 type ProductFormData = {
   name: string;
@@ -1036,15 +1037,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
 
         {/* Products View - Grid or Table */}
         {isFetchingProducts ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground animate-pulse" />
-              <h3 className="text-lg font-semibold mb-2">Loading products...</h3>
-              <p className="text-muted-foreground text-sm">
-                Please wait while we fetch your products
-              </p>
-            </CardContent>
-          </Card>
+          <ProductCardSkeletonGrid count={pageSize} />
         ) : filteredProducts.length > 0 ? (
           viewMode === 'grid' ? (
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

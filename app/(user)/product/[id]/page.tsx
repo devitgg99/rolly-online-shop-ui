@@ -18,6 +18,7 @@ import {
   Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ProductDetailSkeleton } from '@/components/skeletons';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -92,14 +93,7 @@ export default function ProductDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Loading product details...</p>
-        </div>
-      </div>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {

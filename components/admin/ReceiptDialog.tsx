@@ -32,33 +32,19 @@ export default function ReceiptDialog({
 
   if (!sale) return null;
 
-  // Helper function to capture receipt as canvas (avoiding oklch color issues)
+  // Capture receipt as high-res canvas for image/PDF export
   const captureReceiptAsCanvas = async (): Promise<HTMLCanvasElement> => {
     if (!receiptRef.current) {
       throw new Error('Receipt element not found');
     }
 
     return await html2canvas(receiptRef.current, {
-      scale: 2,
+      scale: 3,
       backgroundColor: '#ffffff',
       logging: false,
       useCORS: true,
       allowTaint: false,
-      onclone: (clonedDoc) => {
-        // Inject a style tag to override any oklch colors with safe hex colors
-        const style = clonedDoc.createElement('style');
-        style.textContent = `
-          * {
-            --background: 252 252 253 !important;
-            --foreground: 16 24 40 !important;
-            --card: 255 255 255 !important;
-            --border: 226 232 240 !important;
-            --primary: 59 130 246 !important;
-            --muted-foreground: 100 116 139 !important;
-          }
-        `;
-        clonedDoc.head.appendChild(style);
-      },
+      // Receipt uses pure inline styles so no CSS-variable patching needed
     });
   };
 
@@ -66,13 +52,13 @@ export default function ReceiptDialog({
     if (!receiptRef.current) return;
 
     try {
-      const printWindow = window.open('', '_blank', 'width=302,height=600');
+      const printWindow = window.open('', '_blank', 'width=360,height=700');
       if (!printWindow) {
         toast.error('Please allow popups to print');
         return;
       }
 
-      const receiptHTML = receiptRef.current.innerHTML;
+      const receiptHTML = receiptRef.current.outerHTML;
       printWindow.document.write(`
         <!DOCTYPE html>
         <html>
@@ -80,105 +66,32 @@ export default function ReceiptDialog({
             <title>Receipt - ${sale.id.slice(0, 8)}</title>
             <meta charset="UTF-8">
             <style>
-              * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-              }
-              
+              * { margin: 0; padding: 0; box-sizing: border-box; }
               body {
-                font-family: 'Courier New', 'Consolas', monospace;
                 background: white;
                 color: black;
-                width: 80mm;
-                margin: 0 auto;
-                padding: 0;
+                display: flex;
+                justify-content: center;
               }
-              
-              /* XPRINTER Thermal Printer Settings */
               @media print {
-                @page {
-                  size: 80mm auto;
-                  margin: 0mm;
-                }
-                
-                body {
-                  margin: 0;
-                  padding: 0;
-                  width: 80mm;
-                }
-                
-                /* Remove any backgrounds for thermal printing */
-                * {
-                  background: transparent !important;
-                  color: black !important;
-                }
-                
-                /* Ensure text is crisp */
-                p, span, div, td, th {
-                  -webkit-print-color-adjust: exact;
-                  print-color-adjust: exact;
-                }
+                @page { size: 80mm auto; margin: 0; }
+                body { width: 80mm; }
               }
-              
-              /* Import Tailwind utilities needed for layout */
-              .font-mono { font-family: 'Courier New', monospace; }
-              .text-sm { font-size: 0.875rem; }
-              .text-xs { font-size: 0.75rem; }
-              .text-2xl { font-size: 1.5rem; }
-              .text-lg { font-size: 1.125rem; }
-              .text-center { text-align: center; }
-              .text-left { text-align: left; }
-              .text-right { text-align: right; }
-              .font-bold { font-weight: bold; }
-              .flex { display: flex; }
-              .justify-between { justify-content: space-between; }
-              .justify-center { justify-content: center; }
-              .space-y-1 > * + * { margin-top: 0.25rem; }
-              .mb-1 { margin-bottom: 0.25rem; }
-              .mb-2 { margin-bottom: 0.5rem; }
-              .mb-3 { margin-bottom: 0.75rem; }
-              .mt-3 { margin-top: 0.75rem; }
-              .mt-4 { margin-top: 1rem; }
-              .mt-6 { margin-top: 1.5rem; }
-              .pb-3 { padding-bottom: 0.75rem; }
-              .pt-2 { padding: top: 0.5rem; }
-              .pt-3 { padding-top: 0.75rem; }
-              .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-              .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-              .px-4 { padding-left: 1rem; padding-right: 1rem; }
-              .pr-2 { padding-right: 0.5rem; }
-              .w-full { width: 100%; }
-              .w-12 { width: 3rem; }
-              .w-16 { width: 4rem; }
-              .w-20 { width: 5rem; }
-              .max-w-\\[320px\\] { max-width: 320px; }
-              .mx-auto { margin-left: auto; margin-right: auto; }
-              .break-words { word-wrap: break-word; }
-              .shadow-lg { box-shadow: none; }
             </style>
           </head>
-          <body>
-            ${receiptHTML}
-          </body>
+          <body>${receiptHTML}</body>
         </html>
       `);
       printWindow.document.close();
 
-      // Wait for content to load then print
       setTimeout(() => {
         printWindow.focus();
         printWindow.print();
-        
-        // Close after print dialog
-        setTimeout(() => {
-          printWindow.close();
-        }, 100);
+        setTimeout(() => printWindow.close(), 100);
       }, 250);
 
       toast.success('Sending to XPRINTER...');
-    } catch (error) {
-      console.error('Print error:', error);
+    } catch {
       toast.error('Failed to print receipt');
     }
   };
