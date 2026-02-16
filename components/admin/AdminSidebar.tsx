@@ -13,7 +13,8 @@ import {
   Bell,
   ChevronRight,
   Tag,
-  Receipt
+  Receipt,
+  Monitor,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -25,6 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 
 const navigation = [
+  { name: 'POS', href: '/pos', icon: Monitor },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Categories', href: '/categories', icon: Tag },
   { name: 'Sales', href: '/sales', icon: Receipt },

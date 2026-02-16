@@ -54,8 +54,34 @@ export interface AdminProduct {
   profit: number;
   stockQuantity: number;
   imageUrl: string;
-  brandName?: string; // Optional - brand is no longer required
+  brandName?: string;
   categoryName: string;
+  // Variant fields
+  isVariant?: boolean;
+  parentProductId?: string | null;
+  hasVariants?: boolean;
+  variantCode?: string | null;
+  variantColor?: string | null;
+  variantSize?: string | null;
+  totalVariantStock?: number;
+  variants?: ProductVariantInline[];
+}
+
+/**
+ * Inline variant info returned on parent products
+ */
+export interface ProductVariantInline {
+  id: string;
+  variantCode?: string | null;
+  variantColor?: string | null;
+  variantSize?: string | null;
+  stockQuantity: number;
+  price: number;
+  discountedPrice?: number;
+  costPrice?: number;
+  profit?: number;
+  barcode?: string | null;
+  imageUrl?: string;
 }
 
 /**
@@ -94,15 +120,24 @@ export interface AdminProductDetail {
   profit: number;
   stockQuantity: number;
   imageUrl: string;
-  brand?: ProductBrand | null; // Optional - brand is no longer required
+  brand?: ProductBrand | null;
   category: ProductCategory;
   averageRating: number;
   createdAt: string;
+  // Variant fields
+  isVariant?: boolean;
+  parentProductId?: string | null;
+  hasVariants?: boolean;
+  variantCode?: string | null;
+  variantColor?: string | null;
+  variantSize?: string | null;
+  totalVariantStock?: number;
+  variants?: ProductVariantInline[];
 }
 
 /**
  * Product creation/update request payload (Admin)
- * Includes cost price
+ * Includes cost price and optional variant fields
  */
 export interface ProductRequest {
   name: string;
@@ -113,9 +148,52 @@ export interface ProductRequest {
   discountPercent: number;
   stockQuantity: number;
   imageUrl: string;
-  brandId?: string; // Optional - brand is no longer required
+  brandId?: string;
   categoryId: string;
+  // Variant fields
+  parentProductId?: string;
+  isVariant?: boolean;
+  variantCode?: string;
+  variantColor?: string;
+  variantSize?: string;
 }
+
+/**
+ * Product variant summary (from GET /products/{parentId}/variants)
+ */
+export interface ProductVariant {
+  id: string;
+  variantCode?: string | null;
+  variantColor?: string | null;
+  variantSize?: string | null;
+  stockQuantity: number;
+  price: number;
+  discountedPrice: number;
+  costPrice: number;
+  profit: number;
+  barcode?: string | null;
+}
+
+/**
+ * Grouped products response (from GET /products/admin/grouped)
+ */
+export interface GroupedProductListResponse {
+  content: AdminProduct[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+}
+
+/**
+ * Can-delete check response
+ */
+export interface CanDeleteResponse {
+  canDelete: boolean;
+}
+
+export type ProductVariantsApiResponse = ApiResponse<ProductVariant[]>;
+export type GroupedProductListApiResponse = ApiResponse<GroupedProductListResponse>;
+export type CanDeleteApiResponse = ApiResponse<CanDeleteResponse>;
 
 /**
  * Paginated product list response (Public)

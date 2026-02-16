@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { Package, Plus, Pencil, Trash2, Search, Filter, DollarSign, Box, TrendingUp, X, Tag, Layers, ShoppingBag, Sparkles, AlertTriangle, TrendingDown, Eye, Minus, Download, Keyboard, History, ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, Plus, Pencil, Trash2, Search, Filter, DollarSign, Box, TrendingUp, X, Tag, Layers, ShoppingBag, Sparkles, AlertTriangle, TrendingDown, Eye, Minus, Download, Keyboard, History, ImageIcon, ChevronLeft, ChevronRight, GitBranch, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +26,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-import type { AdminProduct, ProductRequest, InventoryStats } from '@/types/product.types';
+import type { AdminProduct, ProductRequest, InventoryStats, ProductVariant } from '@/types/product.types';
 import type { Brand } from '@/types/brand.types';
 import type { Category } from '@/types/category.types';
 import { 
@@ -37,6 +37,7 @@ import {
   fetchLowStockProductsAction,
   fetchAdminProductsAction,
   fetchAdminProductDetailAction,
+  fetchProductVariantsAction,
 } from '@/actions/products/products.action';
 import { uploadFileAction } from '@/actions/fileupload/fileupload.action';
 import BarcodeScanner from './BarcodeScanner';
@@ -61,6 +62,13 @@ type ProductFormData = {
   stockQuantity: string;
   imageUrl: string;
   categoryId: string;
+  // Variant fields
+  isVariant: boolean;
+  parentProductId: string;
+  variantCode: string;
+  variantColor: string;
+  variantSize: string;
+  useCustomPrice: boolean;
 };
 
 interface ProductsManagementProps {
@@ -130,7 +138,55 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
     stockQuantity: '',
     imageUrl: '',
     categoryId: '',
+    isVariant: false,
+    parentProductId: '',
+    variantCode: '',
+    variantColor: '',
+    variantSize: '',
+    useCustomPrice: false,
   });
+
+  // Variant expansion state for product list
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
+  const [variantsCache, setVariantsCache] = useState<Record<string, ProductVariant[]>>({});
+  const [loadingVariants, setLoadingVariants] = useState<Set<string>>(new Set());
+
+  // Parent products for variant creation (non-variant products)
+  const parentProductOptions = products.filter(p => !p.isVariant);
+
+  // Helper: get effective stock for display (totalVariantStock for parents, stockQuantity otherwise)
+  const getEffectiveStock = (product: AdminProduct): number => {
+    if (product.hasVariants && product.totalVariantStock != null) {
+      return product.totalVariantStock;
+    }
+    return product.stockQuantity;
+  };
+
+  const toggleExpandParent = async (productId: string) => {
+    const newExpanded = new Set(expandedParents);
+    if (newExpanded.has(productId)) {
+      newExpanded.delete(productId);
+    } else {
+      newExpanded.add(productId);
+      // If the product already has inline variants from API, skip the fetch
+      const product = products.find(p => p.id === productId);
+      if (!product?.variants?.length && !variantsCache[productId]) {
+        setLoadingVariants(prev => new Set(prev).add(productId));
+        try {
+          const res = await fetchProductVariantsAction(productId);
+          if (res.success && res.data) {
+            setVariantsCache(prev => ({ ...prev, [productId]: res.data! }));
+          }
+        } catch { /* silent */ }
+        setLoadingVariants(prev => {
+          const s = new Set(prev);
+          s.delete(productId);
+          return s;
+        });
+      }
+    }
+    setExpandedParents(newExpanded);
+  };
 
   // Debounce search input
   useEffect(() => {
@@ -290,6 +346,13 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         stockQuantity,
         imageUrl: formData.imageUrl,
         categoryId: formData.categoryId,
+        ...(formData.isVariant && {
+          isVariant: true,
+          parentProductId: formData.parentProductId || undefined,
+          variantCode: formData.variantCode || undefined,
+          variantColor: formData.variantColor || undefined,
+          variantSize: formData.variantSize || undefined,
+        }),
       };
 
       if (editingProduct) {
@@ -314,6 +377,14 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
             imageUrl: imgUrl,
             brandName: d.brand?.name,
             categoryName: d.category.name,
+            isVariant: d.isVariant,
+            parentProductId: d.parentProductId,
+            hasVariants: d.hasVariants,
+            variantCode: d.variantCode,
+            variantColor: d.variantColor,
+            variantSize: d.variantSize,
+            totalVariantStock: d.totalVariantStock,
+            variants: d.variants,
           };
 
           // Functional updater to avoid stale closure
@@ -339,6 +410,14 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
             imageUrl: d.imageUrl,
             brandName: d.brand?.name,
             categoryName: d.category.name,
+            isVariant: d.isVariant,
+            parentProductId: d.parentProductId,
+            hasVariants: d.hasVariants,
+            variantCode: d.variantCode,
+            variantColor: d.variantColor,
+            variantSize: d.variantSize,
+            totalVariantStock: d.totalVariantStock,
+            variants: d.variants,
           };
           setProducts((prev) => [newProduct, ...prev]);
           toast.success('Product created successfully! 🎉');
@@ -356,8 +435,6 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
   };
 
   const handleOpenDialog = () => {
-    // Only reset form when switching from edit → add mode
-    // Keep draft data if user was already adding a product
     if (editingProduct) {
       setEditingProduct(null);
       setFormData({
@@ -370,6 +447,12 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         stockQuantity: '',
         imageUrl: '',
         categoryId: '',
+        isVariant: false,
+        parentProductId: '',
+        variantCode: '',
+        variantColor: '',
+        variantSize: '',
+        useCustomPrice: false,
       });
     }
     setDialogOpen(true);
@@ -379,7 +462,6 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
     setEditingProduct(product);
     const categoryId = categories.find(c => c.name === product.categoryName)?.id || '';
 
-    // Pre-fill with what we have from the list
     setFormData({
       name: product.name,
       description: '',
@@ -390,10 +472,15 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       stockQuantity: product.stockQuantity.toString(),
       imageUrl: product.imageUrl,
       categoryId,
+      isVariant: product.isVariant || false,
+      parentProductId: product.parentProductId || '',
+      variantCode: product.variantCode || '',
+      variantColor: product.variantColor || '',
+      variantSize: product.variantSize || '',
+      useCustomPrice: product.isVariant || false,
     });
     setDialogOpen(true);
 
-    // Fetch full detail (has description) in background
     try {
       const res = await fetchAdminProductDetailAction(product.id);
       if (res.success && res.data) {
@@ -404,7 +491,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         }));
       }
     } catch {
-      // silent — description field stays empty, user can still edit
+      // silent
     }
   };
 
@@ -444,6 +531,12 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       stockQuantity: '',
       imageUrl: '',
       categoryId: '',
+      isVariant: false,
+      parentProductId: '',
+      variantCode: '',
+      variantColor: '',
+      variantSize: '',
+      useCustomPrice: false,
     });
     setDialogOpen(false);
     setEditingProduct(null);
@@ -520,8 +613,8 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
 
   const getActiveCategoryName = () => categories.find(c => c.id === filterCategory)?.name || '';
 
-  const totalValue = products.reduce((sum, p) => sum + (p.discountedPrice * p.stockQuantity), 0);
-  const totalProfit = products.reduce((sum, p) => sum + (p.profit * p.stockQuantity), 0);
+  const totalValue = products.reduce((sum, p) => sum + (p.discountedPrice * getEffectiveStock(p)), 0);
+  const totalProfit = products.reduce((sum, p) => sum + (p.profit * getEffectiveStock(p)), 0);
   const avgPrice = products.length > 0 ? (products.reduce((sum, p) => sum + p.discountedPrice, 0) / products.length) : 0;
 
   // Keyboard shortcuts
@@ -610,20 +703,140 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
               </DialogHeader>
 
               <form onSubmit={handleSubmit} className="space-y-6 py-4">
+                {/* ── Variant Toggle (top of form) ── */}
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                  <input
+                    type="checkbox"
+                    id="isVariant"
+                    checked={formData.isVariant}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setFormData({
+                        ...formData,
+                        isVariant: checked,
+                        parentProductId: '',
+                        variantCode: '',
+                        variantColor: '',
+                        variantSize: '',
+                        useCustomPrice: false,
+                        ...(checked ? { name: '', costPrice: '', price: '', discountPercent: '', categoryId: '', description: '' } : {}),
+                      });
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <Label htmlFor="isVariant" className="flex items-center gap-2 cursor-pointer">
+                    <GitBranch className="w-4 h-4" />
+                    This is a variant of an existing product
+                  </Label>
+                </div>
+
+                {/* ── Variant Config: parent + attributes ── */}
+                {formData.isVariant && (
+                  <div className="p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 space-y-4">
+                    <div className="space-y-2">
+                      <Label>Parent Product *</Label>
+                      <Select
+                        value={formData.parentProductId}
+                        onValueChange={(parentId) => {
+                          const parent = parentProductOptions.find(p => p.id === parentId);
+                          if (parent) {
+                            const parentCategoryId = categories.find(c => c.name === parent.categoryName)?.id || '';
+                            setFormData({
+                              ...formData,
+                              parentProductId: parentId,
+                              name: parent.name,
+                              categoryId: parentCategoryId,
+                              ...(formData.useCustomPrice ? {} : {
+                                costPrice: parent.costPrice.toString(),
+                                price: parent.price.toString(),
+                                discountPercent: parent.discountPercent.toString(),
+                              }),
+                            });
+                          } else {
+                            setFormData({ ...formData, parentProductId: parentId });
+                          }
+                        }}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select parent product" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {parentProductOptions.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name} — ${p.price.toFixed(2)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {formData.parentProductId && (
+                      <>
+                        {/* Auto-filled info banner */}
+                        {(() => {
+                          const parent = parentProductOptions.find(p => p.id === formData.parentProductId);
+                          return parent ? (
+                            <div className="flex items-center gap-3 p-3 bg-blue-100/60 dark:bg-blue-900/30 rounded-lg text-sm">
+                              <Package className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <span className="font-medium">{parent.name}</span>
+                                <span className="text-muted-foreground"> — {parent.categoryName} — ${parent.price.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          ) : null;
+                        })()}
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="space-y-2">
+                            <Label>Variant Code</Label>
+                            <Input
+                              value={formData.variantCode}
+                              onChange={(e) => setFormData({ ...formData, variantCode: e.target.value })}
+                              placeholder="e.g. 21, 23"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Variant Color</Label>
+                            <Input
+                              value={formData.variantColor}
+                              onChange={(e) => setFormData({ ...formData, variantColor: e.target.value })}
+                              placeholder="e.g. Blonde, Brown"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Variant Size</Label>
+                            <Input
+                              value={formData.variantSize}
+                              onChange={(e) => setFormData({ ...formData, variantSize: e.target.value })}
+                              placeholder="e.g. Big, Small"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Product Name — auto-filled for variants but editable */}
                   <div className="space-y-2">
                     <Label htmlFor="name">Product Name *</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Enter product name"
+                      placeholder={formData.isVariant ? 'Inherited from parent' : 'Enter product name'}
                       required
+                      disabled={formData.isVariant && !!formData.parentProductId}
                     />
+                    {formData.isVariant && formData.parentProductId && (
+                      <p className="text-xs text-blue-600">Auto-filled from parent product</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="barcode">Barcode (Optional) 📱</Label>
+                    <Label htmlFor="barcode">Barcode (Optional)</Label>
                     <div className="flex gap-2">
                       <Input
                         id="barcode"
@@ -642,81 +855,45 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         <Package className="h-4 w-4" />
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">For quick product lookup at POS</p>
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Input
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Brief description"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="costPrice">Cost Price ($) * 💰</Label>
-                    <Input
-                      id="costPrice"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.costPrice}
-                      onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                      placeholder="What you paid"
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">What you paid for this product</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Selling Price ($) * 💵</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="What customer pays"
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">What customers will pay</p>
-                  </div>
-
-                  {(parseFloat(formData.costPrice) > 0 && parseFloat(formData.price) > 0) && (
-                    <div className="md:col-span-2 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Estimated Profit (before discount):</span>
-                        <span className={`text-lg font-bold ${parseFloat(formData.price) > parseFloat(formData.costPrice) ? 'text-green-600' : 'text-red-600'}`}>
-                          ${(parseFloat(formData.price) - parseFloat(formData.costPrice)).toFixed(2)}
-                        </span>
-                      </div>
-                      {parseFloat(formData.discountPercent) > 0 && (
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-green-200 dark:border-green-800">
-                          <span className="text-sm font-medium">Profit after {formData.discountPercent}% discount:</span>
-                          <span className={`text-lg font-bold ${(parseFloat(formData.price) * (1 - parseFloat(formData.discountPercent) / 100)) > parseFloat(formData.costPrice) ? 'text-green-600' : 'text-red-600'}`}>
-                            ${((parseFloat(formData.price) * (1 - parseFloat(formData.discountPercent) / 100)) - parseFloat(formData.costPrice)).toFixed(2)}
-                          </span>
-                        </div>
-                      )}
+                  {/* Description — optional for variants */}
+                  {(!formData.isVariant || formData.description) && (
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="description">Description {formData.isVariant ? '(Optional)' : ''}</Label>
+                      <Input
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder={formData.isVariant ? 'Leave empty to use parent description' : 'Brief description'}
+                      />
                     </div>
                   )}
 
+                  {/* Category — auto-filled & disabled for variants */}
                   <div className="space-y-2">
-                    <Label htmlFor="discount">Discount (%)</Label>
-                    <Input
-                      id="discount"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={formData.discountPercent}
-                      onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
-                      placeholder="0"
-                    />
+                    <Label htmlFor="category">Category *</Label>
+                    <Select
+                      value={formData.categoryId}
+                      onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                      required
+                      disabled={isLoading || (formData.isVariant && !!formData.parentProductId)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {formData.isVariant && formData.parentProductId && (
+                      <p className="text-xs text-blue-600">Same as parent product</p>
+                    )}
                   </div>
 
+                  {/* Stock — always required */}
                   <div className="space-y-2">
                     <Label htmlFor="stock">Stock Quantity *</Label>
                     <Input
@@ -730,25 +907,110 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Category *</Label>
-                    <Select 
-                      value={formData.categoryId} 
-                      onValueChange={(value) => setFormData({ ...formData, categoryId: value })} 
-                      required
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* ── Price Section ── */}
+                  {formData.isVariant && formData.parentProductId && !formData.useCustomPrice ? (
+                    /* Variant using parent price — show summary + toggle */
+                    <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">Price: Same as parent</p>
+                          <p className="text-xs text-muted-foreground">
+                            Cost ${formData.costPrice || '0.00'} → Sell ${formData.price || '0.00'}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setFormData({ ...formData, useCustomPrice: true })}
+                        >
+                          <Pencil className="w-3 h-3 mr-1.5" />
+                          Custom Price
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Regular product OR variant with custom price */
+                    <>
+                      {formData.isVariant && formData.useCustomPrice && (
+                        <div className="md:col-span-2 flex items-center justify-between p-3 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Custom pricing enabled for this variant</p>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const parent = parentProductOptions.find(p => p.id === formData.parentProductId);
+                              setFormData({
+                                ...formData,
+                                useCustomPrice: false,
+                                costPrice: parent?.costPrice.toString() || formData.costPrice,
+                                price: parent?.price.toString() || formData.price,
+                                discountPercent: parent?.discountPercent.toString() || formData.discountPercent,
+                              });
+                            }}
+                          >
+                            <X className="w-3 h-3 mr-1" />
+                            Use Parent Price
+                          </Button>
+                        </div>
+                      )}
 
+                      <div className="space-y-2">
+                        <Label htmlFor="costPrice">Cost Price ($) *</Label>
+                        <Input
+                          id="costPrice"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.costPrice}
+                          onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                          placeholder="What you paid"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="price">Selling Price ($) *</Label>
+                        <Input
+                          id="price"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          placeholder="What customer pays"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="discount">Discount (%)</Label>
+                        <Input
+                          id="discount"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={formData.discountPercent}
+                          onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
+                          placeholder="0"
+                        />
+                      </div>
+
+                      {(parseFloat(formData.costPrice) > 0 && parseFloat(formData.price) > 0) && (
+                        <div className="md:col-span-2 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Estimated Profit:</span>
+                            <span className={`text-lg font-bold ${parseFloat(formData.price) > parseFloat(formData.costPrice) ? 'text-green-600' : 'text-red-600'}`}>
+                              ${(parseFloat(formData.price) - parseFloat(formData.costPrice)).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Product Image — always required */}
                   <div className="space-y-2 md:col-span-2">
                     <Label>Product Image *</Label>
                     <ImageUpload
@@ -824,7 +1086,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-amber-600">
-                {inventoryStats?.lowStockCount ?? products.filter(p => p.stockQuantity < lowStockThreshold).length}
+                {inventoryStats?.lowStockCount ?? products.filter(p => getEffectiveStock(p) < lowStockThreshold).length}
               </div>
               <p className="text-xs text-muted-foreground">
                 Need restock (≤{lowStockThreshold}) - Click to view
@@ -1069,7 +1331,8 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
           viewMode === 'grid' ? (
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {filteredProducts.map((product) => {
-              const stockInfo = getStockLevelInfo(product.stockQuantity);
+              const effectiveStock = getEffectiveStock(product);
+              const stockInfo = getStockLevelInfo(effectiveStock);
               const profitMargin = product.price > 0 ? ((product.profit / product.price) * 100) : 0;
               
               return (
@@ -1104,10 +1367,10 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     <Badge 
                       className={cn(
                         "absolute top-1 right-1 text-[10px] sm:text-xs shadow-md px-1.5 py-0.5",
-                        getStockBadgeClasses(product.stockQuantity)
+                        getStockBadgeClasses(effectiveStock)
                       )}
                     >
-                      {product.stockQuantity}
+                      {product.hasVariants ? `Σ${effectiveStock}` : effectiveStock}
                     </Badge>
 
                     {/* Quick Actions on Hover - Hidden on Mobile */}
@@ -1129,12 +1392,62 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     {/* Product Name */}
                     <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 min-h-[32px] sm:min-h-[40px]" title={product.name}>
                       {product.name}
+                      {product.isVariant && product.variantCode && (
+                        <span className="text-primary font-bold"> #{product.variantCode}</span>
+                      )}
+                      {product.isVariant && product.variantColor && (
+                        <span className="text-muted-foreground"> - {product.variantColor}</span>
+                      )}
+                      {product.isVariant && product.variantSize && (
+                        <span className="text-muted-foreground"> ({product.variantSize})</span>
+                      )}
                     </h3>
 
-                    {/* Category - Hidden on smallest mobile */}
-                    <Badge variant="secondary" className="w-fit text-[10px] sm:text-xs hidden xs:inline-flex">
-                      {product.categoryName}
-                    </Badge>
+                    {/* Variant / Category Badges */}
+                    <div className="flex flex-wrap gap-1">
+                      {product.hasVariants && (
+                        <Badge 
+                          variant="outline" 
+                          className="w-fit text-[10px] sm:text-xs cursor-pointer border-blue-300 text-blue-600 hover:bg-blue-50"
+                          onClick={(e) => { e.stopPropagation(); toggleExpandParent(product.id); }}
+                        >
+                          <GitBranch className="w-3 h-3 mr-0.5" />
+                          Variants
+                          {expandedParents.has(product.id) ? <ChevronUp className="w-3 h-3 ml-0.5" /> : <ChevronDown className="w-3 h-3 ml-0.5" />}
+                        </Badge>
+                      )}
+                      {product.isVariant && (
+                        <Badge variant="outline" className="w-fit text-[10px] sm:text-xs border-purple-300 text-purple-600">
+                          <GitBranch className="w-3 h-3 mr-0.5" />
+                          Variant
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="w-fit text-[10px] sm:text-xs hidden xs:inline-flex">
+                        {product.categoryName}
+                      </Badge>
+                    </div>
+
+                    {/* Expanded Variants */}
+                    {product.hasVariants && expandedParents.has(product.id) && (
+                      <div className="space-y-1 pt-1 border-t">
+                        {loadingVariants.has(product.id) ? (
+                          <p className="text-[10px] text-muted-foreground">Loading variants...</p>
+                        ) : (
+                          (product.variants || variantsCache[product.id] || []).map((v) => {
+                            const label = [v.variantCode && `#${v.variantCode}`, v.variantColor, v.variantSize].filter(Boolean).join(' · ');
+                            return (
+                              <div key={v.id} className="flex items-center justify-between text-[10px] sm:text-xs px-1.5 py-1 bg-muted/50 rounded">
+                                <span className="font-medium truncate">{label || 'Variant'}</span>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <span className="text-muted-foreground">×{v.stockQuantity}</span>
+                                  <span className="font-semibold">${v.price.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
 
                     {/* Price Section */}
                     <div className="space-y-0.5 sm:space-y-1">
@@ -1233,6 +1546,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                   </thead>
                   <tbody>
                     {filteredProducts.map((product) => {
+                      const tableEffectiveStock = getEffectiveStock(product);
                       const profitMargin = product.price > 0 ? ((product.profit / product.price) * 100) : 0;
                       const isSelected = selectedProducts.has(product.id);
                       
@@ -1317,17 +1631,22 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
 
                           {/* Stock */}
                           <td className="px-4 py-3 text-center">
-                            <Badge className={getStockBadgeClasses(product.stockQuantity)}>
-                              {product.stockQuantity}
+                            <Badge className={getStockBadgeClasses(tableEffectiveStock)}>
+                              {product.hasVariants ? `Σ${tableEffectiveStock}` : tableEffectiveStock}
                             </Badge>
+                            {product.hasVariants && (
+                              <div className="text-[10px] text-muted-foreground mt-0.5">
+                                {product.variants?.length ?? '?'} variants
+                              </div>
+                            )}
                           </td>
 
                           {/* Total Value */}
                           <td className="px-4 py-3 text-right hidden xl:table-cell">
                             <div className="text-right">
-                              <div className="font-medium">${(product.costPrice * product.stockQuantity).toFixed(2)}</div>
+                              <div className="font-medium">${(product.costPrice * tableEffectiveStock).toFixed(2)}</div>
                               <div className="text-xs text-green-600">
-                                +${(product.profit * product.stockQuantity).toFixed(2)}
+                                +${(product.profit * tableEffectiveStock).toFixed(2)}
                               </div>
                             </div>
                           </td>

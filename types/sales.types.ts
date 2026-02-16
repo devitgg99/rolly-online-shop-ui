@@ -148,9 +148,9 @@ export interface SalesAnalytics {
     profit: number;
   }[];
   salesByPaymentMethod: {
-    CASH: number;
-    CARD: number;
-    ONLINE: number;
+    CASH: number | { count: number; revenue: number };
+    CARD: number | { count: number; revenue: number };
+    ONLINE: number | { count: number; revenue: number };
   };
   salesByHour: {
     hour: number;

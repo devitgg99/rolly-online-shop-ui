@@ -77,6 +77,20 @@ export function SalesAnalyticsDashboard({
     }).format(amount);
   };
 
+  /** Safely extract count from a payment method value (may be a number or {count, revenue}). */
+  const pmCount = (val: number | { count: number; revenue: number } | undefined): number => {
+    if (val == null) return 0;
+    if (typeof val === 'number') return val;
+    return val.count ?? 0;
+  };
+
+  /** Safely extract revenue from a payment method value. */
+  const pmRevenue = (val: number | { count: number; revenue: number } | undefined): number => {
+    if (val == null) return 0;
+    if (typeof val === 'number') return 0;
+    return val.revenue ?? 0;
+  };
+
   if (isLoading && !analytics) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -219,13 +233,16 @@ export function SalesAnalyticsDashboard({
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Cash</p>
-                      <p className="text-2xl font-bold">{analytics.salesByPaymentMethod.CASH}</p>
+                      <p className="text-2xl font-bold">{pmCount(analytics.salesByPaymentMethod.CASH)}</p>
+                      {pmRevenue(analytics.salesByPaymentMethod.CASH) > 0 && (
+                        <p className="text-xs text-green-600">{formatCurrency(pmRevenue(analytics.salesByPaymentMethod.CASH))}</p>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">
                       {analytics.totalSales > 0
-                        ? ((analytics.salesByPaymentMethod.CASH / analytics.totalSales) * 100).toFixed(1)
+                        ? ((pmCount(analytics.salesByPaymentMethod.CASH) / analytics.totalSales) * 100).toFixed(1)
                         : 0}%
                     </p>
                   </div>
@@ -238,13 +255,16 @@ export function SalesAnalyticsDashboard({
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Card</p>
-                      <p className="text-2xl font-bold">{analytics.salesByPaymentMethod.CARD}</p>
+                      <p className="text-2xl font-bold">{pmCount(analytics.salesByPaymentMethod.CARD)}</p>
+                      {pmRevenue(analytics.salesByPaymentMethod.CARD) > 0 && (
+                        <p className="text-xs text-blue-600">{formatCurrency(pmRevenue(analytics.salesByPaymentMethod.CARD))}</p>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">
                       {analytics.totalSales > 0
-                        ? ((analytics.salesByPaymentMethod.CARD / analytics.totalSales) * 100).toFixed(1)
+                        ? ((pmCount(analytics.salesByPaymentMethod.CARD) / analytics.totalSales) * 100).toFixed(1)
                         : 0}%
                     </p>
                   </div>
@@ -257,13 +277,16 @@ export function SalesAnalyticsDashboard({
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Online</p>
-                      <p className="text-2xl font-bold">{analytics.salesByPaymentMethod.ONLINE}</p>
+                      <p className="text-2xl font-bold">{pmCount(analytics.salesByPaymentMethod.ONLINE)}</p>
+                      {pmRevenue(analytics.salesByPaymentMethod.ONLINE) > 0 && (
+                        <p className="text-xs text-purple-600">{formatCurrency(pmRevenue(analytics.salesByPaymentMethod.ONLINE))}</p>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">
                       {analytics.totalSales > 0
-                        ? ((analytics.salesByPaymentMethod.ONLINE / analytics.totalSales) * 100).toFixed(1)
+                        ? ((pmCount(analytics.salesByPaymentMethod.ONLINE) / analytics.totalSales) * 100).toFixed(1)
                         : 0}%
                     </p>
                   </div>

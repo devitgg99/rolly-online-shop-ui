@@ -12,7 +12,10 @@ import type {
   ReorderImagesRequest,
   StockHistoryApiResponse,
   StockAdjustmentRequest,
-  StockAdjustmentApiResponse
+  StockAdjustmentApiResponse,
+  ProductVariantsApiResponse,
+  GroupedProductListApiResponse,
+  CanDeleteApiResponse,
 } from "@/types/product.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
@@ -1016,6 +1019,131 @@ export async function exportProducts(
     return {
       success: false,
       message: "Network error while exporting products",
+    };
+  }
+}
+
+// ===================================
+// PRODUCT VARIANTS
+// ===================================
+
+/**
+ * Get variants for a parent product
+ */
+export async function fetchProductVariants(
+  parentId: string,
+  token: string
+): Promise<ProductVariantsApiResponse> {
+  try {
+    const url = `${API_URL}/products/${parentId}/variants`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to fetch variants: ${response.statusText}`,
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching product variants:", error);
+    return {
+      success: false,
+      message: "Network error while fetching variants",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Get grouped products (parents + standalone, with variant info)
+ */
+export async function fetchGroupedProducts(
+  page: number = 0,
+  size: number = 20,
+  token: string
+): Promise<GroupedProductListApiResponse> {
+  try {
+    const url = `${API_URL}/products/admin/grouped?page=${page}&size=${size}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to fetch grouped products: ${response.statusText}`,
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching grouped products:", error);
+    return {
+      success: false,
+      message: "Network error while fetching grouped products",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Check if a product can be safely deleted
+ */
+export async function checkCanDeleteProduct(
+  productId: string,
+  token: string
+): Promise<CanDeleteApiResponse> {
+  try {
+    const url = `${API_URL}/products/admin/${productId}/can-delete`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `Failed to check delete status: ${response.statusText}`,
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error checking can-delete:", error);
+    return {
+      success: false,
+      message: "Network error while checking delete status",
+      data: undefined,
+      createdAt: new Date().toISOString(),
     };
   }
 }

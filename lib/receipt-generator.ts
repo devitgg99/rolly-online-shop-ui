@@ -132,6 +132,19 @@ export async function generateEnhancedReceipt(
   // ==========================================
   yPos += 28;
   
+  // Table column positions
+  const colNumX = margin;
+  const colNumW = 10;
+  const colItemX = colNumX + colNumW;
+  const colQtyW = 15;
+  const colPriceW = 25;
+  const colTotalW = 28;
+  const colItemW = contentWidth - colNumW - colQtyW - colPriceW - colTotalW;
+  const colQtyX = colItemX + colItemW;
+  const colPriceX = colQtyX + colQtyW;
+  const colTotalX = colPriceX + colPriceW;
+  const rowHeight = 7;
+
   // Table header
   doc.setFillColor(darkGray);
   doc.rect(margin, yPos, contentWidth, 8, 'F');
@@ -141,43 +154,68 @@ export async function generateEnhancedReceipt(
   doc.setFont('helvetica', 'bold');
   yPos += 5.5;
   
-  doc.text('Item', margin + 3, yPos);
-  doc.text('Qty', pageWidth - margin - 50, yPos, { align: 'right' });
-  doc.text('Price', pageWidth - margin - 35, yPos, { align: 'right' });
-  doc.text('Total', pageWidth - margin - 3, yPos, { align: 'right' });
+  doc.text('#', colNumX + colNumW / 2, yPos, { align: 'center' });
+  doc.text('Item', colItemX + 2, yPos);
+  doc.text('Qty', colQtyX + colQtyW / 2, yPos, { align: 'center' });
+  doc.text('Price', colPriceX + colPriceW - 2, yPos, { align: 'right' });
+  doc.text('Total', colTotalX + colTotalW - 2, yPos, { align: 'right' });
+
+  // Table border around header
+  doc.setDrawColor(darkGray);
+  doc.setLineWidth(0.3);
+  doc.rect(margin, yPos - 5.5, contentWidth, 8);
 
   // Table items
-  yPos += 5;
+  yPos += 2.5;
   doc.setTextColor(darkGray);
   doc.setFont('helvetica', 'normal');
   
   sale.items.forEach((item, index) => {
+    const rowY = yPos;
+    
     // Alternate row background
     if (index % 2 === 0) {
       doc.setFillColor(249, 250, 251);
-      doc.rect(margin, yPos - 3, contentWidth, 7, 'F');
+      doc.rect(margin, rowY, contentWidth, rowHeight, 'F');
     }
     
-    yPos += 1;
+    const textY = rowY + 5;
+    
+    // Row number
+    doc.setTextColor(lightGray);
+    doc.setFont('helvetica', 'normal');
+    doc.text((index + 1).toString(), colNumX + colNumW / 2, textY, { align: 'center' });
     
     // Item name (truncate if too long)
-    const itemName = item.productName.length > 40 
-      ? item.productName.substring(0, 37) + '...' 
+    doc.setTextColor(darkGray);
+    const itemName = item.productName.length > 35 
+      ? item.productName.substring(0, 32) + '...' 
       : item.productName;
-    doc.text(itemName, margin + 3, yPos);
+    doc.text(itemName, colItemX + 2, textY);
     
     // Quantity
-    doc.text(item.quantity.toString(), pageWidth - margin - 50, yPos, { align: 'right' });
+    doc.text(item.quantity.toString(), colQtyX + colQtyW / 2, textY, { align: 'center' });
     
     // Unit price
-    doc.text(`$${item.unitPrice.toFixed(2)}`, pageWidth - margin - 35, yPos, { align: 'right' });
+    doc.text(`$${item.unitPrice.toFixed(2)}`, colPriceX + colPriceW - 2, textY, { align: 'right' });
     
     // Total
     doc.setFont('helvetica', 'bold');
-    doc.text(`$${item.subtotal.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+    doc.text(`$${item.subtotal.toFixed(2)}`, colTotalX + colTotalW - 2, textY, { align: 'right' });
     doc.setFont('helvetica', 'normal');
+
+    // Row border
+    doc.setDrawColor('#d1d5db');
+    doc.setLineWidth(0.2);
+    doc.rect(margin, rowY, contentWidth, rowHeight);
     
-    yPos += 6;
+    // Column separators
+    doc.line(colItemX, rowY, colItemX, rowY + rowHeight);
+    doc.line(colQtyX, rowY, colQtyX, rowY + rowHeight);
+    doc.line(colPriceX, rowY, colPriceX, rowY + rowHeight);
+    doc.line(colTotalX, rowY, colTotalX, rowY + rowHeight);
+    
+    yPos += rowHeight;
   });
 
   // ==========================================

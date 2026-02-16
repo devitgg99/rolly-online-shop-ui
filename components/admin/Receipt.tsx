@@ -78,29 +78,40 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
             fontSize: '12px',
             borderCollapse: 'collapse',
             marginBottom: '6px',
+            border: '1px solid #000',
           }}
         >
           <thead>
-            <tr style={{ borderBottom: '1px solid #000' }}>
-              <th style={{ textAlign: 'left', padding: '6px 0', fontWeight: 700 }}>Item</th>
-              <th style={{ textAlign: 'center', padding: '6px 0', fontWeight: 700, width: '36px' }}>Qty</th>
-              <th style={{ textAlign: 'right', padding: '6px 0', fontWeight: 700, width: '56px' }}>Price</th>
-              <th style={{ textAlign: 'right', padding: '6px 0', fontWeight: 700, width: '64px' }}>Total</th>
+            <tr style={{ backgroundColor: '#000', color: '#fff' }}>
+              <th style={{ textAlign: 'center', padding: '6px 4px', fontWeight: 700, width: '28px', borderRight: '1px solid #374151' }}>#</th>
+              <th style={{ textAlign: 'left', padding: '6px 4px', fontWeight: 700, borderRight: '1px solid #374151' }}>Item</th>
+              <th style={{ textAlign: 'center', padding: '6px 4px', fontWeight: 700, width: '32px', borderRight: '1px solid #374151' }}>Qty</th>
+              <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 700, width: '52px', borderRight: '1px solid #374151' }}>Price</th>
+              <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 700, width: '56px' }}>Total</th>
             </tr>
           </thead>
           <tbody>
             {sale.items.map((item, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #d1d5db' }}>
-                <td style={{ padding: '8px 6px 8px 0', wordBreak: 'break-word', verticalAlign: 'top' }}>
+              <tr
+                key={i}
+                style={{
+                  borderBottom: '1px solid #d1d5db',
+                  backgroundColor: i % 2 === 0 ? '#ffffff' : '#f9fafb',
+                }}
+              >
+                <td style={{ padding: '6px 4px', textAlign: 'center', verticalAlign: 'top', borderRight: '1px solid #e5e7eb', color: '#6b7280', fontSize: '11px' }}>
+                  {i + 1}
+                </td>
+                <td style={{ padding: '6px 4px', wordBreak: 'break-word', verticalAlign: 'top', borderRight: '1px solid #e5e7eb' }}>
                   {item.productName}
                 </td>
-                <td style={{ padding: '8px 0', textAlign: 'center', verticalAlign: 'top' }}>
+                <td style={{ padding: '6px 4px', textAlign: 'center', verticalAlign: 'top', borderRight: '1px solid #e5e7eb' }}>
                   {item.quantity}
                 </td>
-                <td style={{ padding: '8px 0', textAlign: 'right', verticalAlign: 'top' }}>
+                <td style={{ padding: '6px 4px', textAlign: 'right', verticalAlign: 'top', borderRight: '1px solid #e5e7eb' }}>
                   {fmt(item.unitPrice)}
                 </td>
-                <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 700, verticalAlign: 'top' }}>
+                <td style={{ padding: '6px 4px', textAlign: 'right', fontWeight: 700, verticalAlign: 'top' }}>
                   {fmt(item.subtotal)}
                 </td>
               </tr>

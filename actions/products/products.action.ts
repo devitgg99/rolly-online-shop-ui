@@ -11,13 +11,19 @@ import {
   fetchInventoryTable,
   fetchAdminProducts,
   fetchAdminProductDetail,
+  fetchProductVariants,
+  fetchGroupedProducts,
+  checkCanDeleteProduct,
 } from "@/services/products.service";
 import { 
   ProductRequest, 
   AdminProductDetailApiResponse,
   InventoryStatsApiResponse,
   AdminProductListApiResponse,
-  InventoryTableApiResponse
+  InventoryTableApiResponse,
+  ProductVariantsApiResponse,
+  GroupedProductListApiResponse,
+  CanDeleteApiResponse,
 } from "@/types/product.types";
 import { ApiResponse } from "@/types/api.types";
 import { logger } from "@/lib/logger";
@@ -272,6 +278,95 @@ export async function fetchInventoryTableAction(
       success: false,
       message: error instanceof Error ? error.message : "Failed to fetch inventory table",
       data: null,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+// ===================================
+// PRODUCT VARIANTS (server-side proxy)
+// ===================================
+
+export async function fetchProductVariantsAction(
+  parentId: string
+): Promise<ProductVariantsApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    return await fetchProductVariants(parentId, token);
+  } catch (error) {
+    logger.error("fetchProductVariantsAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch variants",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function fetchGroupedProductsAction(
+  page: number = 0,
+  size: number = 20
+): Promise<GroupedProductListApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    return await fetchGroupedProducts(page, size, token);
+  } catch (error) {
+    logger.error("fetchGroupedProductsAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch grouped products",
+      data: undefined,
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function checkCanDeleteProductAction(
+  productId: string
+): Promise<CanDeleteApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    return await checkCanDeleteProduct(productId, token);
+  } catch (error) {
+    logger.error("checkCanDeleteProductAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to check delete status",
+      data: undefined,
       createdAt: new Date().toISOString(),
     };
   }

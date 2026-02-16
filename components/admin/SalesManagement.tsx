@@ -18,6 +18,8 @@ import {
   Download,
   Undo2,
   FileText,
+  GitBranch,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,6 +102,15 @@ const getPaymentMethodDisplay = (method: string): { label: string; icon: string;
   return displays[method] || { label: method, icon: '💰', color: 'bg-gray-100 text-gray-700 border-gray-300' };
 };
 
+/** Build a short variant label from product fields */
+const getVariantLabel = (product: AdminProduct): string => {
+  const parts: string[] = [];
+  if (product.variantCode) parts.push(`#${product.variantCode}`);
+  if (product.variantColor) parts.push(product.variantColor);
+  if (product.variantSize) parts.push(product.variantSize);
+  return parts.join(' · ');
+};
+
 export default function SalesManagement({ initialSales, initialSalesData, initialSummary, availableProducts, categories }: SalesManagementProps) {
   const { data: session } = useSession();
   
@@ -178,6 +189,27 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
     week: 'This Week',
     month: 'This Month',
     all: 'All Time',
+  };
+
+  // Build parent→variants map from the flat product list (works even if backend
+  // doesn't return hasVariants — we compute it from parentProductId references)
+  const allProducts = availableProducts || [];
+  const variantsByParent = allProducts.reduce<Record<string, AdminProduct[]>>((acc, p) => {
+    if (p.isVariant && p.parentProductId) {
+      if (!acc[p.parentProductId]) acc[p.parentProductId] = [];
+      acc[p.parentProductId].push(p);
+    }
+    return acc;
+  }, {});
+
+  // Set of parent IDs that actually have variant children in the list
+  const parentIdsWithVariants = new Set(Object.keys(variantsByParent));
+
+  // POS variant expansion
+  const [posExpandedParent, setPosExpandedParent] = useState<string | null>(null);
+
+  const handlePosExpandParent = (parentId: string) => {
+    setPosExpandedParent(prev => prev === parentId ? null : parentId);
   };
 
   // Barcode scanner states
@@ -330,7 +362,6 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       const response = await findProductByBarcodeAction(barcode);
       
       if (response.success && response.data) {
-        // Convert AdminProductDetail to AdminProduct format
         const product: AdminProduct = {
           id: response.data.id,
           name: response.data.name,
@@ -344,6 +375,14 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
           imageUrl: response.data.imageUrl,
           brandName: response.data.brand?.name,
           categoryName: response.data.category.name,
+          isVariant: response.data.isVariant,
+          parentProductId: response.data.parentProductId,
+          hasVariants: response.data.hasVariants,
+          variantCode: response.data.variantCode,
+          variantColor: response.data.variantColor,
+          variantSize: response.data.variantSize,
+          totalVariantStock: response.data.totalVariantStock,
+          variants: response.data.variants,
         };
         
         handleAddToCart(product);
@@ -386,17 +425,52 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
     }
   };
 
-  // Filter products by search and category (with safety check)
-  const filteredProducts = (availableProducts || []).filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.brandName?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Match by category name since AdminProduct doesn't have categoryId
-    const matchesCategory = filterCategory === 'all' || 
-      (categories && categories.find(c => c.id === filterCategory)?.name === p.categoryName);
-    
-    return matchesSearch && matchesCategory;
-  });
+  // Filter products for POS grid:
+  // - Show standalone products (not a variant, and has no child variants) → tap to add
+  // - Show parent products (has child variants in list) → tap to expand picker
+  // - Hide child variants from main grid → they appear under their parent
+  // - When searching, also surface parent if any of its variants match the search
+  const filteredProducts = (() => {
+    const searchLower = searchTerm.toLowerCase();
+
+    // First, find parent IDs whose variants match the search term
+    const parentIdsMatchingViaVariant = new Set<string>();
+    if (searchLower) {
+      allProducts.forEach(p => {
+        if (p.isVariant && p.parentProductId) {
+          const matchesVariant =
+            p.variantCode?.toLowerCase().includes(searchLower) ||
+            p.variantColor?.toLowerCase().includes(searchLower) ||
+            p.variantSize?.toLowerCase().includes(searchLower) ||
+            p.name.toLowerCase().includes(searchLower) ||
+            p.barcode?.toLowerCase().includes(searchLower);
+          if (matchesVariant) {
+            parentIdsMatchingViaVariant.add(p.parentProductId);
+          }
+        }
+      });
+    }
+
+    return allProducts.filter(p => {
+      // Hide child variants — they appear when parent is expanded
+      if (p.isVariant && p.parentProductId) return false;
+
+      const matchesCategory = filterCategory === 'all' ||
+        (categories && categories.find(c => c.id === filterCategory)?.name === p.categoryName);
+      if (!matchesCategory) return false;
+
+      if (!searchLower) return true;
+
+      // Direct match on product name/brand
+      const matchesDirect = p.name.toLowerCase().includes(searchLower) ||
+        p.brandName?.toLowerCase().includes(searchLower);
+
+      // Or a child variant matched → show this parent so user can expand
+      const matchesViaChild = parentIdsMatchingViaVariant.has(p.id);
+
+      return matchesDirect || matchesViaChild;
+    });
+  })();
 
   // Calculate cart total
   const cartSubtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
@@ -927,16 +1001,15 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
           <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
             {/* Left: Product Selection */}
             <div className="flex flex-col h-[50vh] lg:h-auto lg:flex-1 flex-shrink-0 lg:flex-shrink px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4 min-h-0 overflow-hidden border-r-0 lg:border-r">
-              {/* Search & Barcode */}
+              {/* Search / Barcode unified + Camera */}
               <div className="mb-1.5 sm:mb-2 md:mb-3 space-y-1.5 sm:space-y-2 flex-shrink-0 pt-2 sm:pt-3">
-                {/* Search Bar with Scan Button */}
                 <div className="flex gap-1.5 sm:gap-2">
                   <div className="relative flex-1">
                     <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                     <Input
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search products..."
+                      placeholder="Search or scan barcode..."
                       className="pl-7 sm:pl-9 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"
                     />
                   </div>
@@ -946,57 +1019,13 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                     size="icon"
                     className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 flex-shrink-0"
                     onClick={() => setScannerOpen(true)}
+                    title="Camera scan"
                   >
                     <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
-                
-                {/* Barcode Input */}
-                <div className="flex gap-1.5 sm:gap-2">
-                  <div className="relative flex-1">
-                    <Scan className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                    <Input
-                      value={barcodeInput}
-                      onChange={(e) => setBarcodeInput(e.target.value)}
-                      onKeyPress={handleBarcodeInputKeyPress}
-                      placeholder="Enter barcode manually..."
-                      className="pl-7 sm:pl-9 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    className="h-8 sm:h-9 md:h-10 px-2 sm:px-3 flex-shrink-0 text-xs sm:text-sm"
-                    onClick={handleBarcodeInputSubmit}
-                    disabled={!barcodeInput.trim()}
-                  >
-                    <Search className="h-3 w-3 sm:h-4 sm:w-4 mr-0 sm:mr-1" />
-                    <span className="hidden sm:inline">Find</span>
-                  </Button>
-                </div>
-                
-                {/* Barcode Scanner Info */}
-                {scannedBarcode && (
-                  <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-primary/10 rounded-lg border border-primary/30">
-                    <Scan className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] sm:text-xs font-medium text-primary">Last Scanned:</p>
-                      <p className="text-xs sm:text-sm font-mono font-bold truncate">{scannedBarcode}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setScannedBarcode('')}
-                      className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex-shrink-0"
-                    >
-                      <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                    </Button>
-                  </div>
-                )}
 
-                {/* Category Filter - Compact Horizontal Pills */}
+                {/* Category Filter */}
                 {categories && categories.length > 0 && (
                   <div className="relative overflow-hidden">
                     <div className="overflow-x-auto overflow-y-hidden pb-1 scrollbar-thin">
@@ -1032,74 +1061,166 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                 )}
               </div>
 
-              {/* Products Grid - Compact */}
+              {/* Products Grid */}
               <div className="flex-1 overflow-y-auto min-h-0">
                 {filteredProducts.length > 0 ? (
-                  <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 xl:grid-cols-9 2xl:grid-cols-10 gap-0.5 sm:gap-1">
-                    {filteredProducts.map((product) => {
-                      const isOutOfStock = product.stockQuantity <= 0;
-                      const isLowStock = product.stockQuantity > 0 && product.stockQuantity < 10;
-                      
-                      return (
-                        <button
-                          key={product.id}
-                          type="button"
-                          onClick={() => handleAddToCart(product)}
-                          disabled={isOutOfStock}
-                          className={`group text-left p-0.5 sm:p-1 border rounded transition-all bg-card ${
-                            isOutOfStock 
-                              ? 'opacity-50 cursor-not-allowed border-destructive/30' 
-                              : 'hover:border-primary hover:shadow-md cursor-pointer active:scale-95 hover:z-10'
-                          }`}
-                        >
-                          {/* Product Image */}
-                          <div className="aspect-square relative mb-0.5 bg-muted/30 rounded-sm overflow-hidden">
-                            {product.imageUrl ? (
-                              <Image
-                                src={product.imageUrl}
-                                alt={product.name}
-                                unoptimized={true}
-                                fill
-                                className={`object-contain p-0.5 ${isOutOfStock ? 'grayscale' : ''}`}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Package className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground/30" />
+                  <div className="space-y-1 sm:space-y-1.5">
+                    {/* Product Grid */}
+                    <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-1 sm:gap-1.5">
+                      {filteredProducts.map((product) => {
+                        const isParentWithVariants = parentIdsWithVariants.has(product.id);
+                        const parentTotalStock = isParentWithVariants ? (product.totalVariantStock ?? variantsByParent[product.id]?.reduce((s, v) => s + v.stockQuantity, 0) ?? 0) : 0;
+                        const isOutOfStock = isParentWithVariants ? parentTotalStock <= 0 : product.stockQuantity <= 0;
+                        const isLowStock = !isParentWithVariants && product.stockQuantity > 0 && product.stockQuantity < 10;
+                        const isExpanded = posExpandedParent === product.id;
+
+                        return (
+                          <div key={product.id} className={isExpanded ? 'col-span-full' : ''}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isParentWithVariants) {
+                                  handlePosExpandParent(product.id);
+                                } else {
+                                  handleAddToCart(product);
+                                }
+                              }}
+                              disabled={isOutOfStock}
+                              className={`w-full group text-left p-1 sm:p-1.5 border rounded-lg transition-all bg-card ${
+                                isParentWithVariants
+                                  ? (isExpanded ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-950/20 shadow-md' : 'border-blue-200 hover:border-blue-400 hover:shadow-md cursor-pointer')
+                                  : isOutOfStock 
+                                    ? 'opacity-50 cursor-not-allowed border-destructive/30' 
+                                    : 'hover:border-primary hover:shadow-md cursor-pointer active:scale-95'
+                              }`}
+                            >
+                              {!isExpanded && (
+                                <div className="aspect-square relative mb-0.5 bg-muted/30 rounded overflow-hidden">
+                                  {product.imageUrl ? (
+                                    <Image
+                                      src={product.imageUrl}
+                                      alt={product.name}
+                                      unoptimized={true}
+                                      fill
+                                      className={`object-contain p-0.5 ${isOutOfStock ? 'grayscale' : ''}`}
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Package className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground/30" />
+                                    </div>
+                                  )}
+                                  {isOutOfStock && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/75">
+                                      <span className="text-[8px] sm:text-[9px] font-bold text-white">OUT</span>
+                                    </div>
+                                  )}
+                                  {!isOutOfStock && isLowStock && (
+                                    <div className="absolute top-0 right-0 bg-orange-500 text-white text-[6px] sm:text-[7px] font-bold px-0.5 rounded-bl">
+                                      LOW
+                                    </div>
+                                  )}
+                                  {isParentWithVariants && (
+                                    <div className="absolute bottom-0 left-0 right-0 bg-blue-600/90 text-white text-[7px] sm:text-[8px] font-bold px-1 py-0.5 flex items-center justify-center gap-0.5">
+                                      <GitBranch className="w-2.5 h-2.5" />
+                                      Variants
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className={isExpanded ? 'flex items-center gap-2 py-1' : ''}>
+                                <h4 className={`font-medium leading-tight ${isExpanded ? 'text-xs sm:text-sm' : 'text-[8px] sm:text-[9px] md:text-[10px] line-clamp-2 mb-0.5'}`}>
+                                  {product.name}
+                                </h4>
+                                {isParentWithVariants && (
+                                  <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                )}
                               </div>
-                            )}
-                            
-                            {/* Status Overlay */}
-                            {isOutOfStock && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/75">
-                                <span className="text-[7px] sm:text-[8px] font-bold text-white">OUT</span>
-                              </div>
-                            )}
-                            
-                            {/* Low Stock Badge */}
-                            {!isOutOfStock && isLowStock && (
-                              <div className="absolute top-0 right-0 bg-orange-500 text-white text-[6px] sm:text-[7px] font-bold px-0.5 rounded-bl-sm">
-                                LOW
+
+                              {!isExpanded && !isParentWithVariants && (
+                                <div className="flex items-center justify-between gap-0.5">
+                                  <span className="font-bold text-[9px] sm:text-[10px] text-primary truncate">
+                                    ${product.discountedPrice.toFixed(2)}
+                                  </span>
+                                  <span className="text-[7px] sm:text-[8px] text-muted-foreground flex-shrink-0">
+                                    ×{isOutOfStock ? '0' : product.stockQuantity}
+                                  </span>
+                                </div>
+                              )}
+
+                              {!isExpanded && isParentWithVariants && (
+                                <div className="flex items-center justify-between gap-0.5">
+                                  <span className="font-bold text-[9px] sm:text-[10px] text-primary truncate">
+                                    ${product.discountedPrice.toFixed(2)}
+                                  </span>
+                                  <span className="text-[7px] sm:text-[8px] text-blue-600 flex-shrink-0">
+                                    Σ{parentTotalStock}
+                                  </span>
+                                </div>
+                              )}
+                            </button>
+
+                            {/* Expanded Variant Picker */}
+                            {isExpanded && (
+                              <div className="mt-1 p-2 sm:p-3 border border-blue-200 rounded-lg bg-blue-50/30 dark:bg-blue-950/10">
+                                {(variantsByParent[product.id] || []).length > 0 ? (
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 sm:gap-2">
+                                    {(variantsByParent[product.id] || []).map((variant) => {
+                                      const vLabel = getVariantLabel(variant);
+                                      const vOutOfStock = variant.stockQuantity <= 0;
+                                      return (
+                                        <button
+                                          key={variant.id}
+                                          type="button"
+                                          onClick={() => handleAddToCart(variant)}
+                                          disabled={vOutOfStock}
+                                          className={`text-left p-2 sm:p-2.5 border rounded-lg transition-all ${
+                                            vOutOfStock
+                                              ? 'opacity-50 cursor-not-allowed border-destructive/30 bg-muted/30'
+                                              : 'bg-white dark:bg-card hover:border-primary hover:shadow-md cursor-pointer active:scale-95'
+                                          }`}
+                                        >
+                                          <div className="flex items-start gap-2">
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 relative bg-muted/30 rounded overflow-hidden flex-shrink-0">
+                                              {variant.imageUrl ? (
+                                                <Image
+                                                  src={variant.imageUrl}
+                                                  alt={vLabel || variant.name}
+                                                  unoptimized
+                                                  fill
+                                                  className={`object-contain p-0.5 ${vOutOfStock ? 'grayscale' : ''}`}
+                                                />
+                                              ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                  <Package className="w-4 h-4 text-muted-foreground/30" />
+                                                </div>
+                                              )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="font-semibold text-[10px] sm:text-xs text-blue-700 dark:text-blue-400 truncate">
+                                                {vLabel || 'Variant'}
+                                              </p>
+                                              <p className="font-bold text-xs sm:text-sm text-primary">
+                                                ${variant.discountedPrice.toFixed(2)}
+                                              </p>
+                                              <p className="text-[9px] sm:text-[10px] text-muted-foreground">
+                                                {vOutOfStock ? 'Out of stock' : `${variant.stockQuantity} in stock`}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground text-center py-4">No variants found</p>
+                                )}
                               </div>
                             )}
                           </div>
-                          
-                          {/* Product Name */}
-                          <h4 className="font-medium text-[7px] sm:text-[8px] md:text-[9px] line-clamp-1 sm:line-clamp-2 leading-tight mb-0.5">
-                            {product.name}
-                          </h4>
-                          
-                          {/* Price & Stock */}
-                          <div className="flex items-center justify-between gap-0.5">
-                            <span className="font-bold text-[8px] sm:text-[9px] text-primary truncate">
-                              ${product.discountedPrice.toFixed(2)}
-                            </span>
-                            <span className="text-[6px] sm:text-[7px] text-muted-foreground flex-shrink-0">
-                              ×{isOutOfStock ? '0' : product.stockQuantity}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full text-center text-muted-foreground p-4">
@@ -1157,6 +1278,9 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                             </div>
                             <div className="flex-1 min-w-0">
                               <h5 className="font-medium text-[10px] sm:text-xs md:text-sm line-clamp-1">{item.product.name}</h5>
+                              {getVariantLabel(item.product) && (
+                                <p className="text-[9px] sm:text-[10px] text-blue-600 font-medium">{getVariantLabel(item.product)}</p>
+                              )}
                               <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground">${item.product.discountedPrice.toFixed(2)}</p>
                               {exceedsStock && (
                                 <p className="text-[9px] sm:text-[10px] text-destructive font-medium mt-0.5">

@@ -17,7 +17,7 @@ async function getInitialData() {
   const [salesRes, summaryRes, productsRes, categoriesRes] = await Promise.all([
     fetchSales(0, 20, token),
     fetchTodaySummary(token),
-    fetchAdminProducts(0, 100, token),
+    fetchAdminProducts(0, 500, token),
     fetchCategories(),
   ]);
 
