@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { Upload, X, Image as ImageIcon, Camera, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { compressImage } from '@/lib/image-compression';
@@ -10,341 +10,236 @@ interface ImageUploadProps {
   value?: string;
   onChange: (url: string) => void;
   disabled?: boolean;
-  showUrlInput?: boolean; // Option to show/hide URL input
-  onFileSelect?: (file: File) => Promise<string>; // Custom upload handler
-  maxSizeMB?: number; // Max file size before compression (default: auto-compress all)
+  showUrlInput?: boolean;
+  onFileSelect?: (file: File) => Promise<string>;
+  maxSizeMB?: number;
 }
 
-export function ImageUpload({ 
-  value, 
-  onChange, 
-  disabled, 
-  showUrlInput = true, 
+export function ImageUpload({
+  value,
+  onChange,
+  disabled,
+  showUrlInput = true,
   onFileSelect,
-  maxSizeMB = 10 // Default: compress images larger than 10MB
+  maxSizeMB = 10,
 }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
-  const [compressionProgress, setCompressionProgress] = useState('');
+  const [statusText, setStatusText] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadingRef = useRef(false);
 
-  // Cleanup on component unmount
+  // Sync preview when value prop changes externally
+  useEffect(() => {
+    if (value && value !== preview && !isUploading) {
+      setPreview(value);
+    }
+  }, [value]);
+
+  // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
-      // Revoke any blob URLs when component unmounts
       if (preview && preview.startsWith('blob:')) {
         URL.revokeObjectURL(preview);
       }
     };
-  }, [preview]);
+  }, []);
 
-  const handleFile = useCallback(async (file: File) => {
-    console.log('🎯 handleFile called:', { fileName: file.name, isUploading });
-    
-    // CRITICAL: Prevent concurrent uploads
-    if (isUploading) {
-      console.warn('⚠️ Already uploading, ignoring new file');
-      return;
-    }
-
-    // Validate file type
+  const processFile = useCallback(async (file: File) => {
+    if (uploadingRef.current) return;
     if (!file.type.startsWith('image/')) {
       alert('Please upload an image file (JPG, PNG, GIF, WEBP)');
       return;
     }
 
-    console.log('📸 Original image:', {
-      name: file.name,
-      size: (file.size / 1024 / 1024).toFixed(2) + 'MB',
-      type: file.type
-    });
-
+    uploadingRef.current = true;
     setIsUploading(true);
-    setCompressionProgress('Processing image...');
+    setStatusText('Processing...');
 
-    let previewUrl: string | null = null;
+    let blobUrl: string | null = null;
 
     try {
-      let processedFile = file;
+      let processed = file;
 
-      // ✅ OPTIMIZED: Faster compression with lower resolution for mobile
-      const shouldCompress = file.size > (maxSizeMB * 1024 * 1024) || file.type === 'image/jpeg';
-      
-      if (shouldCompress) {
-        setCompressionProgress('⚡ Optimizing...');
-        console.log('🔧 Compressing image (fast mode)...');
-        
+      // Compress if needed
+      if (file.size > maxSizeMB * 1024 * 1024 || file.type === 'image/jpeg') {
+        setStatusText('Optimizing...');
         try {
-          // Use lower resolution for faster compression
-          const compressionStart = performance.now();
-          
-          processedFile = await compressImage(file, {
-            maxWidth: 1920,  // Reduced from 2048 for speed
+          processed = await compressImage(file, {
+            maxWidth: 1920,
             maxHeight: 1920,
-            quality: 0.80,   // Reduced from 0.85 for speed
-            outputFormat: 'image/jpeg'
+            quality: 0.80,
+            outputFormat: 'image/jpeg',
           });
-          
-          const compressionTime = (performance.now() - compressionStart) / 1000;
-          
-          console.log('✅ Compressed in', compressionTime.toFixed(2) + 's:', {
-            originalSize: (file.size / 1024 / 1024).toFixed(2) + 'MB',
-            compressedSize: (processedFile.size / 1024 / 1024).toFixed(2) + 'MB',
-            savings: (((file.size - processedFile.size) / file.size) * 100).toFixed(1) + '%'
-          });
-        } catch (compressionError) {
-          console.warn('⚠️ Compression failed, using original:', compressionError);
-          processedFile = file;
+        } catch {
+          processed = file;
         }
-      } else {
-        console.log('⚡ File small enough, skipping compression');
       }
 
-      // Create preview from processed file
-      setCompressionProgress('Creating preview...');
-      previewUrl = URL.createObjectURL(processedFile);
-      
-      // Revoke old preview URL if it exists
-      if (preview && preview.startsWith('blob:')) {
-        console.log('🧹 Cleaning up old preview URL');
-        URL.revokeObjectURL(preview);
-      }
-      setPreview(previewUrl);
+      // Show instant preview
+      blobUrl = URL.createObjectURL(processed);
+      if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+      setPreview(blobUrl);
 
-      // Upload to server with timeout protection
-      setCompressionProgress('📤 Uploading...');
-      
+      // Upload
+      setStatusText('Uploading...');
       if (onFileSelect) {
-        console.log('📤 Starting upload to server...');
-        const uploadStart = performance.now();
-        
-        // Add timeout wrapper around upload
-        const uploadPromise = onFileSelect(processedFile);
-        const timeoutPromise = new Promise<string>((_, reject) => {
-          setTimeout(() => reject(new Error('Upload timeout')), 45000); // 45s timeout
-        });
-        
-        try {
-          const url = await Promise.race([uploadPromise, timeoutPromise]);
-          const uploadTime = (performance.now() - uploadStart) / 1000;
-          
-          onChange(url);
-          console.log('✅ Uploaded in', uploadTime.toFixed(2) + 's:', processedFile.name);
-          
-          // Replace preview with server URL and cleanup blob
-          if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-            previewUrl = null;
-          }
-          setPreview(url);
-        } catch (uploadError) {
-          if (uploadError instanceof Error && uploadError.message === 'Upload timeout') {
-            throw new Error('Upload timed out. Please check your connection and try again.');
-          }
-          throw uploadError;
-        }
+        const uploadPromise = onFileSelect(processed);
+        const timeoutPromise = new Promise<string>((_, reject) =>
+          setTimeout(() => reject(new Error('Upload timeout')), 45000)
+        );
+        const url = await Promise.race([uploadPromise, timeoutPromise]);
+        onChange(url);
+        if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+        setPreview(url);
       } else {
-        // Fallback: convert to base64
-        const base64Reader = new FileReader();
-        base64Reader.onload = (e) => {
-          const result = e.target?.result as string;
-          onChange(result);
-          if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-            previewUrl = null;
-          }
-        };
-        base64Reader.onerror = () => {
-          console.error('❌ Failed to convert to base64');
-        };
-        base64Reader.readAsDataURL(processedFile);
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(processed);
+        });
+        onChange(base64);
+        if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+        setPreview(base64);
       }
-      
-      setCompressionProgress('');
-      console.log('✅ Upload complete!');
+
+      setStatusText('');
     } catch (error) {
-      console.error('❌ Upload error:', error);
+      console.error('Upload error:', error);
       alert('Failed to upload image. Please try again.');
-      
-      // Cleanup preview URL on error
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        previewUrl = null;
-      }
-      setPreview(null);
-      setCompressionProgress('');
+      if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+      setPreview(value || null);
+      setStatusText('');
     } finally {
-      console.log('🏁 Finally block: resetting isUploading to false');
+      uploadingRef.current = false;
       setIsUploading(false);
+      // Reset file input so same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  }, [onChange, onFileSelect, preview, maxSizeMB, isUploading]);
+  }, [onChange, onFileSelect, maxSizeMB, value, preview]);
+
+  const openFilePicker = useCallback(() => {
+    if (disabled || uploadingRef.current) return;
+    fileInputRef.current?.click();
+  }, [disabled]);
+
+  const handleRemove = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+    setPreview(null);
+    onChange('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [onChange, preview]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-
     if (disabled) return;
-
     const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFile(file);
-    }
-  }, [disabled, handleFile]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!disabled) {
-      setIsDragging(true);
-    }
-  }, [disabled]);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  }, []);
-
-  const handleClick = useCallback(() => {
-    // Prevent clicks while uploading
-    if (disabled || isUploading) {
-      console.log('⚠️ Upload in progress, please wait...');
-      return;
-    }
-    
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    // DON'T set capture attribute - let user choose camera OR gallery
-    
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        console.log('📁 File selected:', file.name);
-        handleFile(file);
-      }
-      
-      // Cleanup: Remove the input from DOM after use
-      setTimeout(() => {
-        input.remove();
-      }, 100);
-    };
-    
-    // Cleanup if user cancels (doesn't select file)
-    input.oncancel = () => {
-      console.log('❌ File selection cancelled');
-      setTimeout(() => {
-        input.remove();
-      }, 100);
-    };
-    
-    input.click();
-  }, [disabled, isUploading, handleFile]);
-
-  const handleRemove = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    // Cleanup blob URL if exists
-    if (preview && preview.startsWith('blob:')) {
-      URL.revokeObjectURL(preview);
-    }
-    
-    setPreview(null);
-    onChange('');
-  }, [onChange, preview]);
+    if (file) processFile(file);
+  }, [disabled, processFile]);
 
   return (
     <div className="space-y-2">
-      <div
-        onClick={handleClick}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        className={cn(
-          "relative border-2 border-dashed rounded-lg transition-all cursor-pointer overflow-hidden",
-          isDragging && "border-primary bg-primary/5 scale-[1.02]",
-          !isDragging && "border-border hover:border-primary/50",
-          disabled && "opacity-50 cursor-not-allowed",
-          isUploading && "pointer-events-none opacity-75",
-          preview ? "h-64" : "h-48"
-        )}
-      >
-        {preview ? (
-          <div className="relative w-full h-full group">
-            <Image
-              src={preview}
-              alt="Upload preview"
-              fill
-              className="object-contain p-2"
-              unoptimized
-            />
-            
-            {!disabled && (
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleClick}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Change
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRemove}
-                  className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors flex items-center gap-2"
-                >
-                  <X className="w-4 h-4" />
-                  Remove
-                </button>
-              </div>
-            )}
+      {/* Persistent file input in the DOM — critical for mobile reliability */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        disabled={disabled || isUploading}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) processFile(file);
+        }}
+      />
 
-            {isUploading && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <div className="text-white text-center">
-                  <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-2"></div>
-                  <p className="text-sm font-semibold">
-                    {compressionProgress || 'Uploading...'}
-                  </p>
-                </div>
+      {preview ? (
+        /* ─── Has image ─── */
+        <div className="relative border-2 border-border rounded-lg overflow-hidden h-64">
+          <Image
+            src={preview}
+            alt="Upload preview"
+            fill
+            className="object-contain p-2"
+            unoptimized
+          />
+
+          {/* Uploading overlay */}
+          {isUploading && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+              <div className="text-white text-center">
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
+                <p className="text-sm font-medium">{statusText || 'Uploading...'}</p>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <ImageIcon className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">
-              {isUploading ? 'Uploading...' : 'Upload Image'}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Drag and drop or click to browse
-            </p>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-                <Upload className="w-4 h-4" />
-                <span>Supports: JPG, PNG, GIF, WEBP</span>
+          )}
+
+          {/* Action buttons — always visible, not just on hover */}
+          {!disabled && !isUploading && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              <button
+                type="button"
+                onClick={openFilePicker}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-md shadow-lg hover:bg-primary/90 transition-colors"
+              >
+                <Camera className="w-4 h-4" />
+                Change
+              </button>
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-destructive text-destructive-foreground rounded-md shadow-lg hover:bg-destructive/90 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* ─── Empty state ─── */
+        <div
+          onClick={openFilePicker}
+          onDrop={handleDrop}
+          onDragOver={(e) => { e.preventDefault(); if (!disabled) setIsDragging(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+          className={cn(
+            'relative flex flex-col items-center justify-center h-48 border-2 border-dashed rounded-lg transition-all cursor-pointer',
+            isDragging && 'border-primary bg-primary/5 scale-[1.02]',
+            !isDragging && 'border-border hover:border-primary/50',
+            disabled && 'opacity-50 cursor-not-allowed',
+            isUploading && 'pointer-events-none opacity-75'
+          )}
+        >
+          {isUploading ? (
+            <div className="text-center">
+              <RefreshCw className="w-10 h-10 animate-spin mx-auto mb-3 text-primary" />
+              <p className="text-sm font-medium">{statusText || 'Uploading...'}</p>
+            </div>
+          ) : (
+            <>
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <ImageIcon className="w-7 h-7 text-primary" />
               </div>
-              <p className="text-xs text-green-600 font-medium">
-                ✅ Auto-compresses large images
+              <p className="text-sm font-semibold mb-1">Upload Image</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Drag & drop or tap to browse
               </p>
-            </div>
-
-            {isUploading && (
-              <div className="mt-4 w-full max-w-xs">
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary animate-pulse" style={{ width: '70%' }}></div>
-                </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Upload className="w-3.5 h-3.5" />
+                <span>JPG, PNG, GIF, WEBP</span>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+              <p className="text-[10px] text-green-600 mt-1">Auto-compresses large images</p>
+            </>
+          )}
+        </div>
+      )}
 
-      {/* Alternative: Paste URL */}
+      {/* Optional URL input */}
       {showUrlInput && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>or</span>
@@ -352,10 +247,7 @@ export function ImageUpload({
             type="text"
             placeholder="Paste image URL"
             value={value || ''}
-            onChange={(e) => {
-              onChange(e.target.value);
-              setPreview(e.target.value);
-            }}
+            onChange={(e) => { onChange(e.target.value); setPreview(e.target.value); }}
             disabled={disabled}
             className="flex-1 px-3 py-1.5 rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 text-sm"
           />

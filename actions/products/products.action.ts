@@ -9,7 +9,8 @@ import {
   fetchInventoryStats,
   fetchLowStockProducts,
   fetchInventoryTable,
-  fetchAdminProducts
+  fetchAdminProducts,
+  fetchAdminProductDetail,
 } from "@/services/products.service";
 import { 
   ProductRequest, 
@@ -96,6 +97,32 @@ export async function deleteProductAction(id: string): Promise<ApiResponse<void>
       success: false,
       message: "Failed to delete product",
       error: sanitizeError(error),
+    };
+  }
+}
+
+export async function fetchAdminProductDetailAction(id: string): Promise<AdminProductDetailApiResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !(session as any).backendToken) {
+      return {
+        success: false,
+        message: "Unauthorized - Please login",
+        data: undefined,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = (session as any).backendToken;
+    return await fetchAdminProductDetail(id, token);
+  } catch (error) {
+    logger.error("fetchAdminProductDetailAction error", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch product detail",
+      data: undefined,
+      createdAt: new Date().toISOString(),
     };
   }
 }

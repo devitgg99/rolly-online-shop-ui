@@ -35,7 +35,8 @@ import {
   deleteProductAction,
   fetchInventoryStatsAction,
   fetchLowStockProductsAction,
-  fetchAdminProductsAction
+  fetchAdminProductsAction,
+  fetchAdminProductDetailAction,
 } from '@/actions/products/products.action';
 import { uploadFileAction } from '@/actions/fileupload/fileupload.action';
 import BarcodeScanner from './BarcodeScanner';
@@ -295,22 +296,28 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         const response = await updateProductAction(editingProduct.id, productRequest);
         
         if (response.success && response.data) {
-          // Update local state with the returned data
-          setProducts(products.map(p => 
-            p.id === editingProduct.id ? {
-              id: response.data!.id,
-              name: response.data!.name,
-              costPrice: response.data!.costPrice,
-              price: response.data!.price,
-              discountPercent: response.data!.discountPercent,
-              discountedPrice: response.data!.discountedPrice,
-              profit: response.data!.profit,
-              stockQuantity: response.data!.stockQuantity,
-              imageUrl: response.data!.imageUrl,
-              brandName: response.data!.brand?.name,
-              categoryName: response.data!.category.name,
-            } : p
-          ));
+          const d = response.data!;
+          // Bust browser image cache by appending timestamp
+          const imgUrl = d.imageUrl?.includes('?')
+            ? `${d.imageUrl}&t=${Date.now()}`
+            : `${d.imageUrl}?t=${Date.now()}`;
+
+          const updated: AdminProduct = {
+            id: d.id,
+            name: d.name,
+            costPrice: d.costPrice,
+            price: d.price,
+            discountPercent: d.discountPercent,
+            discountedPrice: d.discountedPrice,
+            profit: d.profit,
+            stockQuantity: d.stockQuantity,
+            imageUrl: imgUrl,
+            brandName: d.brand?.name,
+            categoryName: d.category.name,
+          };
+
+          // Functional updater to avoid stale closure
+          setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? updated : p)));
           toast.success('Product updated successfully! 🎉');
         } else {
           toast.error(response.message || 'Failed to update product');
@@ -319,21 +326,21 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         const response = await createProductAction(productRequest);
         
         if (response.success && response.data) {
-          // Add new product to local state
+          const d = response.data!;
           const newProduct: AdminProduct = {
-            id: response.data.id,
-            name: response.data.name,
-            costPrice: response.data.costPrice,
-            price: response.data.price,
-            discountPercent: response.data.discountPercent,
-            discountedPrice: response.data.discountedPrice,
-            profit: response.data.profit,
-            stockQuantity: response.data.stockQuantity,
-            imageUrl: response.data.imageUrl,
-            brandName: response.data.brand?.name,
-            categoryName: response.data.category.name,
+            id: d.id,
+            name: d.name,
+            costPrice: d.costPrice,
+            price: d.price,
+            discountPercent: d.discountPercent,
+            discountedPrice: d.discountedPrice,
+            profit: d.profit,
+            stockQuantity: d.stockQuantity,
+            imageUrl: d.imageUrl,
+            brandName: d.brand?.name,
+            categoryName: d.category.name,
           };
-          setProducts([newProduct, ...products]);
+          setProducts((prev) => [newProduct, ...prev]);
           toast.success('Product created successfully! 🎉');
         } else {
           toast.error(response.message || 'Failed to create product');
@@ -368,10 +375,11 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
     setDialogOpen(true);
   };
 
-  const handleEdit = (product: AdminProduct) => {
+  const handleEdit = async (product: AdminProduct) => {
     setEditingProduct(product);
     const categoryId = categories.find(c => c.name === product.categoryName)?.id || '';
-    
+
+    // Pre-fill with what we have from the list
     setFormData({
       name: product.name,
       description: '',
@@ -384,6 +392,20 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       categoryId,
     });
     setDialogOpen(true);
+
+    // Fetch full detail (has description) in background
+    try {
+      const res = await fetchAdminProductDetailAction(product.id);
+      if (res.success && res.data) {
+        setFormData((prev) => ({
+          ...prev,
+          description: res.data!.description || '',
+          categoryId: res.data!.category?.id || prev.categoryId,
+        }));
+      }
+    } catch {
+      // silent — description field stays empty, user can still edit
+    }
   };
 
   const handleDelete = (id: string) => {
