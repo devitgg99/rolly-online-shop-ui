@@ -26,10 +26,10 @@ import {
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'POS', href: '/pos', icon: Monitor },
-  { name: 'Products', href: '/products', icon: Package },
-  { name: 'Categories', href: '/categories', icon: Tag },
-  { name: 'Sales', href: '/sales', icon: Receipt },
+  { name: 'កន្លែងលក់', href: '/pos', icon: Monitor },
+  { name: 'ផលិតផល', href: '/products', icon: Package },
+  { name: 'ប្រភេទ', href: '/categories', icon: Tag },
+  { name: 'ការលក់', href: '/sales', icon: Receipt },
 ];
 
 export default function AdminSidebar() {
@@ -49,7 +49,7 @@ export default function AdminSidebar() {
           </div>
           <div>
             <h1 className="font-semibold text-lg">Rolly Admin</h1>
-            <p className="text-xs text-muted-foreground">Management Panel</p>
+            <p className="text-xs text-muted-foreground">ផ្ទាំងគ្រប់គ្រង</p>
           </div>
         </Link>
       </div>
@@ -59,7 +59,7 @@ export default function AdminSidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
         <p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Menu
+          មឺនុយ
         </p>
         {navigation.map((item) => {
           const Icon = item.icon;
@@ -126,7 +126,7 @@ export default function AdminSidebar() {
           >
             <Link href="/profile">
               <User className="w-4 h-4 mr-1.5" />
-              Profile
+              គណនី
             </Link>
           </Button>
           
@@ -137,7 +137,7 @@ export default function AdminSidebar() {
             onClick={() => signOut({ callbackUrl: '/' })}
           >
             <LogOut className="w-4 h-4 mr-1.5" />
-            Logout
+            ចាកចេញ
           </Button>
         </div>
       </div>
@@ -155,7 +155,7 @@ export default function AdminSidebar() {
             </div>
             <div>
               <span className="font-semibold text-sm">Rolly Admin</span>
-              <p className="text-[10px] text-muted-foreground">Management</p>
+              <p className="text-[10px] text-muted-foreground">គ្រប់គ្រង</p>
             </div>
           </Link>
           

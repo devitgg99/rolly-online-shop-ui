@@ -36,12 +36,12 @@ export function SmartFilterDropdown({ value, onChange }: SmartFilterDropdownProp
               {activePreset.icon} {activePreset.label}
             </>
           ) : (
-            'Smart Filters'
+            'តម្រងឆ្លាត'
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
-        <DropdownMenuLabel>Quick Filters</DropdownMenuLabel>
+        <DropdownMenuLabel>តម្រងរហ័ស</DropdownMenuLabel>
         <DropdownMenuSeparator />
         
         {/* Clear filter option */}
@@ -53,8 +53,8 @@ export function SmartFilterDropdown({ value, onChange }: SmartFilterDropdownProp
             <div className="flex items-center gap-2">
               <span>🔄</span>
               <div>
-                <div className="font-medium">All Products</div>
-                <div className="text-xs text-muted-foreground">Clear filter</div>
+                <div className="font-medium">ផលិតផលទាំងអស់</div>
+                <div className="text-xs text-muted-foreground">សម្អាតតម្រង</div>
               </div>
             </div>
             {!value && <Check className="h-4 w-4" />}
@@ -65,7 +65,7 @@ export function SmartFilterDropdown({ value, onChange }: SmartFilterDropdownProp
         
         {/* Stock Level Filters */}
         <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Stock Levels
+          កម្រិតស្តុក
         </DropdownMenuLabel>
         {SMART_FILTER_PRESETS.filter(p => 
           ['out-of-stock', 'critical-stock', 'low-stock', 'healthy-stock'].includes(p.id)
@@ -94,7 +94,7 @@ export function SmartFilterDropdown({ value, onChange }: SmartFilterDropdownProp
         
         {/* Performance Filters */}
         <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Performance
+          ប្រសិទ្ធភាព
         </DropdownMenuLabel>
         {SMART_FILTER_PRESETS.filter(p => 
           ['low-profit', 'high-value', 'never-sold', 'best-sellers'].includes(p.id)

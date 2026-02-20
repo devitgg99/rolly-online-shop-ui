@@ -26,7 +26,7 @@ export default function DashboardPage() {
 
   const stats = [
     {
-      name: 'Total Revenue',
+      name: 'ចំណូលសរុប',
       value: '$0',
       change: '+0%',
       icon: DollarSign,
@@ -34,7 +34,7 @@ export default function DashboardPage() {
       bgColor: 'bg-green-500/10',
     },
     {
-      name: 'Orders',
+      name: 'ការបញ្ជាទិញ',
       value: '0',
       change: '+0%',
       icon: ShoppingCart,
@@ -42,7 +42,7 @@ export default function DashboardPage() {
       bgColor: 'bg-blue-500/10',
     },
     {
-      name: 'Products',
+      name: 'ផលិតផល',
       value: '0',
       change: '+0%',
       icon: Package,
@@ -50,7 +50,7 @@ export default function DashboardPage() {
       bgColor: 'bg-purple-500/10',
     },
     {
-      name: 'Customers',
+      name: 'អតិថិជន',
       value: '0',
       change: '+0%',
       icon: Users,
@@ -66,10 +66,10 @@ export default function DashboardPage() {
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold flex items-center gap-3 mb-2">
             <LayoutDashboard className="w-8 h-8 text-primary" />
-            Dashboard
+            ផ្ទាំងគ្រប់គ្រង
           </h1>
           <p className="text-foreground/60">
-            Welcome back, <span className="font-semibold text-foreground">{session.user.name}</span>! 👋
+            សូមស្វាគមន៍, <span className="font-semibold text-foreground">{session.user.name}</span>! 👋
           </p>
         </div>
 
@@ -103,11 +103,11 @@ export default function DashboardPage() {
           <div className="bg-card border border-border rounded-xl p-6">
             <div className="flex items-center gap-2 mb-6">
               <Activity className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-semibold">Recent Activity</h2>
+              <h2 className="text-xl font-semibold">សកម្មភាពថ្មីៗ</h2>
             </div>
             <div className="text-center py-12">
               <Activity className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-              <p className="text-sm text-foreground/60">No recent activity</p>
+              <p className="text-sm text-foreground/60">គ្មានសកម្មភាពថ្មីៗ</p>
             </div>
           </div>
 
@@ -115,23 +115,23 @@ export default function DashboardPage() {
           <div className="bg-card border border-border rounded-xl p-6">
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-semibold">Quick Overview</h2>
+              <h2 className="text-xl font-semibold">ទិដ្ឋភាពរហ័ស</h2>
             </div>
             <div className="space-y-4">
               <div className="flex justify-between items-center py-3 border-b border-border">
-                <span className="text-sm text-foreground/70">Pending Orders</span>
+                <span className="text-sm text-foreground/70">ការបញ្ជាទិញរង់ចាំ</span>
                 <span className="font-semibold">0</span>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-border">
-                <span className="text-sm text-foreground/70">Low Stock Products</span>
+                <span className="text-sm text-foreground/70">ផលិតផលស្តុកទាប</span>
                 <span className="font-semibold">0</span>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-border">
-                <span className="text-sm text-foreground/70">New Customers</span>
+                <span className="text-sm text-foreground/70">អតិថិជនថ្មី</span>
                 <span className="font-semibold">0</span>
               </div>
               <div className="flex justify-between items-center py-3">
-                <span className="text-sm text-foreground/70">Today's Revenue</span>
+                <span className="text-sm text-foreground/70">ចំណូលថ្ងៃនេះ</span>
                 <span className="font-semibold text-green-500">$0</span>
               </div>
             </div>
@@ -145,11 +145,11 @@ export default function DashboardPage() {
               <Users className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold mb-1">Admin Session Active</h3>
+              <h3 className="font-semibold mb-1">សម័យគ្រប់គ្រងសកម្ម</h3>
               <div className="text-sm text-foreground/70 space-y-1">
-                <p><strong>Email:</strong> {session.user.email}</p>
-                <p><strong>Role:</strong> <span className="px-2 py-0.5 bg-primary/20 text-primary rounded text-xs font-semibold">{session.user.role}</span></p>
-                <p><strong>User ID:</strong> <span className="font-mono text-xs">{session.user.id}</span></p>
+                <p><strong>អ៊ីមែល:</strong> {session.user.email}</p>
+                <p><strong>តួនាទី:</strong> <span className="px-2 py-0.5 bg-primary/20 text-primary rounded text-xs font-semibold">{session.user.role}</span></p>
+                <p><strong>លេខសម្គាល់អ្នកប្រើ:</strong> <span className="font-mono text-xs">{session.user.id}</span></p>
               </div>
             </div>
           </div>

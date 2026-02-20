@@ -92,7 +92,7 @@ export async function generateEnhancedReceipt(
   doc.setTextColor(darkGray);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('RECEIPT', pageWidth / 2, yPos, { align: 'center' });
+  doc.text('វិក្កយបត្រ', pageWidth / 2, yPos, { align: 'center' });
 
   // ==========================================
   // TRANSACTION INFO - Clean Card Style
@@ -112,10 +112,10 @@ export async function generateEnhancedReceipt(
   const leftCol = margin + 5;
   const rightCol = pageWidth / 2 + 5;
   
-  doc.text('Receipt No:', leftCol, yPos);
-  doc.text('Date & Time:', leftCol, yPos + 5);
-  doc.text('Customer:', leftCol, yPos + 10);
-  doc.text('Payment Method:', leftCol, yPos + 15);
+  doc.text('វិក្កយបត្រលេខ:', leftCol, yPos);
+  doc.text('កាលបរិច្ឆេទ និងម៉ោង:', leftCol, yPos + 5);
+  doc.text('អតិថិជន:', leftCol, yPos + 10);
+  doc.text('វិធីបង់ប្រាក់:', leftCol, yPos + 15);
   
   // Right column - Values
   doc.setTextColor(darkGray);
@@ -124,7 +124,7 @@ export async function generateEnhancedReceipt(
   
   doc.text(`#${sale.id.slice(0, 8).toUpperCase()}`, valueLeftCol, yPos);
   doc.text(new Date(sale.createdAt).toLocaleString(), valueLeftCol, yPos + 5);
-  doc.text(sale.customerName || 'Walk-in Customer', valueLeftCol, yPos + 10);
+  doc.text(sale.customerName || 'អតិថិជនផ្ទាល់', valueLeftCol, yPos + 10);
   doc.text(sale.paymentMethod, valueLeftCol, yPos + 15);
 
   // ==========================================
@@ -155,10 +155,10 @@ export async function generateEnhancedReceipt(
   yPos += 5.5;
   
   doc.text('#', colNumX + colNumW / 2, yPos, { align: 'center' });
-  doc.text('Item', colItemX + 2, yPos);
-  doc.text('Qty', colQtyX + colQtyW / 2, yPos, { align: 'center' });
-  doc.text('Price', colPriceX + colPriceW - 2, yPos, { align: 'right' });
-  doc.text('Total', colTotalX + colTotalW - 2, yPos, { align: 'right' });
+  doc.text('មុខទំនិញ', colItemX + 2, yPos);
+  doc.text('ចំនួន', colQtyX + colQtyW / 2, yPos, { align: 'center' });
+  doc.text('តម្លៃ', colPriceX + colPriceW - 2, yPos, { align: 'right' });
+  doc.text('សរុប', colTotalX + colTotalW - 2, yPos, { align: 'right' });
 
   // Table border around header
   doc.setDrawColor(darkGray);
@@ -229,7 +229,7 @@ export async function generateEnhancedReceipt(
   // Subtotal
   doc.setFontSize(10);
   doc.setTextColor(lightGray);
-  doc.text('Subtotal:', pageWidth - margin - 40, yPos);
+  doc.text('សរុបរង:', pageWidth - margin - 40, yPos);
   doc.setTextColor(darkGray);
   doc.text(`$${subtotal.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
   yPos += 6;
@@ -237,7 +237,7 @@ export async function generateEnhancedReceipt(
   // Discount (if any)
   if (sale.discountAmount && sale.discountAmount > 0) {
     doc.setTextColor(lightGray);
-    doc.text('Discount:', pageWidth - margin - 40, yPos);
+    doc.text('បញ្ចុះតម្លៃ:', pageWidth - margin - 40, yPos);
     doc.setTextColor('#dc2626'); // Red
     doc.text(`-$${sale.discountAmount.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
     yPos += 6;
@@ -251,7 +251,7 @@ export async function generateEnhancedReceipt(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('TOTAL:', pageWidth - margin - 55, yPos + 3);
+  doc.text('សរុប:', pageWidth - margin - 55, yPos + 3);
   doc.setFontSize(16);
   doc.text(`$${sale.totalAmount.toFixed(2)}`, pageWidth - margin - 3, yPos + 3, { align: 'right' });
 
@@ -276,18 +276,18 @@ export async function generateEnhancedReceipt(
   doc.setTextColor(darkGray);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('Thank You for Your Purchase!', pageWidth / 2, yPos, { align: 'center' });
+  doc.text('អរគុណសម្រាប់ការទិញ!', pageWidth / 2, yPos, { align: 'center' });
   
   yPos += 6;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(lightGray);
-  doc.text('Visit us again soon!', pageWidth / 2, yPos, { align: 'center' });
+  doc.text('សូមអញ្ជើញមកម្តងទៀត!', pageWidth / 2, yPos, { align: 'center' });
   
   // Additional footer info
   yPos += 8;
   doc.setFontSize(8);
-  doc.text('This is a computer-generated receipt and does not require a signature.', pageWidth / 2, yPos, { align: 'center' });
+  doc.text('វិក្កយបត្រនេះបង្កើតដោយកុំព្យូទ័រ មិនចាំបាច់ហត្ថលេខាឡើយ។', pageWidth / 2, yPos, { align: 'center' });
 
   // Return as blob
   return doc.output('blob');

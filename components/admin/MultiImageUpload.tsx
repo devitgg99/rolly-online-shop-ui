@@ -71,11 +71,11 @@ export function MultiImageUpload({
         const sortedImages = response.data.sort((a, b) => a.displayOrder - b.displayOrder);
         setImages(sortedImages);
       } else {
-        toast.error(response.message || 'Failed to load images');
+        toast.error(response.message || 'មិនអាចផ្ទុករូបភាព');
       }
     } catch (error) {
       console.error('Error loading images:', error);
-      toast.error('Failed to load images');
+      toast.error('មិនអាចផ្ទុករូបភាព');
     } finally {
       setIsLoading(false);
     }
@@ -86,12 +86,12 @@ export function MultiImageUpload({
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error('សូមជ្រើសរើសឯកសាររូបភាព');
       return;
     }
 
     if (!session?.backendToken) {
-      toast.error('Authentication required');
+      toast.error('ត្រូវការការផ្ទៀងផ្ទាត់');
       return;
     }
 
@@ -101,7 +101,7 @@ export function MultiImageUpload({
       const uploadResponse = await uploadFileAction(file, session.backendToken);
       
       if (!uploadResponse.success || !uploadResponse.data?.url) {
-        toast.error(uploadResponse.message || 'Failed to upload image');
+        toast.error(uploadResponse.message || 'មិនអាចបង្ហោះរូបភាព');
         return;
       }
 
@@ -117,15 +117,15 @@ export function MultiImageUpload({
       );
 
       if (addResponse.success) {
-        toast.success('Image added successfully!');
+        toast.success('បានបន្ថែមរូបភាពដោយជោគជ័យ!');
         loadImages();
         onImagesUpdated?.();
       } else {
-        toast.error(addResponse.message || 'Failed to add image');
+        toast.error(addResponse.message || 'មិនអាចបន្ថែមរូបភាព');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      toast.error('មិនអាចបង្ហោះរូបភាព');
     } finally {
       setUploadingFile(false);
       e.target.value = ''; // Reset input
@@ -140,15 +140,15 @@ export function MultiImageUpload({
       const response = await setPrimaryProductImage(productId, imageId, session.backendToken);
 
       if (response.success) {
-        toast.success('Primary image updated!');
+        toast.success('បានកំណត់រូបភាពចម្បង!');
         loadImages();
         onImagesUpdated?.();
       } else {
-        toast.error(response.message || 'Failed to set primary image');
+        toast.error(response.message || 'មិនអាចកំណត់រូបភាពចម្បង');
       }
     } catch (error) {
       console.error('Error setting primary image:', error);
-      toast.error('Failed to set primary image');
+      toast.error('មិនអាចកំណត់រូបភាពចម្បង');
     } finally {
       setIsLoading(false);
     }
@@ -156,13 +156,13 @@ export function MultiImageUpload({
 
   const handleDeleteImage = async (imageId: string) => {
     if (images.length === 1) {
-      toast.error('Cannot delete the only image. Products must have at least one image.');
+      toast.error('មិនអាចលុបរូបភាពតែមួយបានទេ។ ផលិតផលត្រូវមានរូបភាពយ៉ាងតិចមួយ។');
       return;
     }
 
     if (!session?.backendToken) return;
 
-    const confirmed = confirm('Are you sure you want to delete this image?');
+    const confirmed = confirm('តើអ្នកប្រាកដថាចង់លុបរូបភាពនេះ?');
     if (!confirmed) return;
 
     setIsLoading(true);
@@ -170,15 +170,15 @@ export function MultiImageUpload({
       const response = await deleteProductImage(productId, imageId, session.backendToken);
 
       if (response.success) {
-        toast.success('Image deleted successfully!');
+        toast.success('បានលុបរូបភាពដោយជោគជ័យ!');
         loadImages();
         onImagesUpdated?.();
       } else {
-        toast.error(response.message || 'Failed to delete image');
+        toast.error(response.message || 'មិនអាចលុបរូបភាព');
       }
     } catch (error) {
       console.error('Error deleting image:', error);
-      toast.error('Failed to delete image');
+      toast.error('មិនអាចលុបរូបភាព');
     } finally {
       setIsLoading(false);
     }
@@ -219,15 +219,15 @@ export function MultiImageUpload({
       );
 
       if (response.success) {
-        toast.success('Image order updated!');
+        toast.success('បានកែលំដាប់រូបភាព!');
         onImagesUpdated?.();
       } else {
-        toast.error(response.message || 'Failed to reorder images');
+        toast.error(response.message || 'មិនអាចរៀបចំលំដាប់រូបភាព');
         loadImages(); // Reload to revert
       }
     } catch (error) {
       console.error('Error reordering images:', error);
-      toast.error('Failed to reorder images');
+      toast.error('មិនអាចរៀបចំលំដាប់រូបភាព');
       loadImages();
     } finally {
       setIsLoading(false);
@@ -241,10 +241,10 @@ export function MultiImageUpload({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ImageIcon className="w-5 h-5" />
-            Manage Product Images - {productName}
+            គ្រប់គ្រងរូបភាពផលិតផល - {productName}
           </DialogTitle>
           <DialogDescription>
-            Upload, reorder, and manage product images. Drag to reorder. First image or starred image is the primary display.
+            បង្ហោះ រៀបចំ និងគ្រប់គ្រងរូបភាពផលិតផល។ អូសដើម្បីរៀបចំលំដាប់។ រូបភាពដំបូង ឬរូបភាពផ្កាយគឺជារូបភាពចម្បង។
           </DialogDescription>
         </DialogHeader>
 
@@ -264,15 +264,15 @@ export function MultiImageUpload({
                   {uploadingFile ? (
                     <>
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground">Uploading image...</p>
+                      <p className="text-sm text-muted-foreground">កំពុងបង្ហោះរូបភាព...</p>
                     </>
                   ) : (
                     <>
                       <Upload className="w-8 h-8 text-muted-foreground" />
                       <div>
-                        <p className="font-medium">Click to upload image</p>
+                        <p className="font-medium">ចុចដើម្បីបង្ហោះរូបភាព</p>
                         <p className="text-sm text-muted-foreground">
-                          PNG, JPG, WEBP up to 10MB
+                          PNG, JPG, WEBP រហូតដល់ 10MB
                         </p>
                       </div>
                     </>
@@ -285,12 +285,12 @@ export function MultiImageUpload({
           {/* Images Grid */}
           {isLoading && images.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Loading images...
+              កំពុងផ្ទុករូបភាព...
             </div>
           ) : images.length === 0 ? (
             <div className="text-center py-8">
               <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No images uploaded yet</p>
+              <p className="text-muted-foreground">មិនទាន់មានរូបភាពបង្ហោះ</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -321,7 +321,7 @@ export function MultiImageUpload({
                         <div className="absolute top-2 left-2">
                           <div className="bg-primary text-primary-foreground px-2 py-1 rounded-md text-xs font-semibold flex items-center gap-1">
                             <Star className="w-3 h-3 fill-current" />
-                            Primary
+                            ចម្បង
                           </div>
                         </div>
                       )}
@@ -341,7 +341,7 @@ export function MultiImageUpload({
                             disabled={isLoading}
                           >
                             <Star className="w-3 h-3 mr-1" />
-                            Set Primary
+                            កំណត់ជាចម្បង
                           </Button>
                         )}
                         <Button
@@ -357,7 +357,7 @@ export function MultiImageUpload({
 
                     {/* Display Order */}
                     <div className="p-2 text-center text-xs text-muted-foreground">
-                      Position: {index + 1}
+                      ទីតាំង: {index + 1}
                     </div>
                   </CardContent>
                 </Card>
@@ -367,7 +367,7 @@ export function MultiImageUpload({
 
           {images.length > 0 && (
             <div className="text-sm text-muted-foreground text-center pt-4 border-t">
-              💡 Drag images to reorder them. The primary image will be shown in product listings.
+              💡 អូសរូបភាពដើម្បីរៀបចំលំដាប់។ រូបភាពចម្បងនឹងបង្ហាញក្នុងបញ្ជីផលិតផល។
             </div>
           )}
         </div>

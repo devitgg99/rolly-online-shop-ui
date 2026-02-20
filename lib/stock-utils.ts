@@ -37,7 +37,7 @@ export function getStockLevelInfo(quantity: number): StockLevelInfo {
       color: 'rgb(239, 68, 68)', // red-500
       bgColor: 'rgb(254, 226, 226)', // red-100
       textColor: 'rgb(127, 29, 29)', // red-900
-      label: 'Out of Stock',
+      label: 'អស់ពីស្តុក',
       icon: '🔴',
       priority: 4
     },
@@ -46,7 +46,7 @@ export function getStockLevelInfo(quantity: number): StockLevelInfo {
       color: 'rgb(249, 115, 22)', // orange-500
       bgColor: 'rgb(255, 237, 213)', // orange-100
       textColor: 'rgb(124, 45, 18)', // orange-900
-      label: 'Critical',
+      label: 'គ្រោះថ្នាក់',
       icon: '🟠',
       priority: 3
     },
@@ -55,7 +55,7 @@ export function getStockLevelInfo(quantity: number): StockLevelInfo {
       color: 'rgb(234, 179, 8)', // yellow-500
       bgColor: 'rgb(254, 249, 195)', // yellow-100
       textColor: 'rgb(113, 63, 18)', // yellow-900
-      label: 'Low Stock',
+      label: 'ស្តុកទាប',
       icon: '🟡',
       priority: 2
     },
@@ -64,7 +64,7 @@ export function getStockLevelInfo(quantity: number): StockLevelInfo {
       color: 'rgb(34, 197, 94)', // green-500
       bgColor: 'rgb(220, 252, 231)', // green-100
       textColor: 'rgb(20, 83, 45)', // green-900
-      label: 'Healthy',
+      label: 'គ្រប់គ្រាន់',
       icon: '🟢',
       priority: 1
     }
@@ -171,41 +171,41 @@ export type SmartFilterPreset = {
 export const SMART_FILTER_PRESETS: SmartFilterPreset[] = [
   {
     id: 'out-of-stock',
-    label: 'Out of Stock',
+    label: 'អស់ពីស្តុក',
     icon: '🔴',
-    description: 'Products with 0 stock',
+    description: 'ផលិតផលដែលមានស្តុក 0',
     filter: (p) => p.stockQuantity === 0,
     badgeVariant: 'destructive'
   },
   {
     id: 'critical-stock',
-    label: 'Critical Stock',
+    label: 'ស្តុកគ្រោះថ្នាក់',
     icon: '🟠',
-    description: 'Products with 1-3 units',
+    description: 'ផលិតផលដែលមាន 1-3 ឯកតា',
     filter: (p) => p.stockQuantity > 0 && p.stockQuantity <= 3,
     badgeVariant: 'destructive'
   },
   {
     id: 'low-stock',
-    label: 'Low Stock',
+    label: 'ស្តុកទាប',
     icon: '🟡',
-    description: 'Products with 4-10 units',
+    description: 'ផលិតផលដែលមាន 4-10 ឯកតា',
     filter: (p) => p.stockQuantity > 3 && p.stockQuantity <= 10,
     badgeVariant: 'secondary'
   },
   {
     id: 'healthy-stock',
-    label: 'Healthy Stock',
+    label: 'ស្តុកគ្រប់គ្រាន់',
     icon: '🟢',
-    description: 'Products with >10 units',
+    description: 'ផលិតផលដែលមាន >10 ឯកតា',
     filter: (p) => p.stockQuantity > 10,
     badgeVariant: 'outline'
   },
   {
     id: 'low-profit',
-    label: 'Low Profit',
+    label: 'ចំណេញទាប',
     icon: '📉',
-    description: 'Profit per unit < $0.50',
+    description: 'ចំណេញក្នុងមួយឯកតា < $0.50',
     filter: (p) => {
       const profit = p.discountedPrice - p.costPrice;
       return profit < 0.5;
@@ -214,25 +214,25 @@ export const SMART_FILTER_PRESETS: SmartFilterPreset[] = [
   },
   {
     id: 'high-value',
-    label: 'High Value',
+    label: 'តម្លៃខ្ពស់',
     icon: '💎',
-    description: 'Cost price > $10',
+    description: 'តម្លៃដើម > $10',
     filter: (p) => p.costPrice > 10,
     badgeVariant: 'default'
   },
   {
     id: 'never-sold',
-    label: 'Never Sold',
+    label: 'មិនធ្លាប់លក់',
     icon: '😴',
-    description: 'Products with 0 sales',
+    description: 'ផលិតផលដែលមានការលក់ 0',
     filter: (p) => p.totalSold === 0,
     badgeVariant: 'secondary'
   },
   {
     id: 'best-sellers',
-    label: 'Best Sellers',
+    label: 'លក់ដាច់បំផុត',
     icon: '🔥',
-    description: 'Products with >10 sales',
+    description: 'ផលិតផលដែលមានការលក់ >10',
     filter: (p) => p.totalSold > 10,
     badgeVariant: 'default'
   }

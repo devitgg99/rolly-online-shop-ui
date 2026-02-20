@@ -46,11 +46,11 @@ export default function TopSellingProducts() {
       if (response.success && response.data) {
         setTopSellingAllTime(response.data);
       } else {
-        toast.error('Failed to load top selling products');
+        toast.error('បរាជ័យក្នុងការផ្ទុកផលិតផលលក់ដាច់បំផុត');
       }
     } catch (error) {
       console.error('Error loading top selling products:', error);
-      toast.error('Error loading data');
+      toast.error('បញ្ហាក្នុងការផ្ទុកទិន្នន័យ');
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +58,7 @@ export default function TopSellingProducts() {
 
   const loadTopSellingByRange = async () => {
     if (!session?.backendToken || !startDate || !endDate) {
-      toast.error('Please select both start and end dates');
+      toast.error('សូមជ្រើសរើសកាលបរិច្ឆេទចាប់ផ្តើម និងបញ្ចប់');
       return;
     }
     
@@ -67,13 +67,13 @@ export default function TopSellingProducts() {
       const response = await fetchTopSellingProductsByRangeAction(startDate, endDate, limit);
       if (response.success && response.data) {
         setTopSellingByRange(response.data);
-        toast.success(`Loaded top ${response.data.length} products`);
+        toast.success(`បានផ្ទុកកំពូល ${response.data.length} ផលិតផល`);
       } else {
-        toast.error('Failed to load top selling products');
+        toast.error('បរាជ័យក្នុងការផ្ទុកផលិតផលលក់ដាច់បំផុត');
       }
     } catch (error) {
       console.error('Error loading top selling products by range:', error);
-      toast.error('Error loading data');
+      toast.error('បញ្ហាក្នុងការផ្ទុកទិន្នន័យ');
     } finally {
       setIsLoading(false);
     }
@@ -85,9 +85,9 @@ export default function TopSellingProducts() {
         <Card className="text-center py-12">
           <CardContent>
             <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No data available</h3>
+            <h3 className="text-lg font-semibold mb-2">គ្មានទិន្នន័យ</h3>
             <p className="text-muted-foreground text-sm">
-              {isLoading ? 'Loading...' : 'No sales data found for this period'}
+              {isLoading ? 'កំពុងផ្ទុក...' : 'រកមិនឃើញទិន្នន័យការលក់សម្រាប់រយៈពេលនេះ'}
             </p>
           </CardContent>
         </Card>
@@ -120,11 +120,11 @@ export default function TopSellingProducts() {
                     <div className="flex items-center gap-1 sm:gap-2">
                       <Package className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
                       <span className="text-xs sm:text-sm text-muted-foreground">
-                        {product.totalQuantitySold} units
+                        {product.totalQuantitySold} ឯកតា
                       </span>
                     </div>
                     <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">
-                      Rank #{index + 1}
+                      ចំណាត់ថ្នាក់ #{index + 1}
                     </Badge>
                   </div>
                 </div>
@@ -134,7 +134,7 @@ export default function TopSellingProducts() {
                   <div className="text-xl sm:text-3xl font-bold text-green-600">
                     {product.totalQuantitySold}
                   </div>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">units</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">ឯកតា</p>
                 </div>
               </div>
             </CardContent>
@@ -149,22 +149,22 @@ export default function TopSellingProducts() {
       <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
         <div className="flex items-center gap-2">
           <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />
-          <CardTitle className="text-lg sm:text-xl">Top Selling Products 🏆</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">ផលិតផលលក់ដាច់បំផុត 🏆</CardTitle>
         </div>
-        <CardDescription className="text-xs sm:text-sm">Best performing products by quantity sold</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">ផលិតផលល្អបំផុតតាមចំនួនដែលបានលក់</CardDescription>
       </CardHeader>
       <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-3 sm:mb-4 h-9 sm:h-10">
-            <TabsTrigger value="allTime" className="text-xs sm:text-sm">All Time ⏳</TabsTrigger>
-            <TabsTrigger value="range" className="text-xs sm:text-sm">Date Range 📆</TabsTrigger>
+            <TabsTrigger value="allTime" className="text-xs sm:text-sm">គ្រប់ពេល ⏳</TabsTrigger>
+            <TabsTrigger value="range" className="text-xs sm:text-sm">ចន្លោះពេល 📆</TabsTrigger>
           </TabsList>
 
           {/* All Time Tab */}
           <TabsContent value="allTime" className="space-y-3 sm:space-y-4">
             <div className="flex items-end gap-2">
               <div className="flex-1">
-                <Label htmlFor="limitAllTime" className="text-xs sm:text-sm">Show Top</Label>
+                <Label htmlFor="limitAllTime" className="text-xs sm:text-sm">បង្ហាញកំពូល</Label>
                 <Input
                   id="limitAllTime"
                   type="number"
@@ -180,7 +180,7 @@ export default function TopSellingProducts() {
                 disabled={isLoading}
                 className="h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4"
               >
-                {isLoading ? 'Loading...' : 'Refresh'}
+                {isLoading ? 'កំពុងផ្ទុក...' : 'ផ្ទុកឡើងវិញ'}
               </Button>
             </div>
 
@@ -191,7 +191,7 @@ export default function TopSellingProducts() {
           <TabsContent value="range" className="space-y-3 sm:space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
               <div>
-                <Label htmlFor="startDate" className="text-xs sm:text-sm">Start Date</Label>
+                <Label htmlFor="startDate" className="text-xs sm:text-sm">កាលបរិច្ឆេទចាប់ផ្តើម</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -201,7 +201,7 @@ export default function TopSellingProducts() {
                 />
               </div>
               <div>
-                <Label htmlFor="endDate" className="text-xs sm:text-sm">End Date</Label>
+                <Label htmlFor="endDate" className="text-xs sm:text-sm">កាលបរិច្ឆេទបញ្ចប់</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -211,7 +211,7 @@ export default function TopSellingProducts() {
                 />
               </div>
               <div>
-                <Label htmlFor="limitRange" className="text-xs sm:text-sm">Show Top</Label>
+                <Label htmlFor="limitRange" className="text-xs sm:text-sm">បង្ហាញកំពូល</Label>
                 <Input
                   id="limitRange"
                   type="number"
@@ -229,7 +229,7 @@ export default function TopSellingProducts() {
                   disabled={isLoading}
                 >
                   <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                  {isLoading ? 'Loading...' : 'Load'}
+                  {isLoading ? 'កំពុងផ្ទុក...' : 'ផ្ទុក'}
                 </Button>
               </div>
             </div>

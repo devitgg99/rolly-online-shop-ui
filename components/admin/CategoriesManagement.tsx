@@ -51,7 +51,7 @@ export default function CategoriesManagement({ categories: initialCategories }: 
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      toast.error('Category name is required');
+      toast.error('ឈ្មោះប្រភេទត្រូវបានទាមទារ');
       return;
     }
 
@@ -74,25 +74,25 @@ export default function CategoriesManagement({ categories: initialCategories }: 
           setCategories(categories.map(c => 
             c.id === editingCategory.id ? response.data! : c
           ));
-          toast.success('Category updated successfully! 🎉');
+          toast.success('ប្រភេទត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ! 🎉');
           router.refresh();
         } else {
-          toast.error(response.message || 'Failed to update category');
+          toast.error(response.message || 'បរាជ័យក្នុងការធ្វើបច្ចុប្បន្នភាពប្រភេទ');
         }
       } else {
         const response = await createCategoryAction(categoryData);
         
         if (response.success && response.data) {
           setCategories([...categories, response.data]);
-          toast.success('Category created successfully! 🎉');
+          toast.success('ប្រភេទត្រូវបានបង្កើតដោយជោគជ័យ! 🎉');
           router.refresh();
         } else {
-          toast.error(response.message || 'Failed to create category');
+          toast.error(response.message || 'បរាជ័យក្នុងការបង្កើតប្រភេទ');
         }
       }
       resetForm();
     } catch (error) {
-      toast.error('Failed to save category. Please try again.');
+      toast.error('បរាជ័យក្នុងការរក្សាទុកប្រភេទ។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +112,7 @@ export default function CategoriesManagement({ categories: initialCategories }: 
     const hasChildren = categories.some(c => c.parentId === id);
     
     if (hasChildren) {
-      toast.error('Cannot delete category with subcategories. Please delete or reassign subcategories first.');
+      toast.error('មិនអាចលុបប្រភេទដែលមានប្រភេទរងបានទេ។ សូមលុបឬផ្លាស់ប្តូរប្រភេទរងជាមុនសិន។');
       return;
     }
 
@@ -129,13 +129,13 @@ export default function CategoriesManagement({ categories: initialCategories }: 
       
       if (response.success) {
         setCategories(categories.filter(c => c.id !== deleteDialog.categoryId));
-        toast.success('Category deleted successfully! ✅');
+        toast.success('ប្រភេទត្រូវបានលុបដោយជោគជ័យ! ✅');
         router.refresh();
       } else {
-        toast.error(response.message || 'Failed to delete category');
+        toast.error(response.message || 'បរាជ័យក្នុងការលុបប្រភេទ');
       }
     } catch (error) {
-      toast.error('Failed to delete category. Please try again.');
+      toast.error('បរាជ័យក្នុងការលុបប្រភេទ។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
       setDeleteDialog({ open: false, categoryId: null });
@@ -167,8 +167,8 @@ export default function CategoriesManagement({ categories: initialCategories }: 
                 <Tag className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold tracking-tight">Categories</h1>
-                <p className="text-muted-foreground">Organize your products</p>
+                <h1 className="text-4xl font-bold tracking-tight">ប្រភេទ</h1>
+                <p className="text-muted-foreground">រៀបចំផលិតផលរបស់អ្នក</p>
               </div>
             </div>
           </div>
@@ -177,56 +177,56 @@ export default function CategoriesManagement({ categories: initialCategories }: 
             <DialogTrigger asChild>
               <Button size="lg" className="shadow-lg" onClick={() => { setEditingCategory(null); resetForm(); }}>
                 <Plus className="w-5 h-5 mr-2" />
-                Add Category
+                បន្ថែមប្រភេទ
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
               <DialogHeader>
                 <DialogTitle className="text-2xl">
-                  {editingCategory ? 'Edit Category' : 'Create New Category'}
+                  {editingCategory ? 'កែសម្រួលប្រភេទ' : 'បង្កើតប្រភេទថ្មី'}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingCategory ? 'Update the category information below' : 'Fill in the details to add a new category'}
+                  {editingCategory ? 'ធ្វើបច្ចុប្បន្នភាពព័ត៌មានប្រភេទខាងក្រោម' : 'បំពេញព័ត៌មានលម្អិតដើម្បីបន្ថែមប្រភេទថ្មី'}
                 </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleSubmit} className="space-y-6 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Category Name *</Label>
+                  <Label htmlFor="name">ឈ្មោះប្រភេទ *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Enter category name"
+                    placeholder="បញ្ចូលឈ្មោះប្រភេទ"
                     required
                     disabled={isLoading}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">ការពិពណ៌នា</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Enter category description..."
+                    placeholder="បញ្ចូលការពិពណ៌នាប្រភេទ..."
                     rows={4}
                     disabled={isLoading}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="parent">Parent Category</Label>
+                  <Label htmlFor="parent">ប្រភេទមេ</Label>
                   <Select 
                     value={formData.parentId} 
                     onValueChange={(value) => setFormData({ ...formData, parentId: value })}
                     disabled={isLoading}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select parent category (optional)" />
+                      <SelectValue placeholder="ជ្រើសរើសប្រភេទមេ (ស្រេចចិត្ត)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None (Root Category)</SelectItem>
+                      <SelectItem value="none">គ្មាន (ប្រភេទឫស)</SelectItem>
                       {getParentCategories()
                         .filter(c => !editingCategory || c.id !== editingCategory.id)
                         .map((category) => (
@@ -235,16 +235,16 @@ export default function CategoriesManagement({ categories: initialCategories }: 
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Leave as "None" to create a root category, or select a parent to create a subcategory
+                    ទុកជា "គ្មាន" ដើម្បីបង្កើតប្រភេទឫស ឬជ្រើសរើសប្រភេទមេដើម្បីបង្កើតប្រភេទរង
                   </p>
                 </div>
 
                 <DialogFooter className="gap-2">
                   <Button type="button" variant="outline" onClick={resetForm} disabled={isLoading}>
-                    Cancel
+                    បោះបង់
                   </Button>
                   <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
+                    {isLoading ? 'កំពុងរក្សាទុក...' : editingCategory ? 'ធ្វើបច្ចុប្បន្នភាពប្រភេទ' : 'បង្កើតប្រភេទ'}
                   </Button>
                 </DialogFooter>
               </form>
@@ -256,33 +256,33 @@ export default function CategoriesManagement({ categories: initialCategories }: 
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
+              <CardTitle className="text-sm font-medium">ប្រភេទសរុប</CardTitle>
               <Tag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{categories.length}</div>
               <p className="text-xs text-muted-foreground">
-                All categories
+                ប្រភេទទាំងអស់
               </p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Root Categories</CardTitle>
+              <CardTitle className="text-sm font-medium">ប្រភេទឫស</CardTitle>
               <FolderTree className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">{getParentCategories().length}</div>
               <p className="text-xs text-muted-foreground">
-                Top level
+                កម្រិតកំពូល
               </p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Subcategories</CardTitle>
+              <CardTitle className="text-sm font-medium">ប្រភេទរង</CardTitle>
               <Layers className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -290,7 +290,7 @@ export default function CategoriesManagement({ categories: initialCategories }: 
                 {categories.filter(c => c.parentId !== null).length}
               </div>
               <p className="text-xs text-muted-foreground">
-                Nested categories
+                ប្រភេទដែលស្ថិតក្រោម
               </p>
             </CardContent>
           </Card>
@@ -302,11 +302,11 @@ export default function CategoriesManagement({ categories: initialCategories }: 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Parent</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>ឈ្មោះ</TableHead>
+                  <TableHead>ការពិពណ៌នា</TableHead>
+                  <TableHead>ប្រភេទ</TableHead>
+                  <TableHead>ប្រភេទមេ</TableHead>
+                  <TableHead className="text-right">សកម្មភាព</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -319,19 +319,19 @@ export default function CategoriesManagement({ categories: initialCategories }: 
                       <TableCell className="font-medium">{category.name}</TableCell>
                       <TableCell className="max-w-md">
                         <span className="text-sm text-muted-foreground line-clamp-2">
-                          {category.description || 'No description'}
+                          {category.description || 'គ្មានការពិពណ៌នា'}
                         </span>
                       </TableCell>
                       <TableCell>
                         {category.parentId ? (
                           <Badge variant="secondary">
                             <Layers className="w-3 h-3 mr-1" />
-                            Subcategory
+                            ប្រភេទរង
                           </Badge>
                         ) : (
                           <Badge className="bg-purple-600">
                             <FolderTree className="w-3 h-3 mr-1" />
-                            Root
+                            ឫស
                           </Badge>
                         )}
                       </TableCell>
@@ -343,7 +343,7 @@ export default function CategoriesManagement({ categories: initialCategories }: 
                         )}
                         {subcategoryCount > 0 && !category.parentId && (
                           <Badge variant="outline" className="ml-2 text-xs">
-                            {subcategoryCount} sub
+                            {subcategoryCount} រង
                           </Badge>
                         )}
                       </TableCell>
@@ -381,14 +381,14 @@ export default function CategoriesManagement({ categories: initialCategories }: 
                 <Tag className="w-10 h-10 text-purple-600" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">No categories yet</h3>
+                <h3 className="text-xl font-semibold mb-2">មិនទាន់មានប្រភេទនៅឡើយ</h3>
                 <p className="text-muted-foreground max-w-sm mx-auto">
-                  Start by creating your first category to organize your products
+                  ចាប់ផ្តើមដោយបង្កើតប្រភេទដំបូងរបស់អ្នកដើម្បីរៀបចំផលិតផល
                 </p>
               </div>
               <Button onClick={() => setDialogOpen(true)} size="lg">
                 <Plus className="w-4 h-4 mr-2" />
-                Create Your First Category
+                បង្កើតប្រភេទដំបូងរបស់អ្នក
               </Button>
             </CardContent>
           </Card>
@@ -400,10 +400,10 @@ export default function CategoriesManagement({ categories: initialCategories }: 
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog({ open, categoryId: null })}
         onConfirm={confirmDelete}
-        title="Delete Category"
-        description="Are you sure you want to delete this category? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបប្រភេទ"
+        description="តើអ្នកប្រាកដថាចង់លុបប្រភេទនេះមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។"
+        confirmText="លុប"
+        cancelText="បោះបង់"
         variant="destructive"
       />
     </div>

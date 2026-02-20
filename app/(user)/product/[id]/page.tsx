@@ -44,11 +44,11 @@ export default function ProductDetailPage() {
           setSelectedImage(response.data.imageUrl);
           console.log('✅ Product loaded:', response.data);
         } else {
-          toast.error(response.message || 'Failed to load product');
+          toast.error(response.message || 'មិនអាចផ្ទុកផលិតផល');
         }
       } catch (error) {
         console.error('Error loading product:', error);
-        toast.error('Failed to load product details');
+        toast.error('មិនអាចផ្ទុកព័ត៌មានផលិតផល');
       } finally {
         setLoading(false);
       }
@@ -67,17 +67,17 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     // TODO: Implement add to cart functionality
-    toast.success(`Added ${quantity} ${product?.name} to cart!`);
+    toast.success(`បានដាក់ ${quantity} ${product?.name} ក្នុងកន្រ្តក!`);
   };
 
   const handleBuyNow = () => {
     // TODO: Implement buy now functionality
-    toast.info('Buy now feature coming soon!');
+    toast.info('មុខងារទិញឥឡូវនឹងមានឆាប់ៗ!');
   };
 
   const handleAddToWishlist = () => {
     // TODO: Implement wishlist functionality
-    toast.success('Added to wishlist!');
+    toast.success('បានដាក់ក្នុងបញ្ជីចង់បាន!');
   };
 
   const handleShare = () => {
@@ -89,7 +89,7 @@ export default function ProductDetailPage() {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied to clipboard!');
+      toast.success('បានចម្លងតំណភ្ជាប់!');
     }
   };
 
@@ -102,11 +102,11 @@ export default function ProductDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <Package className="w-16 h-16 text-muted-foreground mx-auto" />
-          <h2 className="text-2xl font-bold">Product Not Found</h2>
-          <p className="text-muted-foreground">The product you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-bold">រកមិនឃើញផលិតផល</h2>
+          <p className="text-muted-foreground">ផលិតផលដែលអ្នកកំពុងស្វែងរកមិនមានទេ។</p>
           <Button onClick={() => router.push('/')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            ត្រឡប់ទៅទំព័រដើម
           </Button>
         </div>
       </div>
@@ -126,7 +126,7 @@ export default function ProductDetailPage() {
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          ត្រឡប់
         </Button>
       </div>
 
@@ -153,7 +153,7 @@ export default function ProductDetailPage() {
               {product.stockQuantity === 0 && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                   <div className="bg-destructive text-destructive-foreground px-6 py-3 rounded-lg text-lg font-bold">
-                    OUT OF STOCK
+                    អស់ពីស្តុក
                   </div>
                 </div>
               )}
@@ -226,10 +226,10 @@ export default function ProductDetailPage() {
                       : 'text-destructive'
                   }`}>
                     {product.stockQuantity > 10 
-                      ? 'In Stock' 
+                      ? 'នៅក្នុងស្តុក' 
                       : product.stockQuantity > 0 
-                      ? `Only ${product.stockQuantity} left!` 
-                      : 'Out of Stock'}
+                      ? `នៅសល់តែ ${product.stockQuantity} ប៉ុណ្ណោះ!` 
+                      : 'អស់ពីស្តុក'}
                   </span>
                 </div>
               </div>
@@ -253,23 +253,23 @@ export default function ProductDetailPage() {
                 </span>
                 {hasDiscount && (
                   <span className="text-lg font-semibold text-green-600">
-                    Save {formatUSD(discountAmount)}
+                    សន្សំ {formatUSD(discountAmount)}
                   </span>
                 )}
               </div>
               {product.barcode && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Tag className="w-4 h-4" />
-                  <span>Barcode: {product.barcode}</span>
+                  <span>បាកូដ: {product.barcode}</span>
                 </div>
               )}
             </div>
 
             {/* Description */}
             <div className="border-t pt-4">
-              <h3 className="font-semibold mb-2">Description</h3>
+              <h3 className="font-semibold mb-2">ការពិពណ៌នា</h3>
               <p className="text-muted-foreground leading-relaxed">
-                {product.description || 'No description available for this product.'}
+                {product.description || 'គ្មានការពិពណ៌នាសម្រាប់ផលិតផលនេះ។'}
               </p>
             </div>
 
@@ -277,7 +277,7 @@ export default function ProductDetailPage() {
             <div className="border-t pt-4 space-y-3">
               {product.brand && (
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground w-20">Brand:</span>
+                  <span className="text-sm text-muted-foreground w-20">ម៉ាក:</span>
                   <div className="flex items-center gap-2">
                     {product.brand.logoUrl && (
                       <div className="relative w-8 h-8 rounded overflow-hidden">
@@ -295,7 +295,7 @@ export default function ProductDetailPage() {
                 </div>
               )}
               <div className="flex items-center gap-4">
-                <span className="text-sm text-muted-foreground w-20">Category:</span>
+                <span className="text-sm text-muted-foreground w-20">ប្រភេទ:</span>
                 <span className="font-medium">{product.category.name}</span>
               </div>
             </div>
@@ -303,7 +303,7 @@ export default function ProductDetailPage() {
             {/* Quantity Selector */}
             {product.stockQuantity > 0 && (
               <div className="border-t pt-4">
-                <label className="text-sm font-medium mb-2 block">Quantity</label>
+                <label className="text-sm font-medium mb-2 block">ចំនួន</label>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center border rounded-lg">
                     <Button
@@ -325,7 +325,7 @@ export default function ProductDetailPage() {
                     </Button>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    ({product.stockQuantity} available)
+                    ({product.stockQuantity} មាន)
                   </span>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function ProductDetailPage() {
                     className="w-full" 
                     onClick={handleBuyNow}
                   >
-                    Buy Now
+                    ទិញឥឡូវ
                   </Button>
                   <Button 
                     size="lg" 
@@ -349,12 +349,12 @@ export default function ProductDetailPage() {
                     onClick={handleAddToCart}
                   >
                     <ShoppingCart className="w-5 h-5 mr-2" />
-                    Add to Cart
+                    ដាក់ក្នុងកន្រ្តក
                   </Button>
                 </>
               ) : (
                 <Button size="lg" className="w-full" disabled>
-                  Out of Stock
+                  អស់ពីស្តុក
                 </Button>
               )}
               
@@ -366,7 +366,7 @@ export default function ProductDetailPage() {
                   onClick={handleAddToWishlist}
                 >
                   <Heart className="w-5 h-5 mr-2" />
-                  Wishlist
+                  បញ្ជីចង់បាន
                 </Button>
                 <Button 
                   size="lg" 
@@ -375,17 +375,17 @@ export default function ProductDetailPage() {
                   onClick={handleShare}
                 >
                   <Share2 className="w-5 h-5 mr-2" />
-                  Share
+                  ចែករំលែក
                 </Button>
               </div>
             </div>
 
             {/* Additional Info */}
             <div className="border-t pt-4 text-sm text-muted-foreground space-y-1">
-              <p>• Free shipping on orders over $50</p>
-              <p>• 30-day return policy</p>
-              <p>• Secure payment methods</p>
-              <p>• Customer support available 24/7</p>
+              <p>• ដឹកជញ្ជូនឥតគិតថ្លៃសម្រាប់ការបញ្ជាទិញលើស $50</p>
+              <p>• គោលការណ៍ប្រគល់វិញ 30 ថ្ងៃ</p>
+              <p>• វិធីបង់ប្រាក់មានសុវត្ថិភាព</p>
+              <p>• ជំនួយអតិថិជន 24/7</p>
             </div>
           </div>
         </div>

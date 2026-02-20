@@ -37,7 +37,7 @@ export default function AdminProductDetailPage() {
     async function loadProduct() {
       if (!productId || !session?.backendToken) {
         if (!session?.backendToken) {
-          toast.error('Authentication required');
+          toast.error('ត្រូវការការផ្ទៀងផ្ទាត់');
           router.push('/login');
         }
         return;
@@ -51,11 +51,11 @@ export default function AdminProductDetailPage() {
           setProduct(response.data);
           console.log('✅ Admin Product loaded:', response.data);
         } else {
-          toast.error(response.message || 'Failed to load product');
+          toast.error(response.message || 'មិនអាចផ្ទុកផលិតផល');
         }
       } catch (error) {
         console.error('Error loading product:', error);
-        toast.error('Failed to load product details');
+        toast.error('មិនអាចផ្ទុកព័ត៌មានផលិតផល');
       } finally {
         setLoading(false);
       }
@@ -66,12 +66,12 @@ export default function AdminProductDetailPage() {
 
   const handleEdit = () => {
     // TODO: Open edit dialog or navigate to edit page
-    toast.info('Edit functionality - integrate with ProductsManagement');
+    toast.info('មុខងារកែសម្រួល - រួមបញ្ចូលជាមួយ ProductsManagement');
   };
 
   const handleDelete = () => {
     // TODO: Implement delete with confirmation
-    toast.info('Delete functionality coming soon');
+    toast.info('មុខងារលុបនឹងមានឆាប់ៗ');
   };
 
   if (loading) {
@@ -79,7 +79,7 @@ export default function AdminProductDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Loading product details...</p>
+          <p className="text-muted-foreground">កំពុងផ្ទុកព័ត៌មានផលិតផល...</p>
         </div>
       </div>
     );
@@ -90,11 +90,11 @@ export default function AdminProductDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <Package className="w-16 h-16 text-muted-foreground mx-auto" />
-          <h2 className="text-2xl font-bold">Product Not Found</h2>
-          <p className="text-muted-foreground">The product you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-bold">រកមិនឃើញផលិតផល</h2>
+          <p className="text-muted-foreground">ផលិតផលដែលអ្នកកំពុងស្វែងរកមិនមានទេ។</p>
           <Button onClick={() => router.push('/products')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Products
+            ត្រឡប់ទៅផលិតផល
           </Button>
         </div>
       </div>
@@ -118,17 +118,17 @@ export default function AdminProductDetailPage() {
             onClick={() => router.push('/products')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Products
+            ត្រឡប់ទៅផលិតផល
           </Button>
           
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleEdit}>
               <Pencil className="w-4 h-4 mr-2" />
-              Edit Product
+              កែសម្រួលផលិតផល
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
               <Trash2 className="w-4 h-4 mr-2" />
-              Delete
+              លុប
             </Button>
           </div>
         </div>
@@ -159,33 +159,33 @@ export default function AdminProductDetailPage() {
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Status:</span>
+                    <span className="text-muted-foreground">ស្ថានភាព:</span>
                     <Badge variant={product.stockQuantity > 10 ? 'default' : product.stockQuantity > 0 ? 'secondary' : 'destructive'}>
-                      {product.stockQuantity > 10 ? 'In Stock' : product.stockQuantity > 0 ? 'Low Stock' : 'Out of Stock'}
+                      {product.stockQuantity > 10 ? 'នៅក្នុងស្តុក' : product.stockQuantity > 0 ? 'ស្តុកទាប' : 'អស់ពីស្តុក'}
                     </Badge>
                   </div>
                   
                   {product.barcode && (
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Barcode:</span>
+                      <span className="text-muted-foreground">បាកូដ:</span>
                       <span className="font-mono">{product.barcode}</span>
                     </div>
                   )}
                   
                   {product.brand && (
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Brand:</span>
+                      <span className="text-muted-foreground">ម៉ាក:</span>
                       <span className="font-medium">{product.brand.name}</span>
                     </div>
                   )}
                   
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Category:</span>
+                    <span className="text-muted-foreground">ប្រភេទ:</span>
                     <span className="font-medium">{product.category.name}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Rating:</span>
+                    <span className="text-muted-foreground">វាយតម្លៃ:</span>
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                       <span>{(product.averageRating || 0).toFixed(1)}</span>
@@ -193,7 +193,7 @@ export default function AdminProductDetailPage() {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Created:</span>
+                    <span className="text-muted-foreground">បង្កើត:</span>
                     <span>{new Date(product.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
@@ -209,43 +209,43 @@ export default function AdminProductDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="w-5 h-5" />
-                  Pricing & Profit Analysis 💰
+                  ការវិភាគតម្លៃ និងចំណេញ 💰
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Cost Price</p>
+                    <p className="text-sm text-muted-foreground">តម្លៃដើម</p>
                     <p className="text-2xl font-bold">${product.costPrice.toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">What you paid</p>
+                    <p className="text-xs text-muted-foreground">តម្លៃដែលអ្នកទិញ</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Selling Price</p>
+                    <p className="text-sm text-muted-foreground">តម្លៃលក់</p>
                     <p className="text-2xl font-bold">${product.price.toFixed(2)}</p>
                     {product.discountPercent > 0 && (
-                      <p className="text-xs text-orange-600">Before discount</p>
+                      <p className="text-xs text-orange-600">មុនបញ្ចុះតម្លៃ</p>
                     )}
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Final Price</p>
+                    <p className="text-sm text-muted-foreground">តម្លៃចុងក្រោយ</p>
                     <p className="text-2xl font-bold text-primary">${product.discountedPrice.toFixed(2)}</p>
                     {product.discountPercent > 0 && (
-                      <p className="text-xs text-green-600">After {product.discountPercent}% off</p>
+                      <p className="text-xs text-green-600">បន្ទាប់ពីបញ្ចុះ {product.discountPercent}%</p>
                     )}
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Profit per Unit</p>
+                    <p className="text-sm text-muted-foreground">ចំណេញក្នុងមួយឯកតា</p>
                     <p className={`text-2xl font-bold ${profit > 0 ? 'text-green-600' : 'text-red-600'}`}>
                       ${profit.toFixed(2)}
                     </p>
-                    <p className="text-xs text-muted-foreground">{profitMargin.toFixed(1)}% margin</p>
+                    <p className="text-xs text-muted-foreground">{profitMargin.toFixed(1)}% អត្រា</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Discount Amount</p>
+                    <p className="text-sm text-muted-foreground">ចំនួនបញ្ចុះតម្លៃ</p>
                     <p className="text-2xl font-bold text-orange-600">
                       ${(product.price - product.discountedPrice).toFixed(2)}
                     </p>
@@ -260,35 +260,35 @@ export default function AdminProductDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Box className="w-5 h-5" />
-                  Inventory & Revenue Potential 📦
+                  ស្តុក និងសក្តានុពលចំណូល 📦
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Stock Quantity</p>
+                    <p className="text-sm text-muted-foreground">បរិមាណស្តុក</p>
                     <p className="text-3xl font-bold">{product.stockQuantity}</p>
-                    <p className="text-xs text-muted-foreground">Units available</p>
+                    <p className="text-xs text-muted-foreground">ឯកតាដែលមាន</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Inventory Value</p>
+                    <p className="text-sm text-muted-foreground">តម្លៃស្តុក</p>
                     <p className="text-2xl font-bold">${totalInventoryValue.toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">Cost × Stock</p>
+                    <p className="text-xs text-muted-foreground">តម្លៃដើម × ស្តុក</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Potential Revenue</p>
+                    <p className="text-sm text-muted-foreground">ចំណូលសក្តានុពល</p>
                     <p className="text-2xl font-bold text-blue-600">${potentialRevenue.toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">If all sold</p>
+                    <p className="text-xs text-muted-foreground">បើលក់អស់</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Total Profit Potential</p>
+                    <p className="text-sm text-muted-foreground">សក្តានុពលចំណេញសរុប</p>
                     <p className={`text-2xl font-bold ${potentialProfit > 0 ? 'text-green-600' : 'text-red-600'}`}>
                       ${potentialProfit.toFixed(2)}
                     </p>
-                    <p className="text-xs text-muted-foreground">If all sold</p>
+                    <p className="text-xs text-muted-foreground">បើលក់អស់</p>
                   </div>
                 </div>
               </CardContent>
@@ -299,12 +299,12 @@ export default function AdminProductDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Layers className="w-5 h-5" />
-                  Product Description
+                  ការពិពណ៌នាផលិតផល
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  {product.description || 'No description available for this product.'}
+                  {product.description || 'គ្មានការពិពណ៌នាសម្រាប់ផលិតផលនេះ។'}
                 </p>
               </CardContent>
             </Card>
@@ -314,7 +314,7 @@ export default function AdminProductDetailPage() {
               {product.brand && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Brand Details</CardTitle>
+                    <CardTitle className="text-base">ព័ត៌មានម៉ាក</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-start gap-3">
@@ -332,10 +332,10 @@ export default function AdminProductDetailPage() {
                       <div className="flex-1">
                         <h3 className="font-semibold mb-1">{product.brand.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {product.brand.description || 'No description available'}
+                          {product.brand.description || 'គ្មានការពិពណ៌នា'}
                         </p>
                         <p className="text-xs text-muted-foreground mt-2">
-                          Created: {new Date(product.brand.createdAt).toLocaleDateString()}
+                          បង្កើត: {new Date(product.brand.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -345,7 +345,7 @@ export default function AdminProductDetailPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Category Details</CardTitle>
+                  <CardTitle className="text-base">ព័ត៌មានប្រភេទ</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-start gap-3">
@@ -363,10 +363,10 @@ export default function AdminProductDetailPage() {
                     <div className="flex-1">
                       <h3 className="font-semibold mb-1">{product.category.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {product.category.description || 'No description available'}
+                        {product.category.description || 'គ្មានការពិពណ៌នា'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Created: {new Date(product.category.createdAt).toLocaleDateString()}
+                        បង្កើត: {new Date(product.category.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

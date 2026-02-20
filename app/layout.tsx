@@ -21,8 +21,8 @@ const kantumruyPro = Kantumruy_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "Rolly - Premium Luxury Skincare | Transform Your Skin",
-  description: "Discover Rolly's carefully curated collection of premium skincare products. Clean ingredients, proven results. Join 10K+ happy customers.",
+  title: "Rolly - ផលិតផលថែទាំស្បែកប្រណីត | បំប្លែងស្បែករបស់អ្នក",
+  description: "ស្វែងរកផលិតផលថែទាំស្បែកប្រណីតរបស់ Rolly ដែលបានជ្រើសរើសយ៉ាងប្រុងប្រយ័ត្ន។ គ្រឿងផ្សំស្អាត លទ្ធផលបង្ហាញច្បាស់។ ចូលរួមជាមួយអតិថិជនពេញចិត្តជាង 10K+។",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="km">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${kantumruyPro.variable} font-sans antialiased`}
       >

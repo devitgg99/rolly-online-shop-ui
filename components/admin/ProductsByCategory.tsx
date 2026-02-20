@@ -163,7 +163,7 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
           isExpanded: true,
         };
       } else {
-        toast.error('Failed to load products');
+        toast.error('មិនអាចផ្ទុកផលិតផល');
         updated[groupIndex] = { ...group, isLoading: false };
       }
     } catch (error) {
@@ -194,12 +194,12 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
           totalCount: group.totalCount - (group.products.some(p => p.id === deleteDialog.productId) ? 1 : 0),
         })).filter(g => g.totalCount > 0)); // Remove empty categories
         
-        toast.success('Product deleted successfully!');
+        toast.success('បានលុបផលិតផលដោយជោគជ័យ!');
       } else {
-        toast.error(response.message || 'Failed to delete product');
+        toast.error(response.message || 'មិនអាចលុបផលិតផល');
       }
     } catch (error) {
-      toast.error('Failed to delete product');
+      toast.error('មិនអាចលុបផលិតផល');
     } finally {
       setIsDeleting(false);
       setDeleteDialog({ open: false, productId: null });
@@ -239,9 +239,9 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
       <Card className="text-center py-12">
         <CardContent>
           <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No products found</h3>
+          <h3 className="text-lg font-semibold mb-2">រកមិនឃើញផលិតផល</h3>
           <p className="text-muted-foreground text-sm">
-            Start by creating products in your categories
+            ចាប់ផ្តើមដោយបង្កើតផលិតផលក្នុងប្រភេទរបស់អ្នក
           </p>
         </CardContent>
       </Card>
@@ -261,9 +261,9 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
                     {group.category.name}
                   </CardTitle>
                   <CardDescription className="mt-1">
-                    {group.category.description || 'No description'}
+                    {group.category.description || 'គ្មានការពិពណ៌នា'}
                     {' • '}
-                    <span className="font-medium text-foreground">{group.totalCount} products</span>
+                    <span className="font-medium text-foreground">{group.totalCount} ផលិតផល</span>
                   </CardDescription>
                 </div>
                 <Button 
@@ -275,16 +275,16 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
                   {group.isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Loading...
+                      កំពុងផ្ទុក...
                     </>
                   ) : group.isExpanded ? (
                     <>
-                      Show Less
+                      បង្ហាញតិច
                       <ChevronUp className="w-4 h-4 ml-2" />
                     </>
                   ) : (
                     <>
-                      Show All ({group.totalCount})
+                      បង្ហាញទាំងអស់ ({group.totalCount})
                       <ChevronDown className="w-4 h-4 ml-2" />
                     </>
                   )}
@@ -330,9 +330,9 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
                         >
                           <CardContent className="text-center p-6">
                             <ArrowRight className="w-12 h-12 mx-auto mb-3 text-primary" />
-                            <p className="font-semibold text-lg">View All</p>
+                            <p className="font-semibold text-lg">មើលទាំងអស់</p>
                             <p className="text-sm text-muted-foreground">
-                              +{group.totalCount - 8} more
+                              +{group.totalCount - 8} ទៀត
                             </p>
                           </CardContent>
                         </Card>
@@ -351,10 +351,10 @@ export default function ProductsByCategory({ categories }: ProductsByCategoryPro
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog({ open, productId: null })}
         onConfirm={confirmDelete}
-        title="Delete Product"
-        description="Are you sure you want to delete this product? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបផលិតផល"
+        description="តើអ្នកប្រាកដថាចង់លុបផលិតផលនេះ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។"
+        confirmText="លុប"
+        cancelText="បោះបង់"
         variant="destructive"
       />
 
@@ -427,7 +427,7 @@ function ProductCard({
             getStockBadgeClasses(product.stockQuantity)
           )}
         >
-          {product.stockQuantity} in stock
+          {product.stockQuantity} នៅក្នុងស្តុក
         </Badge>
 
         {/* Quick View on Hover */}
@@ -435,7 +435,7 @@ function ProductCard({
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <Button size="sm" variant="secondary">
               <Eye className="w-3 h-3 mr-1" />
-              View Details
+              មើលព័ត៌មាន
             </Button>
           </div>
         </Link>
@@ -469,9 +469,9 @@ function ProductCard({
             {formatKHR(product.discountedPrice)}
           </span>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Cost: {formatUSD(product.costPrice)}</span>
+            <span>តម្លៃដើម: {formatUSD(product.costPrice)}</span>
             <span className="text-green-600 font-semibold">
-              +{formatUSD(product.profit)} profit
+              +{formatUSD(product.profit)} ចំណេញ
             </span>
           </div>
         </div>
@@ -485,14 +485,14 @@ function ProductCard({
               className="w-full"
             >
               <Eye className="w-3 h-3 mr-1" />
-              View
+              មើល
             </Button>
           </Link>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onOpenStockHistory(product)}
-            title="Stock History"
+            title="ប្រវត្តិស្តុក"
           >
             <History className="w-3 h-3" />
           </Button>
@@ -500,7 +500,7 @@ function ProductCard({
             variant="outline"
             size="sm"
             onClick={() => onOpenMultiImage(product)}
-            title="Manage Images"
+            title="គ្រប់គ្រងរូបភាព"
           >
             <ImageIcon className="w-3 h-3" />
           </Button>
@@ -509,7 +509,7 @@ function ProductCard({
             size="sm"
             onClick={() => onDelete(product.id)}
             className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-            title="Delete"
+            title="លុប"
           >
             <Trash2 className="w-3 h-3" />
           </Button>

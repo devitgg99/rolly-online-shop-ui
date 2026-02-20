@@ -160,12 +160,12 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      toast.error('Brand name is required');
+      toast.error('ឈ្មោះម៉ាកត្រូវបានទាមទារ');
       return;
     }
 
     if (!formData.logoUrl.trim()) {
-      toast.error('Brand logo is required');
+      toast.error('ឡូហ្គោម៉ាកត្រូវបានទាមទារ');
       return;
     }
 
@@ -179,26 +179,26 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
           setBrands(brands.map(b => 
             b.id === editingBrand.id ? response.data! : b
           ));
-          toast.success('Brand updated successfully! 🎉');
+          toast.success('ម៉ាកត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ! 🎉');
           router.refresh();
         } else {
-          toast.error(response.message || 'Failed to update brand');
+          toast.error(response.message || 'បរាជ័យក្នុងការធ្វើបច្ចុប្បន្នភាពម៉ាក');
         }
       } else {
         const response = await createBrandAction(formData);
         
         if (response.success && response.data) {
           setBrands([...brands, response.data]);
-          toast.success('Brand created successfully! 🎉');
+          toast.success('ម៉ាកត្រូវបានបង្កើតដោយជោគជ័យ! 🎉');
           router.refresh();
         } else {
-          toast.error(response.message || 'Failed to create brand');
+          toast.error(response.message || 'បរាជ័យក្នុងការបង្កើតម៉ាក');
         }
       }
       resetForm();
     } catch (error) {
       console.error('Error saving brand:', error);
-      toast.error('Failed to save brand. Please try again.');
+      toast.error('បរាជ័យក្នុងការរក្សាទុកម៉ាក។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
     }
@@ -228,14 +228,14 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
       
       if (response.success) {
         setBrands(brands.filter(b => b.id !== deleteDialog.brandId));
-        toast.success('Brand deleted successfully! ✅');
+        toast.success('ម៉ាកត្រូវបានលុបដោយជោគជ័យ! ✅');
         router.refresh();
       } else {
-        toast.error(response.message || 'Failed to delete brand');
+        toast.error(response.message || 'បរាជ័យក្នុងការលុបម៉ាក');
       }
     } catch (error) {
       console.error('Error deleting brand:', error);
-      toast.error('Failed to delete brand. Please try again.');
+      toast.error('បរាជ័យក្នុងការលុបម៉ាក។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
       setDeleteDialog({ open: false, brandId: null });
@@ -280,12 +280,12 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
 
   const handleBulkDelete = async () => {
     if (selectedBrands.size === 0) {
-      toast.error('Please select brands to delete');
+      toast.error('សូមជ្រើសរើសម៉ាកដើម្បីលុប');
       return;
     }
 
     const confirmed = confirm(
-      `Are you sure you want to delete ${selectedBrands.size} brand(s)? This action cannot be undone.`
+      `តើអ្នកប្រាកដថាចង់លុប ${selectedBrands.size} ម៉ាកមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។`
     );
     
     if (!confirmed) return;
@@ -306,17 +306,17 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
       }
 
       if (successCount > 0) {
-        toast.success(`Successfully deleted ${successCount} brand(s)`);
+        toast.success(`បានលុប ${successCount} ម៉ាកដោយជោគជ័យ`);
         router.refresh();
       }
       if (failCount > 0) {
-        toast.error(`Failed to delete ${failCount} brand(s)`);
+        toast.error(`បរាជ័យក្នុងការលុប ${failCount} ម៉ាក`);
       }
       
       setSelectedBrands(new Set());
     } catch (error) {
       console.error('Error deleting brands:', error);
-      toast.error('Failed to delete brands. Please try again.');
+      toast.error('បរាជ័យក្នុងការលុបម៉ាក។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
     }
@@ -324,7 +324,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
 
   const handleExport = async (format: 'csv' | 'excel') => {
     if (!session?.backendToken) {
-      toast.error('Authentication required');
+      toast.error('ត្រូវការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ');
       return;
     }
 
@@ -333,7 +333,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
       const blob = await exportBrands(format, session.backendToken);
       
       if (!blob) {
-        toast.error(`Failed to export brands to ${format.toUpperCase()}`);
+        toast.error(`បរាជ័យក្នុងការនាំចេញម៉ាកទៅ ${format.toUpperCase()}`);
         return;
       }
 
@@ -347,10 +347,10 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success(`Brands exported successfully as ${format.toUpperCase()}`);
+      toast.success(`ម៉ាកត្រូវបាននាំចេញដោយជោគជ័យជា ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Error exporting brands:', error);
-      toast.error('Failed to export brands. Please try again.');
+      toast.error('បរាជ័យក្នុងការនាំចេញម៉ាក។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsExporting(false);
     }
@@ -368,23 +368,23 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
   const handleFileUpload = async (file: File): Promise<string> => {
     try {
       if (!session?.backendToken) {
-        toast.error('Authentication required');
+        toast.error('ត្រូវការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ');
         throw new Error('No authentication token');
       }
 
-      toast.info('Uploading image... 📤');
+      toast.info('កំពុងផ្ទុករូបភាពឡើង... 📤');
       
       const response = await uploadFileAction(file, session.backendToken);
       
       if (response.success && response.data?.url) {
-        toast.success('Image uploaded successfully! ✅');
+        toast.success('រូបភាពត្រូវបានផ្ទុកឡើងដោយជោគជ័យ! ✅');
         return response.data.url;
       } else {
-        toast.error(response.message || 'Failed to upload image');
+        toast.error(response.message || 'បរាជ័យក្នុងការផ្ទុករូបភាពឡើង');
         throw new Error(response.message || 'Upload failed');
       }
     } catch (error) {
-      toast.error('Failed to upload image. Please try again.');
+      toast.error('បរាជ័យក្នុងការផ្ទុករូបភាពឡើង។ សូមព្យាយាមម្តងទៀត។');
       throw error;
     }
   };
@@ -400,8 +400,8 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                 <Award className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold tracking-tight">Brand Management</h1>
-                <p className="text-muted-foreground">Manage your product brands and logos</p>
+                <h1 className="text-4xl font-bold tracking-tight">គ្រប់គ្រងម៉ាក</h1>
+                <p className="text-muted-foreground">គ្រប់គ្រងម៉ាក និងឡូហ្គោផលិតផល</p>
               </div>
             </div>
           </div>
@@ -431,34 +431,34 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
               <DialogTrigger asChild>
                 <Button size="lg" className="shadow-lg" onClick={handleOpenDialog}>
                   <Plus className="w-5 h-5 mr-2" />
-                  Add Brand
+                  បន្ថែមម៉ាក
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
                 <DialogHeader>
                   <DialogTitle className="text-2xl">
-                    {editingBrand ? 'Edit Brand' : 'Create New Brand'}
+                    {editingBrand ? 'កែសម្រួលម៉ាក' : 'បង្កើតម៉ាកថ្មី'}
                   </DialogTitle>
                   <DialogDescription>
-                    {editingBrand ? 'Update the brand information below' : 'Fill in the details to add a new brand'}
+                    {editingBrand ? 'ធ្វើបច្ចុប្បន្នភាពព័ត៌មានម៉ាកខាងក្រោម' : 'បំពេញព័ត៌មានលម្អិតដើម្បីបន្ថែមម៉ាកថ្មី'}
                   </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Brand Name *</Label>
+                    <Label htmlFor="name">ឈ្មោះម៉ាក *</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Enter brand name"
+                      placeholder="បញ្ចូលឈ្មោះម៉ាក"
                       required
                       disabled={isLoading}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Brand Logo *</Label>
+                    <Label>ឡូហ្គោម៉ាក *</Label>
                     <ImageUpload
                       value={formData.logoUrl}
                       onChange={(url) => setFormData({ ...formData, logoUrl: url })}
@@ -469,12 +469,12 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">ការពិពណ៌នា</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Enter brand description..."
+                      placeholder="បញ្ចូលការពិពណ៌នាម៉ាក..."
                       rows={4}
                       disabled={isLoading}
                     />
@@ -482,10 +482,10 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
 
                   <DialogFooter className="gap-2">
                     <Button type="button" variant="outline" onClick={resetForm} disabled={isLoading}>
-                      Cancel
+                      បោះបង់
                     </Button>
                     <Button type="submit" disabled={isLoading}>
-                      {isLoading ? 'Saving...' : editingBrand ? 'Update Brand' : 'Create Brand'}
+                      {isLoading ? 'កំពុងរក្សាទុក...' : editingBrand ? 'ធ្វើបច្ចុប្បន្នភាពម៉ាក' : 'បង្កើតម៉ាក'}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -498,33 +498,33 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Brands</CardTitle>
+              <CardTitle className="text-sm font-medium">ម៉ាកសរុប</CardTitle>
               <Award className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{brands.length}</div>
               <p className="text-xs text-muted-foreground">
-                {filteredAndSortedBrands.length} displayed
+                {filteredAndSortedBrands.length} បានបង្ហាញ
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Selected</CardTitle>
+              <CardTitle className="text-sm font-medium">បានជ្រើសរើស</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{selectedBrands.size}</div>
               <p className="text-xs text-muted-foreground">
-                {selectedBrands.size > 0 ? 'brands selected' : 'No selection'}
+                {selectedBrands.size > 0 ? 'ម៉ាកបានជ្រើសរើស' : 'មិនមានការជ្រើសរើស'}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+              <CardTitle className="text-sm font-medium">សកម្មភាពរហ័ស</CardTitle>
               <Sparkles className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -535,7 +535,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                   onClick={handleSelectAll}
                   disabled={brands.length === 0}
                 >
-                  {selectedBrands.size === filteredAndSortedBrands.length ? 'Deselect All' : 'Select All'}
+                  {selectedBrands.size === filteredAndSortedBrands.length ? 'ដកការជ្រើសរើសទាំងអស់' : 'ជ្រើសរើសទាំងអស់'}
                 </Button>
                 {selectedBrands.size > 0 && (
                   <Button
@@ -545,7 +545,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                     disabled={isLoading}
                   >
                     <Trash2 className="w-3 h-3 mr-1" />
-                    Delete {selectedBrands.size}
+                    លុប {selectedBrands.size}
                   </Button>
                 )}
               </div>
@@ -554,7 +554,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+              <CardTitle className="text-sm font-medium">ផលិតផលសរុប</CardTitle>
               <ShoppingBag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -562,14 +562,14 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                 {brandStats?.totalProducts || 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                Across all brands
+                គ្រប់ម៉ាកទាំងអស់
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
+              <CardTitle className="text-sm font-medium">តម្លៃស្តុក</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -577,7 +577,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                 ${(brandStats?.totalInventoryValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                Total value
+                តម្លៃសរុប
               </p>
             </CardContent>
           </Card>
@@ -591,7 +591,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
             onClick={handleSelectAll}
             disabled={brands.length === 0}
           >
-            {selectedBrands.size === filteredAndSortedBrands.length ? 'Deselect All' : 'Select All'}
+            {selectedBrands.size === filteredAndSortedBrands.length ? 'ដកការជ្រើសរើសទាំងអស់' : 'ជ្រើសរើសទាំងអស់'}
           </Button>
           {selectedBrands.size > 0 && (
             <Button
@@ -601,7 +601,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
               disabled={isLoading}
             >
               <Trash2 className="w-3 h-3 mr-1" />
-              Delete ({selectedBrands.size})
+              លុប ({selectedBrands.size})
             </Button>
           )}
           
@@ -618,7 +618,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
               ) : (
                 <Download className="w-3 h-3 mr-1" />
               )}
-              Export CSV
+              នាំចេញ CSV
             </Button>
             <Button
               size="sm"
@@ -631,7 +631,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
               ) : (
                 <FileSpreadsheet className="w-3 h-3 mr-1" />
               )}
-              Export Excel
+              នាំចេញ Excel
             </Button>
           </div>
         </div>
@@ -645,7 +645,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   ref={searchInputRef}
-                  placeholder="Search brands... (Ctrl+K)"
+                  placeholder="ស្វែងរកម៉ាក... (Ctrl+K)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 pr-9"
@@ -667,7 +667,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                   onClick={() => toggleSort('name')}
                   className={cn(sortBy === 'name' && 'bg-primary/10')}
                 >
-                  Name
+                  ឈ្មោះ
                   {sortBy === 'name' && (
                     sortDirection === 'asc' ? <SortAsc className="w-4 h-4 ml-2" /> : <SortDesc className="w-4 h-4 ml-2" />
                   )}
@@ -677,7 +677,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                   onClick={() => toggleSort('date')}
                   className={cn(sortBy === 'date' && 'bg-primary/10')}
                 >
-                  Date
+                  កាលបរិច្ឆេទ
                   {sortBy === 'date' && (
                     sortDirection === 'asc' ? <SortAsc className="w-4 h-4 ml-2" /> : <SortDesc className="w-4 h-4 ml-2" />
                   )}
@@ -688,7 +688,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
             {/* Active Filters */}
             {searchQuery && (
               <div className="flex items-center gap-2 mt-4">
-                <span className="text-sm text-muted-foreground">Active filters:</span>
+                <span className="text-sm text-muted-foreground">តម្រងសកម្ម:</span>
                 <Badge variant="secondary" className="gap-1">
                   <Search className="w-3 h-3" />
                   {searchQuery}
@@ -732,7 +732,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                       <div className="absolute top-3 right-3 z-10">
                         <Badge variant="secondary" className="shadow-md">
                           <Package className="w-3 h-3 mr-1" />
-                          {analytics.productCount} {analytics.productCount === 1 ? 'Product' : 'Products'}
+                          {analytics.productCount} ផលិតផល
                         </Badge>
                       </div>
                     )}
@@ -754,7 +754,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                           disabled={isLoading}
                         >
                           <Pencil className="w-3 h-3 mr-1" />
-                          Edit
+                          កែសម្រួល
                         </Button>
                         <Button
                           size="sm"
@@ -763,7 +763,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                           disabled={isLoading}
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
-                          Delete
+                          លុប
                         </Button>
                       </div>
                     </div>
@@ -774,7 +774,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                         {brand.name}
                       </CardTitle>
                       <CardDescription className="text-xs line-clamp-2 min-h-[32px]">
-                        {brand.description || 'No description available'}
+                        {brand.description || 'គ្មានការពិពណ៌នា'}
                       </CardDescription>
                     </CardHeader>
 
@@ -783,13 +783,13 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                       <CardContent className="pt-0 pb-3 border-t">
                         <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                           <div className="text-center">
-                            <div className="text-muted-foreground">Inventory Value</div>
+                            <div className="text-muted-foreground">តម្លៃស្តុក</div>
                             <div className="font-semibold">
                               ${analytics.totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                           </div>
                           <div className="text-center">
-                            <div className="text-muted-foreground">Avg Price</div>
+                            <div className="text-muted-foreground">តម្លៃមធ្យម</div>
                             <div className="font-semibold">
                               ${analytics.avgProductPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
@@ -803,7 +803,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                               className="w-full"
                             >
                               <ExternalLink className="w-3 h-3 mr-1" />
-                              View Products
+                              មើលផលិតផល
                             </Button>
                           </Link>
                         )}
@@ -821,7 +821,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                           disabled={isLoading}
                         >
                           <Pencil className="w-3 h-3 mr-1" />
-                          Edit
+                          កែសម្រួល
                         </Button>
                         <Button
                           variant="outline"
@@ -831,7 +831,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                           disabled={isLoading}
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
-                          Delete
+                          លុប
                         </Button>
                       </div>
                     </CardContent>
@@ -855,13 +855,13 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                             className="w-4 h-4 rounded border-2 cursor-pointer"
                           />
                         </th>
-                        <th className="px-4 py-3 text-left">Logo</th>
-                        <th className="px-4 py-3 text-left">Brand Name</th>
-                        <th className="px-4 py-3 text-left">Description</th>
-                        <th className="px-4 py-3 text-center">Products</th>
-                        <th className="px-4 py-3 text-right">Inventory Value</th>
-                        <th className="px-4 py-3 text-left">Created Date</th>
-                        <th className="px-4 py-3 text-right">Actions</th>
+                        <th className="px-4 py-3 text-left">ឡូហ្គោ</th>
+                        <th className="px-4 py-3 text-left">ឈ្មោះម៉ាក</th>
+                        <th className="px-4 py-3 text-left">ការពិពណ៌នា</th>
+                        <th className="px-4 py-3 text-center">ផលិតផល</th>
+                        <th className="px-4 py-3 text-right">តម្លៃស្តុក</th>
+                        <th className="px-4 py-3 text-left">កាលបរិច្ឆេទបង្កើត</th>
+                        <th className="px-4 py-3 text-right">សកម្មភាព</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -893,7 +893,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                             </td>
                             <td className="px-4 py-3 font-medium">{brand.name}</td>
                             <td className="px-4 py-3 text-muted-foreground max-w-md truncate">
-                              {brand.description || 'No description'}
+                              {brand.description || 'គ្មានការពិពណ៌នា'}
                             </td>
                             <td className="px-4 py-3 text-center">
                               {analytics ? (
@@ -922,7 +922,7 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      title="View products"
+                                      title="មើលផលិតផល"
                                     >
                                       <ExternalLink className="w-3 h-3" />
                                     </Button>
@@ -964,14 +964,14 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                 <Award className="w-10 h-10 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">No brands yet</h3>
+                <h3 className="text-xl font-semibold mb-2">មិនទាន់មានម៉ាកនៅឡើយ</h3>
                 <p className="text-muted-foreground max-w-sm mx-auto">
-                  Start by creating your first brand to organize your products
+                  ចាប់ផ្តើមដោយបង្កើតម៉ាកដំបូងរបស់អ្នកដើម្បីរៀបចំផលិតផល
                 </p>
               </div>
               <Button onClick={() => setDialogOpen(true)} size="lg">
                 <Plus className="w-4 h-4 mr-2" />
-                Create Your First Brand
+                បង្កើតម៉ាកដំបូងរបស់អ្នក
               </Button>
             </CardContent>
           </Card>
@@ -983,13 +983,13 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
                 <Search className="w-10 h-10 text-muted-foreground" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">No brands found</h3>
+                <h3 className="text-xl font-semibold mb-2">រកមិនឃើញម៉ាក</h3>
                 <p className="text-muted-foreground max-w-sm mx-auto">
-                  Try adjusting your search or filters
+                  សូមសាកល្បងកែសម្រួលការស្វែងរក ឬតម្រង
                 </p>
               </div>
               <Button onClick={() => setSearchQuery('')} variant="outline">
-                Clear Search
+                សម្អាតការស្វែងរក
               </Button>
             </CardContent>
           </Card>
@@ -1001,10 +1001,10 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog({ open, brandId: null })}
         onConfirm={confirmDelete}
-        title="Delete Brand"
-        description="Are you sure you want to delete this brand? This action cannot be undone and may affect products associated with this brand."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបម៉ាក"
+        description="តើអ្នកប្រាកដថាចង់លុបម៉ាកនេះមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ ហើយអាចប៉ះពាល់ដល់ផលិតផលដែលជាប់ទាក់ទងនឹងម៉ាកនេះ។"
+        confirmText="លុប"
+        cancelText="បោះបង់"
         variant="destructive"
       />
     </div>

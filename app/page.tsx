@@ -58,16 +58,16 @@ export default function Home() {
               {/* Centered Desktop Navigation Links */}
               <div className="hidden lg:flex items-center space-x-1 absolute left-1/2 -translate-x-1/2">
                 <a href="#about" className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-primary transition-all duration-200">
-                  About
+                  អំពីយើង
                 </a>
                 <a href="#products" className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-primary transition-all duration-200">
-                  Products
+                  ផលិតផល
                 </a>
                 <a href="#benefits" className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-primary transition-all duration-200">
-                  Benefits
+                  អត្ថប្រយោជន៍
                 </a>
                 <a href="#contact" className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-primary transition-all duration-200">
-                  Contact
+                  ទំនាក់ទំនង
                 </a>
               </div>
 
@@ -75,12 +75,12 @@ export default function Home() {
               <div className="hidden sm:flex items-center gap-2">
                 <Link href="/login">
                   <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2 rounded-full hover:bg-primary/10 transition-all duration-200">
-                    <span className="text-sm">Login</span>
+                    <span className="text-sm">ចូល</span>
                   </Button>
                 </Link>
                 <Link href="/register">
                   <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 text-xs sm:text-sm px-3 sm:px-4">
-                    <span>Register</span>
+                    <span>ចុះឈ្មោះ</span>
                   </Button>
                 </Link>
               </div>
@@ -116,8 +116,8 @@ export default function Home() {
                         <Sparkles className="w-5 h-5 text-primary-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-foreground">Account</p>
-                        <p className="text-xs text-foreground/60">Login or Register</p>
+                        <p className="text-sm font-bold text-foreground">គណនី</p>
+                        <p className="text-xs text-foreground/60">ចូល ឬ ចុះឈ្មោះ</p>
                       </div>
                     </div>
                     <button
@@ -136,7 +136,7 @@ export default function Home() {
                         className="w-full justify-center rounded-2xl hover:bg-primary/10 h-12 font-semibold border-2 border-border hover:border-primary/40 transition-all duration-300"
                       >
                         <LogIn className="w-4 h-4 mr-2" />
-                        Login
+                        ចូល
                       </Button>
                     </Link>
                     
@@ -146,7 +146,7 @@ export default function Home() {
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                         <UserPlus className="w-4 h-4 mr-2 relative z-10 group-hover:scale-110 transition-transform" />
-                        <span className="relative z-10">Register</span>
+                        <span className="relative z-10">ចុះឈ្មោះ</span>
                         <Sparkles className="w-3.5 h-3.5 ml-2 relative z-10" />
                       </Button>
                     </Link>
@@ -165,54 +165,54 @@ export default function Home() {
           <div className="flex items-center gap-8 pr-8 animate-marquee whitespace-nowrap">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">FREE SHIPPING ON ORDERS OVER $50</span>
+              <span className="text-sm font-medium">ដឹកជញ្ជូនឥតគិតថ្លៃសម្រាប់ការបញ្ជាទិញលើស $50</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-primary-foreground" />
-              <span className="text-sm font-medium">10,000+ HAPPY CUSTOMERS</span>
+              <span className="text-sm font-medium">អតិថិជនពេញចិត្តជាង 10,000+</span>
             </div>
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">30-DAY MONEY BACK GUARANTEE</span>
+              <span className="text-sm font-medium">ធានាសងប្រាក់វិញក្នុង 30 ថ្ងៃ</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-primary-foreground" />
-              <span className="text-sm font-medium">CRUELTY-FREE & VEGAN</span>
+              <span className="text-sm font-medium">គ្មានការធ្វើទារុណកម្មសត្វ និងសម្រាប់អ្នកបរិភោគតែបន្លែ</span>
             </div>
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">NEW COLLECTION NOW AVAILABLE</span>
+              <span className="text-sm font-medium">ផលិតផលថ្មីមានរួចហើយ</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-primary-foreground" />
-              <span className="text-sm font-medium">DERMATOLOGIST TESTED</span>
+              <span className="text-sm font-medium">បានធ្វើតេស្តដោយវេជ្ជបណ្ឌិតស្បែក</span>
             </div>
           </div>
           {/* Duplicate for seamless loop */}
           <div className="flex items-center gap-8 pr-8 animate-marquee whitespace-nowrap" aria-hidden="true">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">FREE SHIPPING ON ORDERS OVER $50</span>
+              <span className="text-sm font-medium">ដឹកជញ្ជូនឥតគិតថ្លៃសម្រាប់ការបញ្ជាទិញលើស $50</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-primary-foreground" />
-              <span className="text-sm font-medium">10,000+ HAPPY CUSTOMERS</span>
+              <span className="text-sm font-medium">អតិថិជនពេញចិត្តជាង 10,000+</span>
             </div>
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">30-DAY MONEY BACK GUARANTEE</span>
+              <span className="text-sm font-medium">ធានាសងប្រាក់វិញក្នុង 30 ថ្ងៃ</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-primary-foreground" />
-              <span className="text-sm font-medium">CRUELTY-FREE & VEGAN</span>
+              <span className="text-sm font-medium">គ្មានការធ្វើទារុណកម្មសត្វ និងសម្រាប់អ្នកបរិភោគតែបន្លែ</span>
             </div>
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">NEW COLLECTION NOW AVAILABLE</span>
+              <span className="text-sm font-medium">ផលិតផលថ្មីមានរួចហើយ</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-primary-foreground" />
-              <span className="text-sm font-medium">DERMATOLOGIST TESTED</span>
+              <span className="text-sm font-medium">បានធ្វើតេស្តដោយវេជ្ជបណ្ឌិតស្បែក</span>
             </div>
           </div>
         </div>
@@ -228,23 +228,23 @@ export default function Home() {
             <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
               <div className="space-y-4">
                 <div className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 bg-primary/10 rounded-full border border-primary/20 mb-2 sm:mb-4">
-                  <span className="text-xs sm:text-sm font-medium text-primary">✨ New Collection Available</span>
+                  <span className="text-xs sm:text-sm font-medium text-primary">✨ ផលិតផលថ្មីមានរួចហើយ</span>
                 </div>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-balance text-foreground">
-                  Transform your skin with <span className="text-primary bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">luxury skincare</span>
+                  បំប្លែងស្បែករបស់អ្នកជាមួយ<span className="text-primary bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">ផលិតផលថែទាំស្បែកប្រណីត</span>
                 </h1>
                 <p className="text-base sm:text-lg lg:text-xl text-foreground/70 text-balance leading-relaxed">
-                  Discover our carefully curated collection of premium skincare products designed to reveal your most radiant skin. Clean ingredients, proven results.
+                  ស្វែងរកផលិតផលដែលបានជ្រើសរើសយ៉ាងប្រុងប្រយ័ត្នសម្រាប់ថែទាំស្បែកប្រណីត ដែលរចនាឡើងដើម្បីបង្ហាញស្បែកភ្លឺថ្លាបំផុតរបស់អ្នក។ គ្រឿងផ្សំស្អាត លទ្ធផលបង្ហាញច្បាស់។
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4 justify-center lg:justify-start">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all w-full sm:w-auto">
-                  Explore Collection
+                  រុករកផលិតផល
                   <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
                 <Button size="lg" variant="outline" className="border-primary/30 hover:border-primary/50 w-full sm:w-auto">
-                  Learn More
+                  ស្វែងយល់បន្ថែម
                 </Button>
               </div>
 
@@ -252,15 +252,15 @@ export default function Home() {
               <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-6 sm:pt-8 border-t border-border">
                 <div className="group cursor-pointer">
                   <div className="text-xl sm:text-2xl font-bold text-primary group-hover:scale-110 transition-transform">10K+</div>
-                  <p className="text-xs sm:text-sm text-foreground/60">Happy Customers</p>
+                  <p className="text-xs sm:text-sm text-foreground/60">អតិថិជនពេញចិត្ត</p>
                 </div>
                 <div className="group cursor-pointer">
                   <div className="text-xl sm:text-2xl font-bold text-primary group-hover:scale-110 transition-transform">500+</div>
-                  <p className="text-xs sm:text-sm text-foreground/60">5-Star Reviews</p>
+                  <p className="text-xs sm:text-sm text-foreground/60">ការវាយតម្លៃ 5 ផ្កាយ</p>
                 </div>
                 <div className="group cursor-pointer">
                   <div className="text-xl sm:text-2xl font-bold text-primary group-hover:scale-110 transition-transform">98%</div>
-                  <p className="text-xs sm:text-sm text-foreground/60">Satisfaction</p>
+                  <p className="text-xs sm:text-sm text-foreground/60">ការពេញចិត្ត</p>
                 </div>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function Home() {
                       {/* Product Info Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 text-white z-10">
                         <h3 className="text-lg sm:text-xl lg:text-3xl font-bold mb-1 sm:mb-2">{product.name}</h3>
-                        <p className="text-xs sm:text-sm lg:text-base text-white/90">Premium Skincare Collection</p>
+                        <p className="text-xs sm:text-sm lg:text-base text-white/90">ផលិតផលថែទាំស្បែកប្រណីត</p>
                       </div>
                     </div>
                   </div>
@@ -325,8 +325,8 @@ export default function Home() {
       <section id="products" className="bg-muted/30 py-12 sm:py-16 lg:py-32 scroll-mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-3 sm:space-y-4 mb-10 sm:mb-12 lg:mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground">Our Best Sellers</h2>
-            <p className="text-base sm:text-lg text-foreground/70 text-balance px-4">Handpicked products loved by thousands of customers worldwide</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground">ផលិតផលលក់ដាច់បំផុត</h2>
+            <p className="text-base sm:text-lg text-foreground/70 text-balance px-4">ផលិតផលដែលបានជ្រើសរើស ពេញចិត្តដោយអតិថិជនរាប់ពាន់នាក់</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -358,7 +358,7 @@ export default function Home() {
                     </Button>
                   </div>
                   <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-20">
-                    <span className="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">New</span>
+                    <span className="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">ថ្មី</span>
                   </div>
                 </div>
                 
@@ -367,7 +367,7 @@ export default function Home() {
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-primary text-primary" />
                     ))}
-                    <span className="text-xs sm:text-sm text-foreground/60 ml-1 sm:ml-2">(24 reviews)</span>
+                    <span className="text-xs sm:text-sm text-foreground/60 ml-1 sm:ml-2">(24 ការវាយតម្លៃ)</span>
                   </div>
                   
                   <h3 className="text-lg sm:text-xl font-semibold text-foreground group-hover:text-primary transition-colors">{product.name}</h3>
@@ -387,7 +387,7 @@ export default function Home() {
                         // TODO: Add to cart
                       }}
                     >
-                      Add to Cart
+                      ដាក់ក្នុងកន្រ្តក
                     </Button>
                   </div>
                 </div>
@@ -402,10 +402,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {[
-              { title: 'Clean Ingredients', desc: 'Cruelty-free, vegan, and dermatologist tested' },
-              { title: 'Fast Delivery', desc: 'Free shipping on orders over $50' },
-              { title: '30-Day Guarantee', desc: 'Love it or your money back' },
-              { title: 'Expert Support', desc: '24/7 customer care team ready to help' }
+              { title: 'គ្រឿងផ្សំស្អាត', desc: 'គ្មានការធ្វើទារុណកម្មសត្វ និងបានធ្វើតេស្តដោយវេជ្ជបណ្ឌិតស្បែក' },
+              { title: 'ដឹកជញ្ជូនរហ័ស', desc: 'ដឹកជញ្ជូនឥតគិតថ្លៃសម្រាប់ការបញ្ជាទិញលើស $50' },
+              { title: 'ធានា 30 ថ្ងៃ', desc: 'ពេញចិត្ត ឬសងប្រាក់វិញ' },
+              { title: 'ជំនួយអ្នកជំនាញ', desc: 'ក្រុមបម្រើអតិថិជន 24/7 រួចរាល់ជួយ' }
             ].map((benefit, idx) => (
               <div key={idx} className="text-center space-y-3 p-4 sm:p-6 rounded-xl hover:bg-primary/5 transition-all group cursor-pointer">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/20 transition-all border border-primary/10">
@@ -426,13 +426,13 @@ export default function Home() {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 sm:space-y-8 relative z-10">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-balance px-4">
-            Ready to transform your skin? ✨
+            រួចរាល់ក្នុងការបំប្លែងស្បែករបស់អ្នក? ✨
           </h2>
           <p className="text-base sm:text-lg opacity-90 text-balance max-w-2xl mx-auto px-4">
-            Join thousands of customers who have discovered their best skin with Rolly. Start your skincare journey today.
+            ចូលរួមជាមួយអតិថិជនរាប់ពាន់នាក់ដែលបានរកឃើញស្បែកដ៏ស្រស់ស្អាតជាមួយ Rolly។ ចាប់ផ្តើមដំណើរថែទាំស្បែករបស់អ្នកថ្ងៃនេះ។
           </p>
           <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all">
-            Shop Now
+            ទិញឥឡូវ
             <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         </div>
@@ -442,17 +442,17 @@ export default function Home() {
       <section id="contact" className="py-12 sm:py-16 lg:py-32 border-t border-border scroll-mt-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 sm:space-y-8">
           <div className="space-y-3 sm:space-y-4">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Stay Updated</h2>
-            <p className="text-base sm:text-lg text-foreground/70 px-4">Get exclusive tips, new product launches, and special offers delivered to your inbox.</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">ទទួលដំណឹងថ្មី</h2>
+            <p className="text-base sm:text-lg text-foreground/70 px-4">ទទួលបានគន្លឹះពិសេស ការចេញផលិតផលថ្មី និងការផ្តល់ជូនពិសេស</p>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder="បញ្ចូលអ៊ីមែល"
               className="flex-1 px-4 py-2.5 sm:py-3 rounded-lg border border-border bg-background text-foreground text-sm sm:text-base placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <Button className="bg-primary hover:bg-primary/90 text-sm sm:text-base">Subscribe</Button>
+            <Button className="bg-primary hover:bg-primary/90 text-sm sm:text-base">ជាវ</Button>
           </div>
         </div>
       </section>
@@ -468,39 +468,39 @@ export default function Home() {
                 </div>
                 <span className="font-semibold text-base sm:text-lg text-foreground">Rolly</span>
               </div>
-              <p className="text-xs sm:text-sm text-foreground/60">Premium skincare for your best self.</p>
+              <p className="text-xs sm:text-sm text-foreground/60">ផលិតផលថែទាំស្បែកប្រណីតសម្រាប់អ្នក</p>
             </div>
             
             <div className="space-y-2 sm:space-y-3">
-              <h4 className="font-semibold text-sm sm:text-base text-foreground">Shop</h4>
+              <h4 className="font-semibold text-sm sm:text-base text-foreground">ហាង</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">All Products</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">New Arrivals</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">Best Sellers</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">ផលិតផលទាំងអស់</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">មកថ្មី</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">លក់ដាច់បំផុត</a></li>
               </ul>
             </div>
             
             <div className="space-y-2 sm:space-y-3">
-              <h4 className="font-semibold text-sm sm:text-base text-foreground">Company</h4>
+              <h4 className="font-semibold text-sm sm:text-base text-foreground">ក្រុមហ៊ុន</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">About</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">Blog</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">Contact</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">អំពីយើង</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">ប្លក់</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">ទំនាក់ទំនង</a></li>
               </ul>
             </div>
             
             <div className="space-y-2 sm:space-y-3">
-              <h4 className="font-semibold text-sm sm:text-base text-foreground">Support</h4>
+              <h4 className="font-semibold text-sm sm:text-base text-foreground">ជំនួយ</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">FAQs</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">Privacy Policy</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">Terms of Service</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">សំណួរញឹកញាប់</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">គោលការណ៍ឯកជនភាព</a></li>
+                <li><a href="#" className="text-foreground/60 hover:text-primary transition">លក្ខខណ្ឌប្រើប្រាស់</a></li>
               </ul>
             </div>
           </div>
           
           <div className="pt-6 sm:pt-8 border-t border-border text-center text-xs sm:text-sm text-foreground/60">
-            <p>&copy; 2025 Rolly Online Shop. All rights reserved.</p>
+            <p>&copy; 2025 Rolly Online Shop។ រក្សាសិទ្ធិគ្រប់យ៉ាង។</p>
           </div>
         </div>
       </footer>

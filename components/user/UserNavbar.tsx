@@ -18,10 +18,10 @@ import {
 import { Button } from '@/components/ui/button';
 
 const navigation = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'My Orders', href: '/my-orders', icon: ShoppingBag },
-  { name: 'Wishlist', href: '/wishlist', icon: Heart },
-  { name: 'Profile', href: '/profile', icon: UserIcon },
+  { name: 'ទំព័រដើម', href: '/', icon: Home },
+  { name: 'ការបញ្ជាទិញ', href: '/my-orders', icon: ShoppingBag },
+  { name: 'បញ្ជីចង់បាន', href: '/wishlist', icon: Heart },
+  { name: 'គណនី', href: '/profile', icon: UserIcon },
 ];
 
 export default function UserNavbar() {
@@ -105,14 +105,14 @@ export default function UserNavbar() {
                         onClick={() => setProfileOpen(false)}
                       >
                         <UserIcon className="w-4 h-4" />
-                        <span>My Profile</span>
+                        <span>គណនីរបស់ខ្ញុំ</span>
                       </Link>
                       <button
                         onClick={() => signOut({ callbackUrl: '/' })}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors text-sm mt-1"
                       >
                         <LogOut className="w-4 h-4" />
-                        <span>Sign Out</span>
+                        <span>ចាកចេញ</span>
                       </button>
                     </div>
                   </>
@@ -183,7 +183,7 @@ export default function UserNavbar() {
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors mt-2"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="text-sm font-medium">Sign Out</span>
+                <span className="text-sm font-medium">ចាកចេញ</span>
               </button>
             </div>
           </div>

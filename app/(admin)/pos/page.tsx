@@ -37,9 +37,9 @@ export default async function POSPage() {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">Error Loading POS</h1>
+          <h1 className="text-2xl font-bold text-red-600 mb-2">កំហុសក្នុងការផ្ទុក POS</h1>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'An unexpected error occurred'}
+            {error instanceof Error ? error.message : 'មានកំហុសមិនរំពឹងទុក'}
           </p>
         </div>
       </div>

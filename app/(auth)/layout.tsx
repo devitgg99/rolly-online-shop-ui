@@ -42,18 +42,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div className="inline-block bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full mb-4">
               <p className="text-xs font-semibold flex items-center gap-2">
                 <Sparkles className="w-3.5 h-3.5" />
-                Premium Skincare Brand
+                ម៉ាកថែទាំស្បែកប្រណីត
               </p>
             </div>
             <h1 className="text-3xl xl:text-4xl font-bold mb-3 leading-tight">
-              Your Journey to
+              ដំណើរឆ្ពោះទៅ
               <br />
               <span className="bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent">
-                Radiant Skin Starts Here
+                ស្បែកភ្លឺថ្លាចាប់ផ្តើមនៅទីនេះ
               </span>
             </h1>
             <p className="text-sm text-white/90 leading-relaxed max-w-md">
-              Join thousands who have transformed their skincare routine with our premium, clean beauty products.
+              ចូលរួមជាមួយមនុស្សរាប់ពាន់នាក់ដែលបានបំប្លែងទម្លាប់ថែទាំស្បែកជាមួយផលិតផលថែទាំស្បែកប្រណីត និងស្អាត។
             </p>
           </div>
 
@@ -63,32 +63,32 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <Star className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-base mb-0.5">Top Rated</h3>
-              <p className="text-xs text-white/80">500+ five-star reviews</p>
+              <h3 className="font-bold text-base mb-0.5">វាយតម្លៃខ្ពស់</h3>
+              <p className="text-xs text-white/80">ការវាយតម្លៃ 5 ផ្កាយជាង 500+</p>
             </div>
 
             <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all group">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <Shield className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-base mb-0.5">Safe & Clean</h3>
-              <p className="text-xs text-white/80">100% natural ingredients</p>
+              <h3 className="font-bold text-base mb-0.5">សុវត្ថិភាព និងស្អាត</h3>
+              <p className="text-xs text-white/80">គ្រឿងផ្សំធម្មជាតិ 100%</p>
             </div>
 
             <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all group">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <Zap className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-base mb-0.5">Fast Results</h3>
-              <p className="text-xs text-white/80">Visible in 7 days</p>
+              <h3 className="font-bold text-base mb-0.5">ឃើញលទ្ធផលលឿន</h3>
+              <p className="text-xs text-white/80">ឃើញក្នុង 7 ថ្ងៃ</p>
             </div>
 
             <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all group">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <Heart className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-base mb-0.5">Loved By All</h3>
-              <p className="text-xs text-white/80">10K+ happy customers</p>
+              <h3 className="font-bold text-base mb-0.5">ពេញចិត្តដោយគ្រប់គ្នា</h3>
+              <p className="text-xs text-white/80">អតិថិជនពេញចិត្តជាង 10K+</p>
             </div>
           </div>
 
@@ -100,21 +100,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                   <TrendingUp className="w-4 h-4" />
                   <p className="text-2xl font-bold">10K+</p>
                 </div>
-                <p className="text-[10px] text-white/80">Active Members</p>
+                <p className="text-[10px] text-white/80">សមាជិកសកម្ម</p>
               </div>
               <div className="text-center border-x border-white/20">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <Award className="w-4 h-4" />
                   <p className="text-2xl font-bold">98%</p>
                 </div>
-                <p className="text-[10px] text-white/80">Satisfaction Rate</p>
+                <p className="text-[10px] text-white/80">អត្រាពេញចិត្ត</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <Star className="w-4 h-4" />
                   <p className="text-2xl font-bold">4.9</p>
                 </div>
-                <p className="text-[10px] text-white/80">Average Rating</p>
+                <p className="text-[10px] text-white/80">វាយតម្លៃជាមធ្យម</p>
               </div>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               ))}
             </div>
             <p className="text-xs mb-3 leading-relaxed italic">
-              "Rolly transformed my skin in just 2 weeks! The results are amazing, and I love that all products are clean and natural."
+              "Rolly បានបំប្លែងស្បែករបស់ខ្ញុំក្នុងរយៈពេលត្រឹមតែ 2 សប្តាហ៍! លទ្ធផលអស្ចារ្យណាស់ ហើយខ្ញុំចូលចិត្តដែលផលិតផលទាំងអស់ស្អាត និងធម្មជាតិ។"
             </p>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">
@@ -135,7 +135,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               </div>
               <div>
                 <p className="font-semibold text-xs">Sarah Miller</p>
-                <p className="text-[10px] text-white/70">Verified Customer</p>
+                <p className="text-[10px] text-white/70">អតិថិជនដែលបានផ្ទៀងផ្ទាត់</p>
               </div>
             </div>
           </div>

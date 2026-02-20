@@ -41,7 +41,7 @@ function LoginForm() {
         redirect: false,
       });      
       if (res?.error) {
-        setError('Invalid credentials. Please try again.');
+        setError('ព័ត៌មានមិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។');
         return;
       }
 
@@ -62,7 +62,7 @@ function LoginForm() {
         router.refresh();
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+      setError('មានកំហុសមិនរំពឹងទុក។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
     }
@@ -72,11 +72,11 @@ function LoginForm() {
   return (
     <div className="w-full">
       <div className="mb-5 sm:mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Sign In</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">ចូលគណនី</h1>
         <p className="text-sm sm:text-base text-foreground/60">
-          Don't have an account?{' '}
+          មិនទាន់មានគណនី?{' '}
           <Link href="/register" className="text-primary font-semibold hover:underline">
-            Create now
+            បង្កើតឥឡូវ
           </Link>
         </p>
       </div>
@@ -85,7 +85,7 @@ function LoginForm() {
       {registered && (
         <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30">
           <p className="text-sm text-green-600 dark:text-green-400">
-            ✓ Registration successful! Please sign in with your credentials.
+            ✓ ចុះឈ្មោះបានជោគជ័យ! សូមចូលដោយប្រើព័ត៌មានរបស់អ្នក។
           </p>
         </div>
       )}
@@ -110,7 +110,7 @@ function LoginForm() {
             }`}
           >
             <Mail className="w-4 h-4" />
-            <span>Email</span>
+            <span>អ៊ីមែល</span>
           </button>
           <button
             type="button"
@@ -122,7 +122,7 @@ function LoginForm() {
             }`}
           >
             <Phone className="w-4 h-4" />
-            <span>Phone</span>
+            <span>ទូរសព្ទ</span>
           </button>
         </div>
 
@@ -130,7 +130,7 @@ function LoginForm() {
         {loginMethod === 'email' && (
           <div className="animate-fade-in">
             <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-              E-mail Address
+              អាសយដ្ឋានអ៊ីមែល
             </label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-foreground/40" />
@@ -151,7 +151,7 @@ function LoginForm() {
         {loginMethod === 'phone' && (
           <div className="animate-fade-in">
             <label htmlFor="phone" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-              Phone Number 🇰🇭
+              លេខទូរសព្ទ 🇰🇭
             </label>
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-foreground/40" />
@@ -168,14 +168,14 @@ function LoginForm() {
                 required
               />
             </div>
-            <p className="text-xs text-foreground/50 mt-1">Enter without +855 prefix</p>
+            <p className="text-xs text-foreground/50 mt-1">បញ្ចូលដោយមិនចាំបាច់ +855</p>
           </div>
         )}
 
         {/* Password Field */}
         <div>
           <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-            Password
+            ពាក្យសម្ងាត់
           </label>
           <div className="relative">
             <input
@@ -210,10 +210,10 @@ function LoginForm() {
               onChange={(e) => setRememberMe(e.target.checked)}
               className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0"
             />
-            <span className="text-xs sm:text-sm text-foreground/70">Remember me</span>
+            <span className="text-xs sm:text-sm text-foreground/70">ចងចាំខ្ញុំ</span>
           </label>
           <Link href="/forgot-password" className="text-xs sm:text-sm text-primary hover:underline font-medium">
-            Forgot Password?
+            ភ្លេចពាក្យសម្ងាត់?
           </Link>
         </div>
 
@@ -226,12 +226,12 @@ function LoginForm() {
           {isLoading ? (
             <>
               <div className="w-4 h-4 mr-2 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
-              Signing in...
+              កំពុងចូល...
             </>
           ) : (
             <>
               <LogIn className="w-4 h-4 mr-2" />
-              Sign in
+              ចូល
             </>
           )}
         </Button>
@@ -242,7 +242,7 @@ function LoginForm() {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-xs sm:text-sm">
-            <span className="px-4 bg-background text-foreground/60">OR</span>
+            <span className="px-4 bg-background text-foreground/60">ឬ</span>
           </div>
         </div>
 
@@ -259,7 +259,7 @@ function LoginForm() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            <span className="hidden sm:inline">Continue with Google</span>
+            <span className="hidden sm:inline">បន្តជាមួយ Google</span>
             <span className="sm:hidden">Google</span>
           </Button>
 
@@ -271,7 +271,7 @@ function LoginForm() {
             <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" fill="#1877F2" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
-            <span className="hidden sm:inline">Continue with Facebook</span>
+            <span className="hidden sm:inline">បន្តជាមួយ Facebook</span>
             <span className="sm:hidden">Facebook</span>
           </Button>
         </div>

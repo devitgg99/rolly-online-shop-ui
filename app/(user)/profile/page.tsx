@@ -12,7 +12,7 @@ export default function ProfilePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-foreground/60">Loading...</p>
+          <p className="text-foreground/60">កំពុងផ្ទុក...</p>
         </div>
       </div>
     );
@@ -29,9 +29,9 @@ export default function ProfilePage() {
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 flex items-center gap-3">
             <User className="w-8 h-8 text-primary" />
-            My Profile
+            គណនីរបស់ខ្ញុំ
           </h1>
-          <p className="text-foreground/60">Manage your account information</p>
+          <p className="text-foreground/60">គ្រប់គ្រងព័ត៌មានគណនី</p>
         </div>
 
         {/* Profile Card */}
@@ -61,7 +61,7 @@ export default function ProfilePage() {
                 <Mail className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-foreground/60 mb-1">Email Address</p>
+                <p className="text-xs text-foreground/60 mb-1">អាសយដ្ឋានអ៊ីមែល</p>
                 <p className="font-medium truncate">{session.user.email}</p>
               </div>
             </div>
@@ -71,7 +71,7 @@ export default function ProfilePage() {
                 <User className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-foreground/60 mb-1">Full Name</p>
+                <p className="text-xs text-foreground/60 mb-1">ឈ្មោះពេញ</p>
                 <p className="font-medium truncate">{session.user.name}</p>
               </div>
             </div>
@@ -81,7 +81,7 @@ export default function ProfilePage() {
                 <Shield className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-foreground/60 mb-1">Account Role</p>
+                <p className="text-xs text-foreground/60 mb-1">តួនាទីគណនី</p>
                 <p className="font-medium">{session.user.role}</p>
               </div>
             </div>
@@ -91,7 +91,7 @@ export default function ProfilePage() {
                 <Key className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-foreground/60 mb-1">User ID</p>
+                <p className="text-xs text-foreground/60 mb-1">លេខសម្គាល់</p>
                 <p className="font-mono text-xs truncate">{session.user.id}</p>
               </div>
             </div>
@@ -102,22 +102,22 @@ export default function ProfilePage() {
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold">Account Security</h3>
+            <h3 className="text-lg font-semibold">សុវត្ថិភាពគណនី</h3>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex items-center justify-between py-2 border-b border-border">
-              <span className="text-foreground/70">Two-Factor Authentication</span>
-              <span className="text-amber-500 font-medium">Not Enabled</span>
+              <span className="text-foreground/70">ការផ្ទៀងផ្ទាត់ពីរជំហាន</span>
+              <span className="text-amber-500 font-medium">មិនបើក</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-border">
-              <span className="text-foreground/70">Last Password Change</span>
-              <span className="text-foreground/50">Never</span>
+              <span className="text-foreground/70">ផ្លាស់ប្តូរពាក្យសម្ងាត់ចុងក្រោយ</span>
+              <span className="text-foreground/50">មិនធ្លាប់</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-foreground/70">Account Status</span>
+              <span className="text-foreground/70">ស្ថានភាពគណនី</span>
               <span className="text-green-500 font-medium flex items-center gap-1">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                Active
+                សកម្ម
               </span>
             </div>
           </div>

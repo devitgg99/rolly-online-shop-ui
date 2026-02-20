@@ -104,14 +104,14 @@ export function RefundDialog({
     const itemsToRefund = refundItems.filter(item => item.quantity > 0);
 
     if (itemsToRefund.length === 0) {
-      toast.error('Please select at least one item to refund');
+      toast.error('សូមជ្រើសរើសយ៉ាងហោចណាស់មួយមុខទំនិញដើម្បីសង');
       return;
     }
 
     // Validate all refund items have reasons
     const missingReasons = itemsToRefund.filter(item => !item.reason.trim());
     if (missingReasons.length > 0) {
-      toast.error('Please provide a reason for all items being refunded');
+      toast.error('សូមផ្តល់មូលហេតុសម្រាប់មុខទំនិញទាំងអស់ដែលត្រូវសង');
       return;
     }
 
@@ -131,15 +131,15 @@ export function RefundDialog({
       );
 
       if (response.success) {
-        toast.success('Refund processed successfully!');
+        toast.success('ការសងប្រាក់វិញបានជោគជ័យ!');
         onRefundCreated?.();
         onOpenChange(false);
       } else {
-        toast.error(response.message || 'Failed to process refund');
+        toast.error(response.message || 'បរាជ័យក្នុងការដំណើរការសងប្រាក់វិញ');
       }
     } catch (error) {
       console.error('Error processing refund:', error);
-      toast.error('Cannot connect to server. Please try again.');
+      toast.error('មិនអាចភ្ជាប់ទៅម៉ាស៊ីនមេបានទេ។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
     }
@@ -153,10 +153,10 @@ export function RefundDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Undo2 className="w-5 h-5" />
-            Process Refund
+            ដំណើរការសងប្រាក់វិញ
           </DialogTitle>
           <DialogDescription>
-            Sale #{sale.id.slice(0, 8)} • {sale.customerName || 'Walk-in Customer'}
+            ការលក់ #{sale.id.slice(0, 8)} • {sale.customerName || 'អតិថិជនដើរចូល'}
           </DialogDescription>
         </DialogHeader>
 
@@ -168,10 +168,10 @@ export function RefundDialog({
                 <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
                 <div className="text-sm">
                   <p className="font-medium text-amber-900 dark:text-amber-100">
-                    Refund will restore stock quantities
+                    ការសងប្រាក់វិញនឹងស្តារបរិមាណស្តុកឡើងវិញ
                   </p>
                   <p className="text-amber-700 dark:text-amber-300 text-xs mt-1">
-                    Select items to refund and specify quantities. Stock will be automatically updated.
+                    ជ្រើសរើសមុខទំនិញដើម្បីសង និងបញ្ជាក់ចំនួន។ ស្តុកនឹងត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ។
                   </p>
                 </div>
               </div>
@@ -180,7 +180,7 @@ export function RefundDialog({
 
           {/* Items to Refund */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Items to Refund</Label>
+            <Label className="text-base font-semibold">មុខទំនិញសម្រាប់សង</Label>
             {refundItems.map((item) => (
               <Card key={item.productId} className="border-2">
                 <CardContent className="pt-4 space-y-3">
@@ -188,7 +188,7 @@ export function RefundDialog({
                     <div className="flex-1">
                       <p className="font-medium">{item.productName}</p>
                       <p className="text-sm text-muted-foreground">
-                        Max: {item.maxQuantity} units × ${item.unitPrice.toFixed(2)}
+                        អតិបរមា: {item.maxQuantity} ឯកតា × ${item.unitPrice.toFixed(2)}
                       </p>
                     </div>
                     <Badge variant="outline">
@@ -198,7 +198,7 @@ export function RefundDialog({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label>Quantity to Refund</Label>
+                      <Label>ចំនួនដែលត្រូវសង</Label>
                       <Input
                         type="number"
                         min="0"
@@ -210,11 +210,11 @@ export function RefundDialog({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Reason *</Label>
+                      <Label>មូលហេតុ *</Label>
                       <Input
                         value={item.reason}
                         onChange={(e) => handleReasonChange(item.productId, e.target.value)}
-                        placeholder="e.g., Damaged, Wrong item"
+                        placeholder="ឧ. ខូចខាត, មុខទំនិញខុស"
                         disabled={isLoading || item.quantity === 0}
                         required={item.quantity > 0}
                       />
@@ -227,7 +227,7 @@ export function RefundDialog({
 
           {/* Refund Method */}
           <div className="space-y-2">
-            <Label>Refund Method *</Label>
+            <Label>វិធីសងប្រាក់ *</Label>
             <Select value={refundMethod} onValueChange={(v: any) => setRefundMethod(v)} disabled={isLoading}>
               <SelectTrigger>
                 <SelectValue />
@@ -236,19 +236,19 @@ export function RefundDialog({
                 <SelectItem value="CASH">
                   <div className="flex items-center gap-2">
                     <Wallet className="w-4 h-4" />
-                    Cash Refund
+                    សងសាច់ប្រាក់
                   </div>
                 </SelectItem>
                 <SelectItem value="CARD">
                   <div className="flex items-center gap-2">
                     <CreditCard className="w-4 h-4" />
-                    Card Refund
+                    សងតាមកាត
                   </div>
                 </SelectItem>
                 <SelectItem value="STORE_CREDIT">
                   <div className="flex items-center gap-2">
                     <Wallet className="w-4 h-4" />
-                    Store Credit
+                    ឥណទានហាង
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -257,11 +257,11 @@ export function RefundDialog({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label>Additional Notes (Optional)</Label>
+            <Label>កំណត់ចំណាំបន្ថែម (ស្រេចចិត្ត)</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional information about this refund..."
+              placeholder="ព័ត៌មានបន្ថែមអំពីការសងប្រាក់វិញនេះ..."
               rows={3}
               disabled={isLoading}
             />
@@ -273,19 +273,19 @@ export function RefundDialog({
               <CardContent className="pt-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Items to Refund:</span>
+                    <span className="text-muted-foreground">មុខទំនិញសម្រាប់សង:</span>
                     <span className="font-medium">
-                      {refundItems.filter(i => i.quantity > 0).length} item(s)
+                      {refundItems.filter(i => i.quantity > 0).length} មុខ
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-lg">
-                    <span className="font-semibold">Total Refund Amount:</span>
+                    <span className="font-semibold">ចំនួនសងសរុប:</span>
                     <span className="font-bold text-primary">
                       ${totalRefundAmount.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Refund Method:</span>
+                    <span className="text-muted-foreground">វិធីសងប្រាក់:</span>
                     <Badge variant="outline">{refundMethod.replace('_', ' ')}</Badge>
                   </div>
                 </div>
@@ -300,7 +300,7 @@ export function RefundDialog({
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            Cancel
+            បោះបង់
           </Button>
           <Button
             onClick={handleSubmitRefund}
@@ -309,12 +309,12 @@ export function RefundDialog({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                កំពុងដំណើរការ...
               </>
             ) : (
               <>
                 <Check className="w-4 h-4 mr-2" />
-                Process Refund
+                ដំណើរការសងប្រាក់
               </>
             )}
           </Button>

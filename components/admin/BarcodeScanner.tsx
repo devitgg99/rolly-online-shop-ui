@@ -60,7 +60,7 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
 
       // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setError('Camera not supported on this browser. Please use Chrome or update Safari.');
+        setError('កាមេរ៉ាមិនត្រូវបានគាំទ្រលើកម្មវិធីរុករកនេះទេ។ សូមប្រើ Chrome ឬធ្វើបច្ចុប្បន្នភាព Safari។');
         setIsScanning(false);
         return;
       }
@@ -95,7 +95,7 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
       console.log('📹 Found cameras:', videoDevices.length);
       
       if (videoDevices.length === 0) {
-        setError('No camera found. Please check your device settings.');
+        setError('រកមិនឃើញកាមេរ៉ាទេ។ សូមពិនិត្យការកំណត់ឧបករណ៍របស់អ្នក។');
         setIsScanning(false);
         return;
       }
@@ -136,13 +136,13 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
     } catch (err: any) {
       console.error('❌ Scanner error:', err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setError('Camera permission denied. On Safari: Go to Settings > Safari > Camera > Allow');
+        setError('ការអនុញ្ញាតកាមេរ៉ាត្រូវបានបដិសេធ។ នៅលើ Safari: ទៅ Settings > Safari > Camera > Allow');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-        setError('No camera found. Please check your device.');
+        setError('រកមិនឃើញកាមេរ៉ាទេ។ សូមពិនិត្យឧបករណ៍របស់អ្នក។');
       } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-        setError('Camera is being used by another app. Please close other apps and try again.');
+        setError('កាមេរ៉ាកំពុងត្រូវបានប្រើដោយកម្មវិធីផ្សេង។ សូមបិទកម្មវិធីផ្សេង ហើយព្យាយាមម្តងទៀត។');
       } else {
-        setError(`Camera error: ${err.message || 'Please try again or use keyboard input.'}`);
+        setError(`បញ្ហាកាមេរ៉ា: ${err.message || 'សូមព្យាយាមម្តងទៀត ឬប្រើការបញ្ចូលក្តារចុច។'}`);
       }
       setIsScanning(false);
     }
@@ -177,10 +177,10 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="w-5 h-5" />
-            Scan Barcode
+            ស្កេនបាកូដ
           </DialogTitle>
           <DialogDescription>
-            Point your camera at a barcode to scan
+            បញ្ជូនកាមេរ៉ាទៅបាកូដដើម្បីស្កេន
           </DialogDescription>
         </DialogHeader>
 
@@ -189,7 +189,7 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
             <div className="p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
               <p className="text-sm text-destructive font-medium mb-2">{error}</p>
               <p className="text-xs text-muted-foreground">
-                Tip: You can still use a USB or Bluetooth barcode scanner - just scan while the POS is open!
+                គន្លឹះ: អ្នកនៅតែអាចប្រើម៉ាស៊ីនស្កេនបាកូដ USB ឬ Bluetooth - គ្រាន់តែស្កេនពេល POS បើកដំណើរការ!
               </p>
             </div>
           ) : (
@@ -223,10 +223,10 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
             {!error && (
               <>
                 <p className="text-sm text-muted-foreground">
-                  {isScanning ? '📸 Scanning... Position barcode in the frame' : '📷 Initializing camera...'}
+                  {isScanning ? '📸 កំពុងស្កេន... ដាក់បាកូដក្នុងស៊ុម' : '📷 កំពុងបើកកាមេរ៉ា...'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Or use a physical barcode scanner (USB/Bluetooth)
+                  ឬប្រើម៉ាស៊ីនស្កេនបាកូដរូបវន្ត (USB/Bluetooth)
                 </p>
               </>
             )}
@@ -239,7 +239,7 @@ export default function BarcodeScanner({ open, onClose, onScan }: BarcodeScanner
             onClick={onClose}
           >
             <X className="w-4 h-4 mr-2" />
-            Close
+            បិទ
           </Button>
         </div>
       </DialogContent>

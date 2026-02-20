@@ -58,20 +58,20 @@ export default async function ProductsPage() {
         <Tabs defaultValue="grid" className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">Products 📦</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">ផលិតផល 📦</h1>
               <p className="text-sm sm:text-base text-muted-foreground">
-                Manage your product inventory
+                គ្រប់គ្រងស្តុកផលិតផលរបស់អ្នក
               </p>
             </div>
             <TabsList className="grid w-full sm:w-auto grid-cols-3 h-9 sm:h-10">
               <TabsTrigger value="category" className="text-xs sm:text-sm">
-                By Category
+                តាមប្រភេទ
               </TabsTrigger>
               <TabsTrigger value="grid" className="text-xs sm:text-sm">
-                Grid View
+                មើលជាក្រឡា
               </TabsTrigger>
               <TabsTrigger value="table" className="text-xs sm:text-sm">
-                Inventory Table
+                តារាងស្តុក
               </TabsTrigger>
             </TabsList>
           </div>
@@ -106,15 +106,15 @@ export default async function ProductsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">⚠️ Authentication Error</h1>
+          <h1 className="text-2xl font-bold text-red-600 mb-2">⚠️ កំហុសផ្ទៀងផ្ទាត់</h1>
           <p className="text-red-700 dark:text-red-300 mb-4">
-            Unable to load products. Your session may have expired.
+            មិនអាចផ្ទុកផលិតផល។ សម័យរបស់អ្នកអាចផុតកំណត់ហើយ។
           </p>
           <a 
             href="/login" 
             className="inline-block bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
           >
-            Log In Again
+            ចូលម្តងទៀត
           </a>
         </div>
       </div>

@@ -10,43 +10,43 @@ export default function SettingsPage() {
 
   const settingsSections = [
     {
-      title: "Profile Settings",
+      title: "ការកំណត់គណនី",
       icon: User,
-      description: "Manage your account information",
+      description: "គ្រប់គ្រងព័ត៌មានគណនី",
       items: [
-        { label: "Full Name", value: session?.user?.name || "N/A" },
-        { label: "Email", value: session?.user?.email || "N/A" },
-        { label: "Role", value: session?.user?.role || "N/A" },
+        { label: "ឈ្មោះពេញ", value: session?.user?.name || "N/A" },
+        { label: "អ៊ីមែល", value: session?.user?.email || "N/A" },
+        { label: "តួនាទី", value: session?.user?.role || "N/A" },
       ]
     },
     {
-      title: "Notifications",
+      title: "ការជូនដំណឹង",
       icon: Bell,
-      description: "Configure notification preferences",
+      description: "កំណត់រចនាសម្ព័ន្ធការជូនដំណឹង",
       items: [
-        { label: "Email Notifications", value: "Enabled" },
-        { label: "Push Notifications", value: "Disabled" },
-        { label: "SMS Alerts", value: "Disabled" },
+        { label: "ការជូនដំណឹងអ៊ីមែល", value: "បើក" },
+        { label: "ការជូនដំណឹង Push", value: "បិទ" },
+        { label: "ការជូនដំណឹង SMS", value: "បិទ" },
       ]
     },
     {
-      title: "Security",
+      title: "សុវត្ថិភាព",
       icon: Lock,
-      description: "Manage security settings",
+      description: "គ្រប់គ្រងការកំណត់សុវត្ថិភាព",
       items: [
-        { label: "Two-Factor Auth", value: "Not Enabled" },
-        { label: "Last Password Change", value: "Never" },
-        { label: "Active Sessions", value: "1" },
+        { label: "ការផ្ទៀងផ្ទាត់ពីរជំហាន", value: "មិនបើក" },
+        { label: "ផ្លាស់ប្តូរពាក្យសម្ងាត់ចុងក្រោយ", value: "មិនធ្លាប់" },
+        { label: "សម័យសកម្ម", value: "1" },
       ]
     },
     {
-      title: "Appearance",
+      title: "រូបរាង",
       icon: Palette,
-      description: "Customize your interface",
+      description: "ប្ដូររូបរាងរបស់អ្នក",
       items: [
-        { label: "Theme", value: "System" },
-        { label: "Language", value: "English" },
-        { label: "Timezone", value: "UTC+7" },
+        { label: "ស្បែក", value: "ប្រព័ន្ធ" },
+        { label: "ភាសា", value: "ខ្មែរ" },
+        { label: "តំបន់ម៉ោង", value: "UTC+7" },
       ]
     },
   ];
@@ -61,9 +61,9 @@ export default function SettingsPage() {
               <Settings className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Settings</h1>
+              <h1 className="text-3xl font-bold">ការកំណត់</h1>
               <p className="text-sm text-muted-foreground">
-                Manage your account and preferences
+                គ្រប់គ្រងគណនី និងចំណូលចិត្ត
               </p>
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <Button variant="outline" size="sm">
-                    Edit
+                    កែ
                   </Button>
                 </div>
 
@@ -115,17 +115,17 @@ export default function SettingsPage() {
         {/* Danger Zone */}
         <div className="mt-8 bg-destructive/5 border border-destructive/20 rounded-lg p-6">
           <h2 className="text-lg font-semibold text-destructive mb-2">
-            Danger Zone
+            តំបន់គ្រោះថ្នាក់
           </h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Irreversible actions that require careful consideration
+            សកម្មភាពដែលមិនអាចត្រឡប់វិញ ត្រូវការការពិចារណាដោយប្រុងប្រយ័ត្ន
           </p>
           <div className="flex flex-wrap gap-3">
             <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10">
-              Delete Account
+              លុបគណនី
             </Button>
             <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10">
-              Clear All Data
+              សម្អាតទិន្នន័យទាំងអស់
             </Button>
           </div>
         </div>

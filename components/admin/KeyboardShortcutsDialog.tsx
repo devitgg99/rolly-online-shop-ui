@@ -17,30 +17,30 @@ export function KeyboardShortcutsDialog() {
   
   const shortcuts = [
     {
-      category: 'General',
+      category: 'ទូទៅ',
       items: [
-        { keys: { key: 'n', ctrl: true, cmd: true }, description: 'New Product' },
-        { keys: { key: 'f', ctrl: true, cmd: true }, description: 'Focus Search' },
-        { keys: { key: 'k', ctrl: true, cmd: true }, description: 'Command Palette' },
-        { keys: { key: 'r', ctrl: true, cmd: true }, description: 'Refresh Data' },
-        { keys: { key: 'Escape' }, description: 'Close Dialog / Clear Search' },
+        { keys: { key: 'n', ctrl: true, cmd: true }, description: 'ផលិតផលថ្មី' },
+        { keys: { key: 'f', ctrl: true, cmd: true }, description: 'ផ្តោតស្វែងរក' },
+        { keys: { key: 'k', ctrl: true, cmd: true }, description: 'ប៉ាណែលពាក្យបញ្ជា' },
+        { keys: { key: 'r', ctrl: true, cmd: true }, description: 'ផ្ទុកទិន្នន័យឡើងវិញ' },
+        { keys: { key: 'Escape' }, description: 'បិទប្រអប់ / សម្អាតការស្វែងរក' },
       ]
     },
     {
-      category: 'Actions',
+      category: 'សកម្មភាព',
       items: [
-        { keys: { key: 'e', ctrl: true, cmd: true }, description: 'Export Products' },
-        { keys: { key: 's', ctrl: true, cmd: true }, description: 'Save Current Form' },
-        { keys: { key: 'd', ctrl: true, cmd: true }, description: 'Duplicate Selected' },
+        { keys: { key: 'e', ctrl: true, cmd: true }, description: 'នាំចេញផលិតផល' },
+        { keys: { key: 's', ctrl: true, cmd: true }, description: 'រក្សាទុកទម្រង់បច្ចុប្បន្ន' },
+        { keys: { key: 'd', ctrl: true, cmd: true }, description: 'ចម្លងអ្វីដែលបានជ្រើស' },
       ]
     },
     {
-      category: 'Navigation',
+      category: 'ការរុករក',
       items: [
-        { keys: { key: '↑' }, description: 'Previous Product' },
-        { keys: { key: '↓' }, description: 'Next Product' },
-        { keys: { key: 'Tab' }, description: 'Next Field' },
-        { keys: { key: 'Tab', shift: true }, description: 'Previous Field' },
+        { keys: { key: '↑' }, description: 'ផលិតផលមុន' },
+        { keys: { key: '↓' }, description: 'ផលិតផលបន្ទាប់' },
+        { keys: { key: 'Tab' }, description: 'វាលបន្ទាប់' },
+        { keys: { key: 'Tab', shift: true }, description: 'វាលមុន' },
       ]
     }
   ];
@@ -50,14 +50,14 @@ export function KeyboardShortcutsDialog() {
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm">
           <Keyboard className="h-4 w-4 mr-2" />
-          Shortcuts
+          ផ្លូវកាត់
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>⌨️ Keyboard Shortcuts</DialogTitle>
+          <DialogTitle>⌨️ ផ្លូវកាត់ក្តារចុច</DialogTitle>
           <DialogDescription>
-            Speed up your workflow with these keyboard shortcuts
+            បង្កើនល្បឿនការងាររបស់អ្នកជាមួយផ្លូវកាត់ទាំងនេះ
           </DialogDescription>
         </DialogHeader>
         
@@ -87,11 +87,11 @@ export function KeyboardShortcutsDialog() {
             <p className="text-xs text-muted-foreground">
               {isMac ? (
                 <>
-                  <strong>⌘ Command</strong> and <strong>⌥ Option</strong> keys are used on Mac
+                  ប៊ូតុង <strong>⌘ Command</strong> និង <strong>⌥ Option</strong> ត្រូវបានប្រើនៅលើ Mac
                 </>
               ) : (
                 <>
-                  <strong>Ctrl</strong> and <strong>Alt</strong> keys are used on Windows/Linux
+                  ប៊ូតុង <strong>Ctrl</strong> និង <strong>Alt</strong> ត្រូវបានប្រើនៅលើ Windows/Linux
                 </>
               )}
             </p>

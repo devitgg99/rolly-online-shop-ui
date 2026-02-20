@@ -13,7 +13,7 @@ export default function MyOrdersPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-foreground/60">Loading...</p>
+          <p className="text-foreground/60">កំពុងផ្ទុក...</p>
         </div>
       </div>
     );
@@ -24,10 +24,10 @@ export default function MyOrdersPage() {
   }
 
   const orderStats = [
-    { label: 'Pending', count: 0, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-    { label: 'Processing', count: 0, icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'Shipped', count: 0, icon: Truck, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { label: 'Delivered', count: 0, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { label: 'រង់ចាំ', count: 0, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { label: 'កំពុងដំណើរការ', count: 0, icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'បានដឹកជញ្ជូន', count: 0, icon: Truck, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: 'បានដឹកដល់', count: 0, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
   ];
 
   return (
@@ -37,9 +37,9 @@ export default function MyOrdersPage() {
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 flex items-center gap-3">
             <ShoppingBag className="w-8 h-8 text-primary" />
-            My Orders
+            ការបញ្ជាទិញរបស់ខ្ញុំ
           </h1>
-          <p className="text-foreground/60">Track and manage your orders</p>
+          <p className="text-foreground/60">តាមដាន និងគ្រប់គ្រងការបញ្ជាទិញ</p>
         </div>
 
         {/* Stats */}
@@ -65,12 +65,12 @@ export default function MyOrdersPage() {
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="text-center py-16">
             <ShoppingBag className="w-16 h-16 text-foreground/20 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No orders yet</h3>
+            <h3 className="text-xl font-semibold mb-2">មិនទាន់មានការបញ្ជាទិញ</h3>
             <p className="text-foreground/60 mb-6">
-              Start shopping and your orders will appear here
+              ចាប់ផ្តើមទិញ ហើយការបញ្ជាទិញរបស់អ្នកនឹងបង្ហាញនៅទីនេះ
             </p>
             <Button asChild>
-              <a href="/">Browse Products</a>
+              <a href="/">រុករកផលិតផល</a>
             </Button>
           </div>
         </div>

@@ -48,9 +48,9 @@ export default async function SalesPage() {
     return (
       <div className="p-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">Error Loading Sales</h1>
+          <h1 className="text-2xl font-bold text-red-600 mb-2">កំហុសក្នុងការផ្ទុកការលក់</h1>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'An unexpected error occurred'}
+            {error instanceof Error ? error.message : 'មានកំហុសមិនរំពឹងទុក'}
           </p>
         </div>
       </div>

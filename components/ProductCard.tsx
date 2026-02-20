@@ -45,14 +45,14 @@ export function ProductCard({
     e.stopPropagation();
     
     if (isOutOfStock) {
-      toast.error('Product is out of stock');
+      toast.error('ផលិតផលអស់ពីស្តុក');
       return;
     }
     
     if (onAddToCart) {
       onAddToCart(id);
     } else {
-      toast.success(`Added ${name} to cart!`);
+      toast.success(`បានដាក់ ${name} ក្នុងកន្រ្តក!`);
     }
   };
 
@@ -63,7 +63,7 @@ export function ProductCard({
     if (onAddToWishlist) {
       onAddToWishlist(id);
     } else {
-      toast.success(`Added ${name} to wishlist!`);
+      toast.success(`បានដាក់ ${name} ក្នុងបញ្ជីចង់បាន!`);
     }
   };
 
@@ -90,7 +90,7 @@ export function ProductCard({
         {isOutOfStock && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
             <span className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg text-sm font-bold">
-              OUT OF STOCK
+              អស់ពីស្តុក
             </span>
           </div>
         )}
@@ -111,7 +111,7 @@ export function ProductCard({
         <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-20 flex flex-col gap-2">
           {isNew && (
             <span className="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">
-              New
+              ថ្មី
             </span>
           )}
           {hasDiscount && !isOutOfStock && (
@@ -151,7 +151,7 @@ export function ProductCard({
         {/* Stock Warning */}
         {!isOutOfStock && stockQuantity > 0 && stockQuantity <= 10 && (
           <p className="text-xs text-orange-600 font-medium">
-            Only {stockQuantity} left in stock!
+            នៅសល់តែ {stockQuantity} ក្នុងស្តុក!
           </p>
         )}
         
@@ -179,7 +179,7 @@ export function ProductCard({
             disabled={isOutOfStock}
           >
             <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-            {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+            {isOutOfStock ? 'អស់ពីស្តុក' : 'ដាក់ក្នុងកន្រ្តក'}
           </Button>
         </div>
       </div>

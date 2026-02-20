@@ -67,7 +67,7 @@ export default function ReceiptDialog({
     try {
       const printWindow = window.open('', '_blank', 'width=360,height=700');
       if (!printWindow) {
-        toast.error('Please allow popups to print');
+        toast.error('សូមអនុញ្ញាតផ្ទាំងលេចឡើងដើម្បីបោះពុម្ព');
         return;
       }
 
@@ -103,22 +103,22 @@ export default function ReceiptDialog({
         setTimeout(() => printWindow.close(), 100);
       }, 250);
 
-      toast.success('Sending to XPRINTER...');
+      toast.success('កំពុងផ្ញើទៅម៉ាស៊ីនបោះពុម្ព...');
     } catch {
-      toast.error('Failed to print receipt');
+      toast.error('បរាជ័យក្នុងការបោះពុម្ពវិក្កយបត្រ');
     }
   };
 
   const handleDownloadImage = async () => {
     try {
       setIsProcessing(true);
-      toast.info('Generating image...');
+      toast.info('កំពុងបង្កើតរូបភាព...');
 
       const canvas = await captureReceiptAsCanvas();
 
       canvas.toBlob((blob) => {
         if (!blob) {
-          toast.error('Failed to generate image');
+          toast.error('បរាជ័យក្នុងការបង្កើតរូបភាព');
           return;
         }
 
@@ -129,10 +129,10 @@ export default function ReceiptDialog({
         link.click();
         URL.revokeObjectURL(url);
 
-        toast.success('Receipt image downloaded!');
+        toast.success('បានទាញយករូបភាពវិក្កយបត្រ!');
       }, 'image/png');
     } catch {
-      toast.error('Failed to download image');
+      toast.error('បរាជ័យក្នុងការទាញយករូបភាព');
     } finally {
       setIsProcessing(false);
     }
@@ -141,7 +141,7 @@ export default function ReceiptDialog({
   const handleDownloadPDF = async () => {
     try {
       setIsProcessing(true);
-      toast.info('Generating PDF...');
+      toast.info('កំពុងបង្កើត PDF...');
 
       const canvas = await captureReceiptAsCanvas();
       const imgData = canvas.toDataURL('image/png');
@@ -158,9 +158,9 @@ export default function ReceiptDialog({
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`receipt-${sale.id.slice(0, 8)}-${Date.now()}.pdf`);
 
-      toast.success('Receipt PDF downloaded!');
+      toast.success('បានទាញយក PDF វិក្កយបត្រ!');
     } catch {
-      toast.error('Failed to download PDF');
+      toast.error('បរាជ័យក្នុងការទាញយក PDF');
     } finally {
       setIsProcessing(false);
     }
@@ -171,7 +171,7 @@ export default function ReceiptDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col overflow-hidden" aria-describedby={undefined}>
         <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
           <DialogTitle className="flex items-center justify-between">
-            <span>Receipt Preview</span>
+            <span>មើលវិក្កយបត្រជាមុន</span>
             <Button
               variant="ghost"
               size="icon"
@@ -216,7 +216,7 @@ export default function ReceiptDialog({
               className="flex items-center gap-2"
             >
               <Printer className="w-4 h-4" />
-              Print
+              បោះពុម្ព
             </Button>
             <Button
               onClick={handleDownloadImage}
@@ -225,7 +225,7 @@ export default function ReceiptDialog({
               className="flex items-center gap-2"
             >
               <ImageIcon className="w-4 h-4" />
-              Image
+              រូបភាព
             </Button>
             <Button
               onClick={handleDownloadPDF}
@@ -238,7 +238,7 @@ export default function ReceiptDialog({
             </Button>
           </div>
           <p className="text-xs text-muted-foreground text-center">
-            Receipt #{sale.id.slice(0, 8).toUpperCase()} • 80mm thermal format
+            វិក្កយបត្រ #{sale.id.slice(0, 8).toUpperCase()} • ទម្រង់ 80mm
           </p>
         </div>
       </DialogContent>

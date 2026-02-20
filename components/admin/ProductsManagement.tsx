@@ -217,11 +217,11 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         setProducts(response.data.content);
         setTotalProducts(response.data.totalElements);
       } else {
-        toast.error('Failed to load products');
+        toast.error('បរាជ័យក្នុងការផ្ទុកផលិតផល');
       }
     } catch (error) {
       console.error('Error loading products:', error);
-      toast.error('Failed to load products');
+      toast.error('បរាជ័យក្នុងការផ្ទុកផលិតផល');
     } finally {
       setIsFetchingProducts(false);
     }
@@ -266,14 +266,14 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         if (localLowStock.length > 0) {
           setLowStockProducts(localLowStock);
           setShowLowStock(true);
-          toast.info(`Showing ${localLowStock.length} low stock products (local filter)`);
+          toast.info(`បង្ហាញ ${localLowStock.length} ផលិតផលស្តុកទាប (តម្រងក្នុងម៉ាស៊ីន)`);
         } else {
-          toast.error('Backend endpoint not available. Please update your backend with the new stats endpoints.');
+          toast.error('Endpoint មិនអាចប្រើបាន។ សូមធ្វើបច្ចុប្បន្នភាព backend។');
         }
       }
     } catch (error) {
       console.error('❌ Error loading low stock products:', error);
-      toast.error('Failed to load low stock products. Backend endpoint may not be available yet.');
+      toast.error('បរាជ័យក្នុងការផ្ទុកផលិតផលស្តុកទាប។');
     }
     setIsLoading(false);
   };
@@ -282,22 +282,22 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
   const handleFileUpload = async (file: File): Promise<string> => {
     try {
       if (!session?.backendToken) {
-        toast.error('Authentication required');
+        toast.error('ត្រូវការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ');
         throw new Error('No authentication token');
       }
 
-      toast.info('Uploading image... 📤');
+      toast.info('កំពុងបង្ហោះរូបភាព... 📤');
       const response = await uploadFileAction(file, session.backendToken);
       
       if (response.success && response.data?.url) {
-        toast.success('Image uploaded successfully! ✅');
+        toast.success('រូបភាពបានបង្ហោះដោយជោគជ័យ! ✅');
         return response.data.url;
       } else {
-        toast.error(response.message || 'Failed to upload image');
+        toast.error(response.message || 'បរាជ័យក្នុងការបង្ហោះរូបភាព');
         throw new Error(response.message || 'Upload failed');
       }
     } catch (error) {
-      toast.error('Failed to upload image. Please try again.');
+      toast.error('បរាជ័យក្នុងការបង្ហោះរូបភាព។ សូមព្យាយាមម្តងទៀត។');
       throw error;
     }
   };
@@ -306,7 +306,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
   const handleBarcodeScanned = (barcode: string) => {
     console.log('📱 Barcode scanned:', barcode);
     setFormData({ ...formData, barcode });
-    toast.success(`Barcode captured: ${barcode}`);
+    toast.success(`បានទទួលបាកូដ: ${barcode}`);
     setScannerOpen(false);
   };
 
@@ -314,7 +314,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
     e.preventDefault();
     
     if (!formData.imageUrl) {
-      toast.error('Please upload a product image');
+      toast.error('សូមបង្ហោះរូបភាពផលិតផល');
       return;
     }
 
@@ -324,12 +324,12 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
     const stockQuantity = parseInt(formData.stockQuantity) || 0;
 
     if (costPrice >= price) {
-      toast.error('Selling price must be greater than cost price!');
+      toast.error('តម្លៃលក់ត្រូវតែធំជាងតម្លៃដើម!');
       return;
     }
 
     if (price <= 0) {
-      toast.error('Selling price must be greater than 0!');
+      toast.error('តម្លៃលក់ត្រូវតែធំជាង 0!');
       return;
     }
 
@@ -389,9 +389,9 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
 
           // Functional updater to avoid stale closure
           setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? updated : p)));
-          toast.success('Product updated successfully! 🎉');
+          toast.success('ផលិតផលបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ! 🎉');
         } else {
-          toast.error(response.message || 'Failed to update product');
+          toast.error(response.message || 'បរាជ័យក្នុងការធ្វើបច្ចុប្បន្នភាពផលិតផល');
         }
       } else {
         const response = await createProductAction(productRequest);
@@ -420,15 +420,15 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
             variants: d.variants,
           };
           setProducts((prev) => [newProduct, ...prev]);
-          toast.success('Product created successfully! 🎉');
+          toast.success('ផលិតផលបានបង្កើតដោយជោគជ័យ! 🎉');
         } else {
-          toast.error(response.message || 'Failed to create product');
+          toast.error(response.message || 'បរាជ័យក្នុងការបង្កើតផលិតផល');
         }
       }
       
       resetForm();
     } catch (error) {
-      toast.error('An unexpected error occurred. Please try again.');
+      toast.error('មានកំហុសមិនរំពឹងទុកកើតឡើង។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
     }
@@ -507,12 +507,12 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         
         if (response.success) {
           setProducts(products.filter(p => p.id !== deleteDialog.productId));
-          toast.success('Product deleted successfully! 🗑️');
+          toast.success('ផលិតផលបានលុបដោយជោគជ័យ! 🗑️');
         } else {
-          toast.error(response.message || 'Failed to delete product');
+          toast.error(response.message || 'បរាជ័យក្នុងការលុបផលិតផល');
         }
       } catch (error) {
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error('មានកំហុសមិនរំពឹងទុកកើតឡើង។ សូមព្យាយាមម្តងទៀត។');
       } finally {
         setIsLoading(false);
       }
@@ -574,7 +574,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
   // Export handler
   const handleExport = async (format: 'csv' | 'excel') => {
     if (!session?.backendToken) {
-      toast.error('Authentication required');
+      toast.error('ត្រូវការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ');
       return;
     }
 
@@ -588,13 +588,13 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       const response = await exportProducts(format, session.backendToken, filters);
 
       if (response.success) {
-        toast.success(`Products exported successfully as ${format.toUpperCase()}!`);
+        toast.success(`ផលិតផលបាននាំចេញដោយជោគជ័យ (${format.toUpperCase()})!`);
       } else {
-        toast.error(response.message || 'Failed to export products');
+        toast.error(response.message || 'បរាជ័យក្នុងការនាំចេញផលិតផល');
       }
     } catch (error) {
       console.error('Error exporting products:', error);
-      toast.error('Failed to export products');
+      toast.error('បរាជ័យក្នុងការនាំចេញផលិតផល');
     } finally {
       setIsExporting(false);
     }
@@ -663,7 +663,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
   const handleBulkDelete = async () => {
     if (selectedProducts.size === 0) return;
     
-    if (!confirm(`Delete ${selectedProducts.size} products? This cannot be undone.`)) {
+    if (!confirm(`លុប ${selectedProducts.size} ផលិតផល? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានឡើយ។`)) {
       return;
     }
 
@@ -674,9 +674,9 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       
       setProducts(products.filter(p => !selectedProducts.has(p.id)));
       setSelectedProducts(new Set());
-      toast.success(`${selectedProducts.size} products deleted successfully!`);
+      toast.success(`${selectedProducts.size} ផលិតផលបានលុបដោយជោគជ័យ!`);
     } catch (error) {
-      toast.error('Failed to delete some products');
+      toast.error('បរាជ័យក្នុងការលុបផលិតផលមួយចំនួន');
     } finally {
       setIsLoading(false);
     }
@@ -688,7 +688,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       <div className="flex justify-end">
         <Button size="lg" className="shadow-lg" onClick={handleOpenDialog}>
           <Plus className="w-5 h-5 mr-2" />
-          Add Product
+          បន្ថែមផលិតផល
         </Button>
       </div>
 
@@ -696,9 +696,9 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
               <DialogHeader>
-                <DialogTitle className="text-2xl">{editingProduct ? 'Edit Product' : 'Create New Product'}</DialogTitle>
+                <DialogTitle className="text-2xl">{editingProduct ? 'កែសម្រួលផលិតផល' : 'បង្កើតផលិតផលថ្មី'}</DialogTitle>
                 <DialogDescription>
-                  {editingProduct ? 'Update the product information below' : 'Fill in the details to add a new product to your inventory'}
+                  {editingProduct ? 'ធ្វើបច្ចុប្បន្នភាពព័ត៌មានផលិតផលខាងក្រោម' : 'បំពេញព័ត៌មានលម្អិតដើម្បីបន្ថែមផលិតផលថ្មីទៅក្នុងស្តុក'}
                 </DialogDescription>
               </DialogHeader>
 
@@ -726,7 +726,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                   />
                   <Label htmlFor="isVariant" className="flex items-center gap-2 cursor-pointer">
                     <GitBranch className="w-4 h-4" />
-                    This is a variant of an existing product
+                    នេះជាបំរែបំរួលនៃផលិតផលដែលមានស្រាប់
                   </Label>
                 </div>
 
@@ -734,7 +734,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                 {formData.isVariant && (
                   <div className="p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 space-y-4">
                     <div className="space-y-2">
-                      <Label>Parent Product *</Label>
+                      <Label>ផលិតផលមេ *</Label>
                       <Select
                         value={formData.parentProductId}
                         onValueChange={(parentId) => {
@@ -759,7 +759,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         required
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select parent product" />
+                          <SelectValue placeholder="ជ្រើសរើសផលិតផលមេ" />
                         </SelectTrigger>
                         <SelectContent>
                           {parentProductOptions.map((p) => (
@@ -789,27 +789,27 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div className="space-y-2">
-                            <Label>Variant Code</Label>
+                            <Label>កូដបំរែបំរួល</Label>
                             <Input
                               value={formData.variantCode}
                               onChange={(e) => setFormData({ ...formData, variantCode: e.target.value })}
-                              placeholder="e.g. 21, 23"
+                              placeholder="ឧ. 21, 23"
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Variant Color</Label>
+                            <Label>ពណ៌បំរែបំរួល</Label>
                             <Input
                               value={formData.variantColor}
                               onChange={(e) => setFormData({ ...formData, variantColor: e.target.value })}
-                              placeholder="e.g. Blonde, Brown"
+                              placeholder="ឧ. Blonde, Brown"
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Variant Size</Label>
+                            <Label>ទំហំបំរែបំរួល</Label>
                             <Input
                               value={formData.variantSize}
                               onChange={(e) => setFormData({ ...formData, variantSize: e.target.value })}
-                              placeholder="e.g. Big, Small"
+                              placeholder="ឧ. ធំ, តូច"
                             />
                           </div>
                         </div>
@@ -821,28 +821,28 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Product Name — auto-filled for variants but editable */}
                   <div className="space-y-2">
-                    <Label htmlFor="name">Product Name *</Label>
+                    <Label htmlFor="name">ឈ្មោះផលិតផល *</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder={formData.isVariant ? 'Inherited from parent' : 'Enter product name'}
+                      placeholder={formData.isVariant ? 'ទទួលពីផលិតផលមេ' : 'បញ្ចូលឈ្មោះផលិតផល'}
                       required
                       disabled={formData.isVariant && !!formData.parentProductId}
                     />
                     {formData.isVariant && formData.parentProductId && (
-                      <p className="text-xs text-blue-600">Auto-filled from parent product</p>
+                      <p className="text-xs text-blue-600">បំពេញស្វ័យប្រវត្តិពីផលិតផលមេ</p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="barcode">Barcode (Optional)</Label>
+                    <Label htmlFor="barcode">បាកូដ (ស្រេចចិត្ត)</Label>
                     <div className="flex gap-2">
                       <Input
                         id="barcode"
                         value={formData.barcode}
                         onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                        placeholder="Scan or enter barcode"
+                        placeholder="ស្កេន ឬបញ្ចូលបាកូដ"
                         className="flex-1"
                       />
                       <Button
@@ -850,7 +850,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         variant="outline"
                         size="icon"
                         onClick={() => setScannerOpen(true)}
-                        title="Scan barcode"
+                        title="ស្កេនបាកូដ"
                       >
                         <Package className="h-4 w-4" />
                       </Button>
@@ -860,19 +860,19 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                   {/* Description — optional for variants */}
                   {(!formData.isVariant || formData.description) && (
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="description">Description {formData.isVariant ? '(Optional)' : ''}</Label>
+                      <Label htmlFor="description">ការពិពណ៌នា {formData.isVariant ? '(ស្រេចចិត្ត)' : ''}</Label>
                       <Input
                         id="description"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder={formData.isVariant ? 'Leave empty to use parent description' : 'Brief description'}
+                        placeholder={formData.isVariant ? 'ទុកទទេដើម្បីប្រើការពិពណ៌នាផលិតផលមេ' : 'ការពិពណ៌នាខ្លី'}
                       />
                     </div>
                   )}
 
                   {/* Category — auto-filled & disabled for variants */}
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category *</Label>
+                    <Label htmlFor="category">ប្រភេទ *</Label>
                     <Select
                       value={formData.categoryId}
                       onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
@@ -880,7 +880,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                       disabled={isLoading || (formData.isVariant && !!formData.parentProductId)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue placeholder="ជ្រើសរើសប្រភេទ" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
@@ -889,20 +889,20 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                       </SelectContent>
                     </Select>
                     {formData.isVariant && formData.parentProductId && (
-                      <p className="text-xs text-blue-600">Same as parent product</p>
+                      <p className="text-xs text-blue-600">ដូចគ្នានឹងផលិតផលមេ</p>
                     )}
                   </div>
 
                   {/* Stock — always required */}
                   <div className="space-y-2">
-                    <Label htmlFor="stock">Stock Quantity *</Label>
+                    <Label htmlFor="stock">បរិមាណស្តុក *</Label>
                     <Input
                       id="stock"
                       type="number"
                       min="0"
                       value={formData.stockQuantity}
                       onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                      placeholder="Enter quantity"
+                      placeholder="បញ្ចូលបរិមាណ"
                       required
                     />
                   </div>
@@ -913,7 +913,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium">Price: Same as parent</p>
+                          <p className="text-sm font-medium">តម្លៃ: ដូចផលិតផលមេ</p>
                           <p className="text-xs text-muted-foreground">
                             Cost ${formData.costPrice || '0.00'} → Sell ${formData.price || '0.00'}
                           </p>
@@ -925,7 +925,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                           onClick={() => setFormData({ ...formData, useCustomPrice: true })}
                         >
                           <Pencil className="w-3 h-3 mr-1.5" />
-                          Custom Price
+                          តម្លៃផ្ទាល់ខ្លួន
                         </Button>
                       </div>
                     </div>
@@ -934,7 +934,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     <>
                       {formData.isVariant && formData.useCustomPrice && (
                         <div className="md:col-span-2 flex items-center justify-between p-3 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-                          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Custom pricing enabled for this variant</p>
+                          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">បើកតម្លៃផ្ទាល់ខ្លួនសម្រាប់បំរែបំរួលនេះ</p>
                           <Button
                             type="button"
                             variant="ghost"
@@ -951,13 +951,13 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                             }}
                           >
                             <X className="w-3 h-3 mr-1" />
-                            Use Parent Price
+                            ប្រើតម្លៃផលិតផលមេ
                           </Button>
                         </div>
                       )}
 
                       <div className="space-y-2">
-                        <Label htmlFor="costPrice">Cost Price ($) *</Label>
+                        <Label htmlFor="costPrice">តម្លៃដើម ($) *</Label>
                         <Input
                           id="costPrice"
                           type="number"
@@ -965,13 +965,13 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                           step="0.01"
                           value={formData.costPrice}
                           onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                          placeholder="What you paid"
+                          placeholder="តម្លៃដែលអ្នកទិញ"
                           required
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="price">Selling Price ($) *</Label>
+                        <Label htmlFor="price">តម្លៃលក់ ($) *</Label>
                         <Input
                           id="price"
                           type="number"
@@ -979,13 +979,13 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                           step="0.01"
                           value={formData.price}
                           onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                          placeholder="What customer pays"
+                          placeholder="តម្លៃអតិថិជនបង់"
                           required
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="discount">Discount (%)</Label>
+                        <Label htmlFor="discount">បញ្ចុះតម្លៃ (%)</Label>
                         <Input
                           id="discount"
                           type="number"
@@ -1000,7 +1000,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                       {(parseFloat(formData.costPrice) > 0 && parseFloat(formData.price) > 0) && (
                         <div className="md:col-span-2 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Estimated Profit:</span>
+                            <span className="text-sm font-medium">ប្រាក់ចំណេញប៉ាន់ស្មាន:</span>
                             <span className={`text-lg font-bold ${parseFloat(formData.price) > parseFloat(formData.costPrice) ? 'text-green-600' : 'text-red-600'}`}>
                               ${(parseFloat(formData.price) - parseFloat(formData.costPrice)).toFixed(2)}
                             </span>
@@ -1012,7 +1012,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
 
                   {/* Product Image — always required */}
                   <div className="space-y-2 md:col-span-2">
-                    <Label>Product Image *</Label>
+                    <Label>រូបភាពផលិតផល *</Label>
                     <ImageUpload
                       value={formData.imageUrl}
                       onChange={(url) => setFormData({ ...formData, imageUrl: url })}
@@ -1025,10 +1025,10 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
 
                 <DialogFooter className="gap-2">
                   <Button type="button" variant="outline" onClick={resetForm} disabled={isLoading}>
-                    Cancel
+                    បោះបង់
                   </Button>
                   <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Saving...' : (editingProduct ? 'Update Product' : 'Create Product')}
+                    {isLoading ? 'កំពុងរក្សាទុក...' : (editingProduct ? 'ធ្វើបច្ចុប្បន្នភាពផលិតផល' : 'បង្កើតផលិតផល')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -1039,40 +1039,40 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+              <CardTitle className="text-sm font-medium">ផលិតផលសរុប</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {inventoryStats?.totalProducts ?? products.length}
               </div>
-              <p className="text-xs text-muted-foreground">All products</p>
+              <p className="text-xs text-muted-foreground">ផលិតផលទាំងអស់</p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
+              <CardTitle className="text-sm font-medium">តម្លៃស្តុក</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 ${(inventoryStats?.totalValue ?? totalValue).toLocaleString(undefined, {maximumFractionDigits: 2})}
               </div>
-              <p className="text-xs text-muted-foreground">Cost × Stock</p>
+              <p className="text-xs text-muted-foreground">តម្លៃដើម × ស្តុក</p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-green-200 dark:border-green-800">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Potential Profit 💰</CardTitle>
+              <CardTitle className="text-sm font-medium">ប្រាក់ចំណេញសក្តានុពល 💰</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
                 ${(inventoryStats?.totalPotentialProfit ?? totalProfit).toLocaleString(undefined, {maximumFractionDigits: 2})}
               </div>
-              <p className="text-xs text-muted-foreground">Potential earnings</p>
+              <p className="text-xs text-muted-foreground">ប្រាក់ចំណូលសក្តានុពល</p>
             </CardContent>
           </Card>
 
@@ -1081,7 +1081,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
             onClick={loadLowStockProducts}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Low Stock ⚠️</CardTitle>
+              <CardTitle className="text-sm font-medium">ស្តុកទាប ⚠️</CardTitle>
               <AlertTriangle className="h-4 w-4 text-amber-600" />
             </CardHeader>
             <CardContent>
@@ -1089,7 +1089,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                 {inventoryStats?.lowStockCount ?? products.filter(p => getEffectiveStock(p) < lowStockThreshold).length}
               </div>
               <p className="text-xs text-muted-foreground">
-                Need restock (≤{lowStockThreshold}) - Click to view
+                ត្រូវការបញ្ចូលស្តុក (≤{lowStockThreshold}) - ចុចដើម្បីមើល
               </p>
             </CardContent>
           </Card>
@@ -1104,10 +1104,10 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                   <AlertTriangle className="h-5 w-5 text-amber-600" />
                   <div>
                     <CardTitle className="text-amber-900 dark:text-amber-100">
-                      Low Stock Alert 📦
+                      ការជូនដំណឹងស្តុកទាប 📦
                     </CardTitle>
                     <CardDescription className="text-amber-700 dark:text-amber-300">
-                      {lowStockProducts.length} product{lowStockProducts.length !== 1 ? 's' : ''} need restocking
+                      {lowStockProducts.length} ផលិតផលត្រូវការបញ្ចូលស្តុក
                     </CardDescription>
                   </div>
                 </div>
@@ -1149,9 +1149,9 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                               className="text-xs"
                             >
                               {product.stockQuantity === 0 ? (
-                                <>Out of Stock</>
+                                <>អស់ពីស្តុក</>
                               ) : (
-                                <>{product.stockQuantity} left</>
+                                <>{product.stockQuantity} នៅសល់</>
                               )}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
@@ -1173,13 +1173,13 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CardTitle className="text-lg">Filters</CardTitle>
+                <CardTitle className="text-lg">តម្រង</CardTitle>
                 <span className="text-sm text-muted-foreground">
-                  ({filteredProducts.length} of {products.length})
+                  ({filteredProducts.length} នៃ {products.length})
                 </span>
                 {selectedProducts.size > 0 && (
                   <Badge variant="secondary">
-                    {selectedProducts.size} selected
+                    {selectedProducts.size} បានជ្រើសរើស
                   </Badge>
                 )}
               </div>
@@ -1192,7 +1192,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     disabled={isLoading}
                   >
                     <Trash2 className="w-3 h-3 mr-1" />
-                    Delete Selected ({selectedProducts.size})
+                    លុបដែលបានជ្រើសរើស ({selectedProducts.size})
                   </Button>
                 )}
                 
@@ -1205,7 +1205,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                   className="h-8"
                 >
                   <Download className="w-3 h-3 mr-1" />
-                  Export CSV
+                  នាំចេញ CSV
                 </Button>
                 <Button
                   variant="outline"
@@ -1215,7 +1215,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                   className="h-8"
                 >
                   <Download className="w-3 h-3 mr-1" />
-                  Export Excel
+                  នាំចេញ Excel
                 </Button>
                 
                 {activeFiltersCount > 0 && (
@@ -1225,7 +1225,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     onClick={clearAllFilters}
                     className="h-8 text-xs"
                   >
-                    Clear all
+                    សម្អាតទាំងអស់
                   </Button>
                 )}
               </div>
@@ -1237,7 +1237,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 ref={searchInputRef}
-                placeholder="Search products... (Ctrl+K)"
+                placeholder="ស្វែងរកផលិតផល... (Ctrl+K)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9 pr-20"
@@ -1261,7 +1261,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
             <div className="space-y-3">
               {/* Category - Horizontal Scrolling */}
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Category</Label>
+                <Label className="text-xs text-muted-foreground">ប្រភេទ</Label>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
                   <Button
                     variant={filterCategory === 'all' ? 'default' : 'outline'}
@@ -1272,7 +1272,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     }}
                     className="flex-shrink-0 snap-start"
                   >
-                    All Categories
+                    ប្រភេទទាំងអស់
                   </Button>
                   {categories.map((category) => (
                     <Button
@@ -1378,7 +1378,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                       <Link href={`/products/${product.id}`}>
                         <Button size="sm" variant="secondary">
                           <Eye className="w-3 h-3 mr-1" />
-                          View
+                          មើល
                         </Button>
                       </Link>
                       <Button size="sm" variant="secondary" onClick={() => handleEdit(product)}>
@@ -1412,14 +1412,14 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                           onClick={(e) => { e.stopPropagation(); toggleExpandParent(product.id); }}
                         >
                           <GitBranch className="w-3 h-3 mr-0.5" />
-                          Variants
+                          បំរែបំរួល
                           {expandedParents.has(product.id) ? <ChevronUp className="w-3 h-3 ml-0.5" /> : <ChevronDown className="w-3 h-3 ml-0.5" />}
                         </Badge>
                       )}
                       {product.isVariant && (
                         <Badge variant="outline" className="w-fit text-[10px] sm:text-xs border-purple-300 text-purple-600">
                           <GitBranch className="w-3 h-3 mr-0.5" />
-                          Variant
+                          បំរែបំរួល
                         </Badge>
                       )}
                       <Badge variant="secondary" className="w-fit text-[10px] sm:text-xs hidden xs:inline-flex">
@@ -1431,13 +1431,13 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     {product.hasVariants && expandedParents.has(product.id) && (
                       <div className="space-y-1 pt-1 border-t">
                         {loadingVariants.has(product.id) ? (
-                          <p className="text-[10px] text-muted-foreground">Loading variants...</p>
+                          <p className="text-[10px] text-muted-foreground">កំពុងផ្ទុកបំរែបំរួល...</p>
                         ) : (
                           (product.variants || variantsCache[product.id] || []).map((v) => {
                             const label = [v.variantCode && `#${v.variantCode}`, v.variantColor, v.variantSize].filter(Boolean).join(' · ');
                             return (
                               <div key={v.id} className="flex items-center justify-between text-[10px] sm:text-xs px-1.5 py-1 bg-muted/50 rounded">
-                                <span className="font-medium truncate">{label || 'Variant'}</span>
+                                <span className="font-medium truncate">{label || 'បំរែបំរួល'}</span>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <span className="text-muted-foreground">×{v.stockQuantity}</span>
                                   <span className="font-semibold">${v.price.toFixed(2)}</span>
@@ -1465,7 +1465,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         {formatKHR(product.discountedPrice)}
                       </span>
                       <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
-                        <span className="hidden sm:inline">Cost: {formatUSD(product.costPrice)}</span>
+                        <span className="hidden sm:inline">តម្លៃដើម: {formatUSD(product.costPrice)}</span>
                         <span className="text-green-600 font-semibold text-[10px] sm:text-xs">
                           +{formatUSD(product.profit)}
                         </span>
@@ -1482,14 +1482,14 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         disabled={isLoading}
                       >
                         <Pencil className="w-3 h-3 sm:mr-1" />
-                        <span className="hidden sm:inline">Edit</span>
+                        <span className="hidden sm:inline">កែ</span>
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleOpenStockHistory(product)}
                         className="h-7 sm:h-8 px-1.5 sm:px-2"
-                        title="Stock History"
+                        title="ប្រវត្តិស្តុក"
                       >
                         <History className="w-3 h-3" />
                       </Button>
@@ -1498,7 +1498,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         size="sm"
                         onClick={() => handleOpenMultiImage(product)}
                         className="h-7 sm:h-8 px-1.5 sm:px-2"
-                        title="Images"
+                        title="រូបភាព"
                       >
                         <ImageIcon className="w-3 h-3" />
                       </Button>
@@ -1508,7 +1508,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         onClick={() => handleDelete(product.id)}
                         className="h-7 sm:h-8 px-1.5 sm:px-2 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                         disabled={isLoading}
-                        title="Delete"
+                        title="លុប"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -1534,14 +1534,14 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                           className="rounded border-gray-300"
                         />
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold">Product</th>
-                      <th className="px-4 py-3 text-left font-semibold hidden md:table-cell">Category</th>
-                      <th className="px-4 py-3 text-right font-semibold">Cost</th>
-                      <th className="px-4 py-3 text-right font-semibold">Price</th>
-                      <th className="px-4 py-3 text-right font-semibold hidden lg:table-cell">Profit</th>
-                      <th className="px-4 py-3 text-center font-semibold">Stock</th>
-                      <th className="px-4 py-3 text-right font-semibold hidden xl:table-cell">Total Value</th>
-                      <th className="px-4 py-3 text-center font-semibold">Actions</th>
+                      <th className="px-4 py-3 text-left font-semibold">ផលិតផល</th>
+                      <th className="px-4 py-3 text-left font-semibold hidden md:table-cell">ប្រភេទ</th>
+                      <th className="px-4 py-3 text-right font-semibold">តម្លៃដើម</th>
+                      <th className="px-4 py-3 text-right font-semibold">តម្លៃ</th>
+                      <th className="px-4 py-3 text-right font-semibold hidden lg:table-cell">ចំណេញ</th>
+                      <th className="px-4 py-3 text-center font-semibold">ស្តុក</th>
+                      <th className="px-4 py-3 text-right font-semibold hidden xl:table-cell">តម្លៃសរុប</th>
+                      <th className="px-4 py-3 text-center font-semibold">សកម្មភាព</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1636,7 +1636,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                             </Badge>
                             {product.hasVariants && (
                               <div className="text-[10px] text-muted-foreground mt-0.5">
-                                {product.variants?.length ?? '?'} variants
+                                {product.variants?.length ?? '?'} បំរែបំរួល
                               </div>
                             )}
                           </td>
@@ -1655,7 +1655,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-center gap-1">
                               <Link href={`/products/${product.id}`}>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="View Product">
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="មើលផលិតផល">
                                   <Eye className="w-3 h-3" />
                                 </Button>
                               </Link>
@@ -1665,7 +1665,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                                 onClick={() => handleEdit(product)}
                                 disabled={isLoading}
                                 className="h-8 w-8 p-0"
-                                title="Edit Product"
+                                title="កែសម្រួលផលិតផល"
                               >
                                 <Pencil className="w-3 h-3" />
                               </Button>
@@ -1674,7 +1674,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                                 size="sm"
                                 onClick={() => handleOpenStockHistory(product)}
                                 className="h-8 w-8 p-0"
-                                title="Stock History"
+                                title="ប្រវត្តិស្តុក"
                               >
                                 <History className="w-3 h-3" />
                               </Button>
@@ -1683,7 +1683,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                                 size="sm"
                                 onClick={() => handleOpenMultiImage(product)}
                                 className="h-8 w-8 p-0"
-                                title="Manage Images"
+                                title="គ្រប់គ្រងរូបភាព"
                               >
                                 <ImageIcon className="w-3 h-3" />
                               </Button>
@@ -1693,7 +1693,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                                 onClick={() => handleDelete(product.id)}
                                 disabled={isLoading}
                                 className="h-8 w-8 p-0 hover:text-destructive"
-                                title="Delete Product"
+                                title="លុបផលិតផល"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </Button>
@@ -1712,21 +1712,21 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
           <Card className="text-center py-12">
             <CardContent>
               <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No products found</h3>
+              <h3 className="text-lg font-semibold mb-2">រកមិនឃើញផលិតផល</h3>
               <p className="text-muted-foreground text-sm mb-4">
                 {activeFiltersCount > 0
-                  ? 'No products match your current filters. Try adjusting or clearing them.'
-                  : 'Get started by creating your first product'}
+                  ? 'គ្មានផលិតផលត្រូវនឹងតម្រងបច្ចុប្បន្នរបស់អ្នក។ សាកល្បងតម្រងផ្សេង។'
+                  : 'ចាប់ផ្តើមដោយបង្កើតផលិតផលដំបូងរបស់អ្នក'}
               </p>
               {activeFiltersCount > 0 ? (
                 <Button onClick={clearAllFilters} variant="outline">
                   <X className="w-4 h-4 mr-2" />
-                  Clear Filters
+                  សម្អាតតម្រង
                 </Button>
               ) : (
                 <Button onClick={() => setDialogOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Product
+                  បង្កើតផលិតផល
                 </Button>
               )}
             </CardContent>
@@ -1739,7 +1739,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, totalProducts)} of {totalProducts} products
+                  បង្ហាញ {currentPage * pageSize + 1} ដល់ {Math.min((currentPage + 1) * pageSize, totalProducts)} នៃ {totalProducts} ផលិតផល
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -1749,10 +1749,10 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     disabled={currentPage === 0}
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Previous
+                    មុន
                   </Button>
                   <div className="text-sm font-medium px-3">
-                    Page {currentPage + 1} of {Math.ceil(totalProducts / pageSize)}
+                    ទំព័រ {currentPage + 1} នៃ {Math.ceil(totalProducts / pageSize)}
                   </div>
                   <Button
                     variant="outline"
@@ -1760,7 +1760,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={(currentPage + 1) * pageSize >= totalProducts}
                   >
-                    Next
+                    បន្ទាប់
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
@@ -1774,10 +1774,10 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
           open={deleteDialog.open}
           onOpenChange={(open) => setDeleteDialog({ open, productId: null })}
           onConfirm={confirmDelete}
-          title="Delete Product"
-          description="Are you sure you want to delete this product? This action cannot be undone."
-          confirmText="Delete"
-          cancelText="Cancel"
+          title="លុបផលិតផល"
+          description="តើអ្នកប្រាកដថាចង់លុបផលិតផលនេះមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានឡើយ។"
+          confirmText="លុប"
+          cancelText="បោះបង់"
           variant="destructive"
         />
 

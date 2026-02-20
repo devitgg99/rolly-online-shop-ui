@@ -41,11 +41,11 @@ interface POSTerminalProps {
 type PaymentMethod = 'CASH' | 'CARD' | 'E_WALLET' | 'BANK_TRANSFER' | 'COD';
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType }[] = [
-  { value: 'CASH', label: 'Cash', icon: Banknote },
-  { value: 'CARD', label: 'Card', icon: CreditCard },
-  { value: 'E_WALLET', label: 'E-Wallet', icon: Smartphone },
-  { value: 'BANK_TRANSFER', label: 'Transfer', icon: Building2 },
-  { value: 'COD', label: 'COD', icon: Truck },
+  { value: 'CASH', label: 'សាច់ប្រាក់', icon: Banknote },
+  { value: 'CARD', label: 'កាត', icon: CreditCard },
+  { value: 'E_WALLET', label: 'កាបូបអេឡិចត្រូនិច', icon: Smartphone },
+  { value: 'BANK_TRANSFER', label: 'ផ្ទេរប្រាក់', icon: Building2 },
+  { value: 'COD', label: 'បង់ប្រាក់ពេលទទួល', icon: Truck },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -153,7 +153,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
 
   const addToCart = useCallback((product: AdminProduct) => {
     if (product.stockQuantity <= 0) {
-      toast.error('Out of stock');
+      toast.error('អស់ពីស្តុក');
       return;
     }
 
@@ -161,7 +161,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
       const existing = prev.find(i => i.product.id === product.id);
       if (existing) {
         if (existing.quantity >= product.stockQuantity) {
-          toast.error(`Only ${product.stockQuantity} available`);
+          toast.error(`មាន​តែ ${product.stockQuantity} ប៉ុណ្ណោះ`);
           return prev;
         }
         return prev.map(i =>
@@ -186,7 +186,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
           const newQty = item.quantity + delta;
           if (newQty <= 0) return acc; // Remove item
           if (newQty > item.product.stockQuantity) {
-            toast.error(`Only ${item.product.stockQuantity} available`);
+            toast.error(`មាន​តែ ${item.product.stockQuantity} ប៉ុណ្ណោះ`);
             return [...acc, item];
           }
           return [...acc, { ...item, quantity: newQty, subtotal: newQty * item.product.discountedPrice }];
@@ -251,7 +251,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
     const localMatch = products.find(p => p.barcode === barcode);
     if (localMatch) {
       addToCart(localMatch);
-      toast.success(`Added: ${localMatch.name}`);
+      toast.success(`បានបន្ថែម: ${localMatch.name}`);
       return;
     }
 
@@ -283,12 +283,12 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
           variants: d.variants,
         };
         addToCart(product);
-        toast.success(`Added: ${product.name}`);
+        toast.success(`បានបន្ថែម: ${product.name}`);
       } else {
-        toast.error('Product not found');
+        toast.error('រកមិនឃើញផលិតផល');
       }
     } catch {
-      toast.error('Scan failed');
+      toast.error('ស្កេនបរាជ័យ');
     }
   };
 
@@ -296,14 +296,14 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
 
   const handleSubmit = async () => {
     if (cart.length === 0) {
-      toast.error('Cart is empty');
+      toast.error('កន្រ្តកទទេ');
       return;
     }
 
     // Stock validation
     for (const item of cart) {
       if (item.quantity > item.product.stockQuantity) {
-        toast.error(`${item.product.name}: Only ${item.product.stockQuantity} available`);
+        toast.error(`${item.product.name}: មាន​តែ ${item.product.stockQuantity} ប៉ុណ្ណោះ`);
         return;
       }
     }
@@ -324,13 +324,13 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
       if (response.success && response.data) {
         setCompletedSale(response.data);
         setShowReceipt(true);
-        toast.success('Sale completed!');
+        toast.success('ការលក់បានបញ្ចប់!');
         clearCart();
       } else {
-        toast.error(response.message || 'Failed to process sale');
+        toast.error(response.message || 'បរាជ័យក្នុងការបញ្ចប់ការលក់');
       }
     } catch {
-      toast.error('An error occurred');
+      toast.error('មានបញ្ហាកើតឡើង');
     } finally {
       setIsSubmitting(false);
     }
@@ -386,7 +386,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
           )}
         >
           <Package className="w-4 h-4 inline-block mr-1.5" />
-          Products
+          ផលិតផល
         </button>
         <button
           onClick={() => setMobileView('cart')}
@@ -398,7 +398,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
           )}
         >
           <ShoppingCart className="w-4 h-4 inline-block mr-1.5" />
-          Cart
+          កន្រ្តក
           {cartItemCount > 0 && (
             <Badge className="absolute top-1.5 right-[30%] text-[10px] px-1.5 py-0 h-5 min-w-5">
               {cartItemCount}
@@ -424,7 +424,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                 <Input
                   ref={searchRef}
                   type="text"
-                  placeholder="Search products or scan barcode..."
+                  placeholder="ស្វែងរកផលិតផល ឬស្កេនបាកូដ..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 h-10"
@@ -460,7 +460,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                     : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
                 )}
               >
-                All
+                ទាំងអស់
               </button>
               {categoryNames.map(name => (
                 <button
@@ -484,10 +484,10 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
             {filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                 <Package className="w-12 h-12 mb-3 opacity-30" />
-                <p className="text-sm">No products found</p>
+                <p className="text-sm">រកមិនឃើញផលិតផល</p>
                 {searchTerm && (
                   <Button variant="link" size="sm" onClick={() => setSearchTerm('')}>
-                    Clear search
+                    សម្អាតការស្វែងរក
                   </Button>
                 )}
               </div>
@@ -550,7 +550,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                           {/* Out of Stock Overlay */}
                           {isOutOfStock && (
                             <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                              <span className="text-[9px] sm:text-xs font-bold text-white tracking-wide">SOLD OUT</span>
+                              <span className="text-[9px] sm:text-xs font-bold text-white tracking-wide">អស់ហើយ</span>
                             </div>
                           )}
 
@@ -586,7 +586,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                           {isParent && (
                             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-600/95 to-blue-600/80 text-white text-[8px] sm:text-[9px] font-semibold px-1.5 py-1 flex items-center justify-center gap-1">
                               <GitBranch className="w-2.5 h-2.5" />
-                              {variantsByParent[product.id]?.length || '?'} variants
+                              {variantsByParent[product.id]?.length || '?'} បំរែបំរួល
                             </div>
                           )}
                         </div>
@@ -619,7 +619,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
 
                 {/* Product Count */}
                 <p className="text-center text-xs text-muted-foreground py-2">
-                  {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+                  {filteredProducts.length} ផលិតផល
                 </p>
               </div>
             )}
@@ -638,17 +638,17 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
           <div className="p-3 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShoppingCart className="w-4 h-4" />
-              <span className="font-semibold text-sm">Cart</span>
+              <span className="font-semibold text-sm">កន្រ្តក</span>
               {cartItemCount > 0 && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
-                  {cartItemCount} item{cartItemCount !== 1 ? 's' : ''}
+                  {cartItemCount} មុខ
                 </Badge>
               )}
             </div>
             {cart.length > 0 && (
               <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive hover:text-destructive" onClick={clearCart}>
                 <RotateCcw className="w-3 h-3 mr-1" />
-                Clear
+                សម្អាត
               </Button>
             )}
           </div>
@@ -658,8 +658,8 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-6">
                 <ShoppingCart className="w-10 h-10 mb-3 opacity-20" />
-                <p className="text-sm font-medium">Cart is empty</p>
-                <p className="text-xs mt-1">Tap products to add them</p>
+                <p className="text-sm font-medium">កន្រ្តកទទេ</p>
+                <p className="text-xs mt-1">ចុចផលិតផលដើម្បីបន្ថែម</p>
               </div>
             ) : (
               <div className="divide-y">
@@ -706,7 +706,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                         <div className="text-right">
                           <p className="text-xs sm:text-sm font-bold">{formatUSD(item.subtotal)}</p>
                           {item.quantity > 1 && (
-                            <p className="text-[9px] text-muted-foreground">{formatUSD(item.product.discountedPrice)} each</p>
+                            <p className="text-[9px] text-muted-foreground">{formatUSD(item.product.discountedPrice)} នីមួយៗ</p>
                           )}
                         </div>
                       </div>
@@ -735,26 +735,26 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
                 >
                   <User className="w-3 h-3" />
-                  <span>Customer info & notes</span>
+                  <span>ព័ត៌មានអតិថិជន និងកំណត់ចំណាំ</span>
                   <ChevronRight className={cn('w-3 h-3 ml-auto transition-transform', showCustomerFields && 'rotate-90')} />
                 </button>
                 
                 {showCustomerFields && (
                   <div className="mt-2 space-y-1.5">
                     <Input
-                      placeholder="Customer name"
+                      placeholder="ឈ្មោះអតិថិជន"
                       value={customerName}
                       onChange={e => setCustomerName(e.target.value)}
                       className="h-8 text-xs"
                     />
                     <Input
-                      placeholder="Phone number"
+                      placeholder="លេខទូរសព្ទ"
                       value={customerPhone}
                       onChange={e => setCustomerPhone(e.target.value)}
                       className="h-8 text-xs"
                     />
                     <Input
-                      placeholder="Notes"
+                      placeholder="កំណត់ចំណាំ"
                       value={notes}
                       onChange={e => setNotes(e.target.value)}
                       className="h-8 text-xs"
@@ -765,7 +765,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
 
               {/* Payment Method */}
               <div className="px-3 pt-2.5">
-                <p className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Payment</p>
+                <p className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">ការទូទាត់</p>
                 <div className="grid grid-cols-5 gap-1">
                   {PAYMENT_METHODS.map(pm => {
                     const Icon = pm.icon;
@@ -791,7 +791,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
               {/* Totals */}
               <div className="px-3 pt-2.5 space-y-1">
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Subtotal ({cartItemCount} items)</span>
+                  <span>សរុបរង ({cartItemCount} មុខ)</span>
                   <span>{formatUSD(cartSubtotal)}</span>
                 </div>
                 
@@ -799,7 +799,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Tag className="w-3 h-3" />
-                    <span>Discount</span>
+                    <span>បញ្ចុះតម្លៃ</span>
                   </div>
                   <Input
                     type="number"
@@ -814,7 +814,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
 
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-xs text-red-500 font-medium">
-                    <span>Discount</span>
+                    <span>បញ្ចុះតម្លៃ</span>
                     <span>-{formatUSD(discountAmount)}</span>
                   </div>
                 )}
@@ -822,7 +822,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                 <Separator />
 
                 <div className="flex justify-between items-center font-bold text-lg py-1">
-                  <span>Total</span>
+                  <span>សរុប</span>
                   <span className="text-primary">{formatUSD(cartTotal)}</span>
                 </div>
               </div>
@@ -846,12 +846,12 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
+                      កំពុងដំណើរការ...
                     </>
                   ) : (
                     <>
                       <Check className="w-4 h-4 mr-2" />
-                      Complete Sale · {formatUSD(cartTotal)}
+                      បញ្ចប់ការលក់ · {formatUSD(cartTotal)}
                     </>
                   )}
                 </Button>
@@ -868,9 +868,9 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
             <div className="p-3 border-b flex items-center justify-between bg-card">
               <div className="flex items-center gap-2">
                 <ReceiptIcon className="w-4 h-4" />
-                <span className="font-semibold text-sm">Receipt Preview</span>
+                <span className="font-semibold text-sm">មើលវិក្កយបត្រជាមុន</span>
               </div>
-              <Badge variant="outline" className="text-[10px]">LIVE</Badge>
+              <Badge variant="outline" className="text-[10px]">បច្ចុប្បន្ន</Badge>
             </div>
             <div className="flex-1 overflow-y-auto p-4 flex justify-center">
               {previewSale && (
@@ -931,10 +931,10 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                   <div className="flex items-center gap-2 mt-0.5">
                     <Badge variant="outline" className="text-[10px] border-blue-300 text-blue-600">
                       <GitBranch className="w-3 h-3 mr-0.5" />
-                      {variants.length} variants
+                      {variants.length} បំរែបំរួល
                     </Badge>
                     <span className="text-xs text-muted-foreground">
-                      Σ{getParentTotalStock(expandedParent)} in stock
+                      Σ{getParentTotalStock(expandedParent)} នៅក្នុងស្តុក
                     </span>
                   </div>
                 </div>
@@ -994,13 +994,13 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
 
                         {/* Variant Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{vLabel || 'Variant'}</p>
+                          <p className="text-sm font-semibold truncate">{vLabel || 'បំរែបំរួល'}</p>
                           <p className="text-sm font-bold text-primary mt-0.5">{formatUSD(variant.discountedPrice)}</p>
                           <p className={cn(
                             'text-[11px] mt-0.5',
                             vOutOfStock ? 'text-destructive font-medium' : 'text-muted-foreground'
                           )}>
-                            {vOutOfStock ? 'Out of stock' : `${variant.stockQuantity} in stock`}
+                            {vOutOfStock ? 'អស់ពីស្តុក' : `${variant.stockQuantity} នៅក្នុងស្តុក`}
                           </p>
                         </div>
 
@@ -1024,7 +1024,7 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                 {variants.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">No variants found</p>
+                    <p className="text-sm">រកមិនឃើញបំរែបំរួល</p>
                   </div>
                 )}
               </div>
@@ -1044,14 +1044,14 @@ export default function POSTerminal({ products, categories }: POSTerminalProps) 
                     <div className="flex items-center gap-2">
                       <ShoppingBag className="w-4 h-4 text-primary" />
                       <span className="text-sm font-medium">
-                        {totalQty} item{totalQty !== 1 ? 's' : ''} selected
+                        {totalQty} មុខ បានជ្រើសរើស
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-bold text-primary">{formatUSD(totalAmt)}</span>
                       <Button size="sm" onClick={() => setExpandedParent(null)}>
                         <Check className="w-4 h-4 mr-1" />
-                        Done
+                        រួចរាល់
                       </Button>
                     </div>
                   </div>
@@ -1116,23 +1116,23 @@ function ReceiptPreview({ sale }: { sale: Sale }) {
       {/* Store Header */}
       <div style={{ textAlign: 'center', paddingBottom: '12px', marginBottom: '12px', borderBottom: '2px solid #000' }}>
         <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '2px' }}>Rolly Shop</div>
-        <div style={{ fontSize: '10px', color: '#6b7280' }}>RECEIPT PREVIEW</div>
+        <div style={{ fontSize: '10px', color: '#6b7280' }}>មើលវិក្កយបត្រជាមុន</div>
       </div>
 
       {/* Info */}
       <div style={{ fontSize: '11px', marginBottom: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
-          <span>Date:</span>
+          <span>កាលបរិច្ឆេទ:</span>
           <span>{fmtDate(sale.createdAt)}</span>
         </div>
         {sale.customerName && (
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
-            <span>Customer:</span>
+            <span>អតិថិជន:</span>
             <span>{sale.customerName}</span>
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
-          <span>Payment:</span>
+          <span>ការទូទាត់:</span>
           <span style={{ fontWeight: 700 }}>{sale.paymentMethod}</span>
         </div>
       </div>
@@ -1144,9 +1144,9 @@ function ReceiptPreview({ sale }: { sale: Sale }) {
       <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse', marginBottom: '8px' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid #000' }}>
-            <th style={{ textAlign: 'left', padding: '4px 2px', fontWeight: 700 }}>Item</th>
-            <th style={{ textAlign: 'center', padding: '4px 2px', fontWeight: 700, width: '28px' }}>Qty</th>
-            <th style={{ textAlign: 'right', padding: '4px 2px', fontWeight: 700, width: '50px' }}>Total</th>
+            <th style={{ textAlign: 'left', padding: '4px 2px', fontWeight: 700 }}>មុខទំនិញ</th>
+            <th style={{ textAlign: 'center', padding: '4px 2px', fontWeight: 700, width: '28px' }}>ចំនួន</th>
+            <th style={{ textAlign: 'right', padding: '4px 2px', fontWeight: 700, width: '50px' }}>សរុប</th>
           </tr>
         </thead>
         <tbody>
@@ -1164,20 +1164,20 @@ function ReceiptPreview({ sale }: { sale: Sale }) {
       <div style={{ borderTop: '1px solid #000', paddingTop: '8px' }}>
         {sale.discountAmount != null && sale.discountAmount > 0 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#dc2626', padding: '2px 0' }}>
-            <span>Discount</span>
+            <span>បញ្ចុះតម្លៃ</span>
             <span>-{fmt(sale.discountAmount)}</span>
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '16px', marginTop: '4px' }}>
-          <span>TOTAL</span>
+          <span>សរុប</span>
           <span>{fmt(sale.totalAmount)}</span>
         </div>
       </div>
 
       {/* Footer */}
       <div style={{ textAlign: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed #9ca3af', fontSize: '10px', color: '#6b7280' }}>
-        <div style={{ fontWeight: 600, color: '#000' }}>Thank You!</div>
-        <div>Items: {sale.items.length} · {sale.items.reduce((s, i) => s + i.quantity, 0)} units</div>
+        <div style={{ fontWeight: 600, color: '#000' }}>អរគុណ!</div>
+        <div>មុខទំនិញ: {sale.items.length} · {sale.items.reduce((s, i) => s + i.quantity, 0)} ឯកតា</div>
       </div>
     </div>
   );

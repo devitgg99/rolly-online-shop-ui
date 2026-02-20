@@ -100,11 +100,11 @@ export default function InventoryTable({
         setTotalElements(response.data.totalElements);
         setTotalPages(response.data.totalPages);
       } else {
-        toast.error('Failed to load inventory data');
+        toast.error('មិនអាចផ្ទុកទិន្នន័យស្តុក');
       }
     } catch (error) {
       console.error('Error loading inventory:', error);
-      toast.error('Error loading data');
+      toast.error('កំហុសក្នុងការផ្ទុកទិន្នន័យ');
     } finally {
       setIsLoading(false);
     }
@@ -158,19 +158,19 @@ export default function InventoryTable({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold">Inventory Table 📊</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">តារាងស្តុក 📊</h2>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Complete inventory with sales analytics
+            ស្តុកពេញលេញជាមួយការវិភាគការលក់
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="h-9 text-xs sm:text-sm">
             <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
-            Export
+            នាំចេញ
           </Button>
           <Button variant="outline" size="sm" className="h-9 text-xs sm:text-sm">
             <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
-            Filter
+            តម្រង
           </Button>
         </div>
       </div>
@@ -180,7 +180,7 @@ export default function InventoryTable({
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Stock Value
+              តម្លៃស្តុក
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
@@ -188,7 +188,7 @@ export default function InventoryTable({
               ${summary.totalValue.toFixed(2)}
             </div>
             <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-              {summary.totalStock} units
+              {summary.totalStock} ឯកតា
             </p>
           </CardContent>
         </Card>
@@ -196,7 +196,7 @@ export default function InventoryTable({
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Total Revenue
+              ចំណូលសរុប
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
@@ -204,7 +204,7 @@ export default function InventoryTable({
               ${summary.totalRevenue.toFixed(2)}
             </div>
             <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-              All time
+              គ្រប់ពេល
             </p>
           </CardContent>
         </Card>
@@ -212,7 +212,7 @@ export default function InventoryTable({
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Total Profit
+              ចំណេញសរុប
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
@@ -220,7 +220,7 @@ export default function InventoryTable({
               ${summary.totalProfit.toFixed(2)}
             </div>
             <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-              Net earnings
+              ប្រាក់ចំណូលសុទ្ធ
             </p>
           </CardContent>
         </Card>
@@ -228,7 +228,7 @@ export default function InventoryTable({
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Products
+              ផលិតផល
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
@@ -236,7 +236,7 @@ export default function InventoryTable({
               {totalElements}
             </div>
             <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-              In inventory
+              ក្នុងស្តុក
             </p>
           </CardContent>
         </Card>
@@ -248,9 +248,9 @@ export default function InventoryTable({
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <CardTitle className="text-lg sm:text-xl">Inventory Details</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">ព័ត៌មានស្តុក</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
-                  {totalElements} products with full sales data
+                  {totalElements} ផលិតផលជាមួយទិន្នន័យការលក់ពេញលេញ
                 </CardDescription>
               </div>
             </div>
@@ -267,10 +267,10 @@ export default function InventoryTable({
                   }}
                 >
                   <SelectTrigger className="h-9 sm:h-10">
-                    <SelectValue placeholder="All Categories" />
+                    <SelectValue placeholder="ប្រភេទទាំងអស់" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="all">ប្រភេទទាំងអស់</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -284,7 +284,7 @@ export default function InventoryTable({
               <div className="relative flex-1 sm:max-w-xs">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder="ស្វែងរកផលិតផល..."
                   className="pl-8 sm:pl-9 h-9 sm:h-10 text-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -299,7 +299,7 @@ export default function InventoryTable({
                   onClick={clearAllFilters}
                   className="h-9 sm:h-10"
                 >
-                  Clear Filters
+                  សម្អាតតម្រង
                 </Button>
               )}
             </div>
@@ -312,12 +312,12 @@ export default function InventoryTable({
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Package className="w-8 h-8 mx-auto mb-2 animate-pulse" />
-                <p className="text-sm">Loading...</p>
+                <p className="text-sm">កំពុងផ្ទុក...</p>
               </div>
             ) : filteredData.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No products found</p>
+                <p className="text-sm">រកមិនឃើញផលិតផល</p>
               </div>
             ) : (
               filteredData.map((item) => (
@@ -346,19 +346,19 @@ export default function InventoryTable({
                         
                         <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
                           <div>
-                            <span className="text-muted-foreground">Stock:</span>
+                            <span className="text-muted-foreground">ស្តុក:</span>
                             <span className="font-medium ml-1">{item.stockQuantity}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Sold:</span>
+                            <span className="text-muted-foreground">បានលក់:</span>
                             <span className="font-medium ml-1">{item.totalSold}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Price:</span>
+                            <span className="text-muted-foreground">តម្លៃ:</span>
                             <span className="font-medium ml-1 text-green-600">${item.sellingPrice}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Profit:</span>
+                            <span className="text-muted-foreground">ចំណេញ:</span>
                             <span className="font-medium ml-1 text-purple-600">${item.profit}</span>
                           </div>
                         </div>
@@ -366,7 +366,7 @@ export default function InventoryTable({
                         <Link href={`/products/${item.id}`}>
                           <Button variant="ghost" size="sm" className="w-full mt-2 h-7 text-xs">
                             <Eye className="w-3 h-3 mr-1" />
-                            View Details
+                            មើលព័ត៌មាន
                           </Button>
                         </Link>
                       </div>
@@ -385,53 +385,53 @@ export default function InventoryTable({
                   <TableHead className="w-12">#</TableHead>
                   <TableHead className="min-w-[200px]">
                     <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="h-8 px-2">
-                      Product
+                      ផលិតផល
                       <SortIcon field="name" />
                     </Button>
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" size="sm" onClick={() => handleSort('categoryName')} className="h-8 px-2">
-                      Category
+                      ប្រភេទ
                       <SortIcon field="categoryName" />
                     </Button>
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" size="sm" onClick={() => handleSort('costPrice')} className="h-8 px-2">
-                      Cost
+                      តម្លៃដើម
                       <SortIcon field="costPrice" />
                     </Button>
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" size="sm" onClick={() => handleSort('sellingPrice')} className="h-8 px-2">
-                      Price
+                      តម្លៃ
                       <SortIcon field="sellingPrice" />
                     </Button>
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" size="sm" onClick={() => handleSort('profit')} className="h-8 px-2">
-                      Profit
+                      ចំណេញ
                       <SortIcon field="profit" />
                     </Button>
                   </TableHead>
                   <TableHead className="text-center">
                     <Button variant="ghost" size="sm" onClick={() => handleSort('stockQuantity')} className="h-8 px-2">
-                      Stock
+                      ស្តុក
                       <SortIcon field="stockQuantity" />
                     </Button>
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" size="sm" onClick={() => handleSort('totalSold')} className="h-8 px-2">
-                      Sold
+                      បានលក់
                       <SortIcon field="totalSold" />
                     </Button>
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" size="sm" onClick={() => handleSort('totalRevenue')} className="h-8 px-2">
-                      Revenue
+                      ចំណូល
                       <SortIcon field="totalRevenue" />
                     </Button>
                   </TableHead>
-                  <TableHead className="w-20">Action</TableHead>
+                  <TableHead className="w-20">សកម្មភាព</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -439,14 +439,14 @@ export default function InventoryTable({
                   <TableRow>
                     <TableCell colSpan={10} className="text-center py-8">
                       <Package className="w-8 h-8 mx-auto mb-2 animate-pulse" />
-                      <p className="text-sm text-muted-foreground">Loading...</p>
+                      <p className="text-sm text-muted-foreground">កំពុងផ្ទុក...</p>
                     </TableCell>
                   </TableRow>
                 ) : filteredData.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={10} className="text-center py-8">
                       <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm text-muted-foreground">No products found</p>
+                      <p className="text-sm text-muted-foreground">រកមិនឃើញផលិតផល</p>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -516,7 +516,7 @@ export default function InventoryTable({
           {/* Pagination */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 px-3 sm:px-0">
             <div className="text-xs sm:text-sm text-muted-foreground">
-              Showing {page * size + 1} to {Math.min((page + 1) * size, totalElements)} of {totalElements} products
+              បង្ហាញ {page * size + 1} ដល់ {Math.min((page + 1) * size, totalElements)} នៃ {totalElements} ផលិតផល
             </div>
 
             <div className="flex items-center gap-2">
@@ -528,11 +528,11 @@ export default function InventoryTable({
                 className="h-8 text-xs sm:text-sm"
               >
                 <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Previous
+                មុន
               </Button>
 
               <div className="text-xs sm:text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
+                ទំព័រ {page + 1} នៃ {totalPages}
               </div>
 
               <Button
@@ -542,7 +542,7 @@ export default function InventoryTable({
                 disabled={page >= totalPages - 1 || isLoading}
                 className="h-8 text-xs sm:text-sm"
               >
-                Next
+                បន្ទាប់
                 <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
             </div>

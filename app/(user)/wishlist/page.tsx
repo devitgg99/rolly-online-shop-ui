@@ -13,7 +13,7 @@ export default function WishlistPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-foreground/60">Loading...</p>
+          <p className="text-foreground/60">កំពុងផ្ទុក...</p>
         </div>
       </div>
     );
@@ -30,16 +30,16 @@ export default function WishlistPage() {
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 flex items-center gap-3">
             <Heart className="w-8 h-8 text-primary" />
-            My Wishlist
+            បញ្ជីចង់បានរបស់ខ្ញុំ
           </h1>
-          <p className="text-foreground/60">Save your favorite products here</p>
+          <p className="text-foreground/60">រក្សាទុកផលិតផលដែលអ្នកពេញចិត្តនៅទីនេះ</p>
         </div>
 
         {/* Stats Card */}
         <div className="bg-card border border-border rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-foreground/60 mb-1">Total Items</p>
+              <p className="text-sm text-foreground/60 mb-1">មុខទំនិញសរុប</p>
               <p className="text-3xl font-bold">0</p>
             </div>
             <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -54,14 +54,14 @@ export default function WishlistPage() {
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Heart className="w-10 h-10 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Your wishlist is empty</h3>
+            <h3 className="text-xl font-semibold mb-2">បញ្ជីចង់បានរបស់អ្នកទទេ</h3>
             <p className="text-foreground/60 mb-6 max-w-md mx-auto">
-              Browse our products and click the heart icon to save items you love
+              រុករកផលិតផល ហើយចុចបេះដូងដើម្បីរក្សាទុក
             </p>
             <Button asChild>
               <a href="/">
                 <ShoppingCart className="w-4 h-4 mr-2" />
-                Start Shopping
+                ចាប់ផ្តើមទិញ
               </a>
             </Button>
           </div>

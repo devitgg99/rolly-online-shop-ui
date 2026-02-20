@@ -92,12 +92,12 @@ interface SaleFormData {
 // Payment method display helper
 const getPaymentMethodDisplay = (method: string): { label: string; icon: string; color: string } => {
   const displays: Record<string, { label: string; icon: string; color: string }> = {
-    'CASH': { label: 'Cash', icon: '💵', color: 'bg-green-100 text-green-700 border-green-300' },
-    'CARD': { label: 'Card', icon: '💳', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-    'E_WALLET': { label: 'E-Wallet', icon: '📱', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-    'BANK_TRANSFER': { label: 'Bank Transfer', icon: '🏦', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
-    'COD': { label: 'Cash on Delivery', icon: '📦', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-    'ONLINE': { label: 'Online', icon: '🌐', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' }, // Legacy support
+    'CASH': { label: 'សាច់ប្រាក់', icon: '💵', color: 'bg-green-100 text-green-700 border-green-300' },
+    'CARD': { label: 'កាត', icon: '💳', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+    'E_WALLET': { label: 'កាបូបអេឡិចត្រូនិច', icon: '📱', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+    'BANK_TRANSFER': { label: 'ផ្ទេរប្រាក់', icon: '🏦', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+    'COD': { label: 'បង់ប្រាក់ពេលទទួល', icon: '📦', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+    'ONLINE': { label: 'អនឡាញ', icon: '🌐', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' }, // Legacy support
   };
   return displays[method] || { label: method, icon: '💰', color: 'bg-gray-100 text-gray-700 border-gray-300' };
 };
@@ -184,11 +184,11 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
   };
 
   const periodLabels: Record<Period, string> = {
-    today: 'Today',
-    yesterday: 'Yesterday',
-    week: 'This Week',
-    month: 'This Month',
-    all: 'All Time',
+    today: 'ថ្ងៃនេះ',
+    yesterday: 'ម្សិលមិញ',
+    week: 'សប្តាហ៍នេះ',
+    month: 'ខែនេះ',
+    all: 'គ្រប់ពេល',
   };
 
   // Build parent→variants map from the flat product list (works even if backend
@@ -387,10 +387,10 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
         
         handleAddToCart(product);
       } else {
-        toast.error(`Product not found`);
+        toast.error(`រកមិនឃើញផលិតផល`);
       }
     } catch {
-      toast.error('Scan failed, try again');
+      toast.error('ស្កេនបរាជ័យ សាកម្តងទៀត');
     } finally {
       setIsLoading(false);
       
@@ -405,7 +405,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
     const barcode = barcodeInput.trim();
     
     if (!barcode) {
-      toast.error('Please enter a barcode');
+      toast.error('សូមបញ្ចូលបាកូដ');
       return;
     }
     
@@ -480,7 +480,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
   const handleAddToCart = (product: AdminProduct) => {
     // Check if product is out of stock
     if (product.stockQuantity <= 0) {
-      toast.error(`Out of stock: ${product.name}`);
+      toast.error(`អស់ពីស្តុក: ${product.name}`);
       return;
     }
 
@@ -490,7 +490,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       // Check if adding one more would exceed stock
       const newQuantity = existingItem.quantity + 1;
       if (newQuantity > product.stockQuantity) {
-        toast.error(`Only ${product.stockQuantity} available`);
+        toast.error(`មាន​តែ ${product.stockQuantity} ប៉ុណ្ណោះ`);
         return;
       }
 
@@ -513,7 +513,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
         product,
         subtotal: product.discountedPrice,
       }]);
-      toast.success(`Added: ${product.name}`);
+      toast.success(`បានបន្ថែម: ${product.name}`);
     }
   };
 
@@ -528,7 +528,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
 
     // Check if new quantity exceeds available stock
     if (newQuantity > item.product.stockQuantity) {
-      toast.error(`Cannot set quantity to ${newQuantity}! Only ${item.product.stockQuantity} available`);
+      toast.error(`មាន​តែ ${item.product.stockQuantity} ប៉ុណ្ណោះ`);
       return;
     }
 
@@ -545,25 +545,25 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
 
   const handleRemoveFromCart = (productId: string) => {
     setCart(cart.filter(item => item.productId !== productId));
-    toast.info('Item removed from cart');
+    toast.info('បានដកមុខទំនិញចេញពីកន្រ្តក');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (cart.length === 0) {
-      toast.error('Please add at least one item to the cart');
+      toast.error('សូមបន្ថែមយ៉ាងហោចណាស់មុខទំនិញមួយក្នុងកន្រ្តក');
       return;
     }
 
     // Validate stock before submitting
     for (const item of cart) {
       if (item.product.stockQuantity <= 0) {
-        toast.error(`${item.product.name} is out of stock! Please remove it from cart.`);
+        toast.error(`${item.product.name} អស់ពីស្តុក! សូមដកចេញពីកន្រ្តក។`);
         return;
       }
       if (item.quantity > item.product.stockQuantity) {
-        toast.error(`${item.product.name}: Only ${item.product.stockQuantity} available, but you have ${item.quantity} in cart!`);
+        toast.error(`${item.product.name}: មាន​តែ ${item.product.stockQuantity} ប៉ុណ្ណោះ តែអ្នកមាន ${item.quantity} ក្នុងកន្រ្តក!`);
         return;
       }
     }
@@ -612,7 +612,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
         };
         
         setSales([newSaleListItem, ...sales]);
-        toast.success('Sale completed successfully! 🎉');
+        toast.success('ការលក់បានបញ្ចប់ដោយជោគជ័យ! 🎉');
         
         // Update summary
         if (summary && response.data) {
@@ -642,10 +642,10 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
         });
         setSearchTerm('');
       } else {
-        toast.error(response.message || 'Failed to create sale');
+        toast.error(response.message || 'បរាជ័យក្នុងការបង្កើតការលក់');
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred');
+      toast.error(error instanceof Error ? error.message : 'មានកំហុសមិនបានរំពឹងទុក');
     } finally {
       setIsLoading(false);
     }
@@ -659,10 +659,10 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       if (response.success && response.data) {
         setViewDialog({ open: true, sale: response.data });
       } else {
-        toast.error(response.message || 'Failed to load sale details');
+        toast.error(response.message || 'បរាជ័យក្នុងការផ្ទុកព័ត៌មានការលក់');
       }
     } catch {
-      toast.error('Failed to load sale details');
+      toast.error('បរាជ័យក្នុងការផ្ទុកព័ត៌មានការលក់');
     } finally {
       setIsLoading(false);
     }
@@ -677,10 +677,10 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       if (response.success && response.data) {
         setRefundDialog({ open: true, sale: response.data });
       } else {
-        toast.error(response.message || 'Failed to load sale details');
+        toast.error(response.message || 'បរាជ័យក្នុងការផ្ទុកព័ត៌មានការលក់');
       }
     } catch {
-      toast.error('Failed to load sale details');
+      toast.error('បរាជ័យក្នុងការផ្ទុកព័ត៌មានការលក់');
     } finally {
       setIsLoading(false);
     }
@@ -695,7 +695,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
   // Handle export
   const handleExport = async (format: 'csv' | 'excel' | 'pdf', includeItems: boolean = false) => {
     if (!session?.backendToken) {
-      toast.error('Authentication required');
+      toast.error('ត្រូវការផ្ទៀងផ្ទាត់');
       return;
     }
 
@@ -705,12 +705,12 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       const response = await exportSales(format, session.backendToken, { startDate, endDate, includeItems });
 
       if (response.success) {
-        toast.success(`Exported as ${format.toUpperCase()}!`);
+        toast.success(`បាននាំចេញជា ${format.toUpperCase()}!`);
       } else {
-        toast.error(response.message || 'Failed to export');
+        toast.error(response.message || 'បរាជ័យក្នុងការនាំចេញ');
       }
     } catch {
-      toast.error('Failed to export sales');
+      toast.error('បរាជ័យក្នុងការនាំចេញ');
     } finally {
       setIsExporting(false);
     }
@@ -719,7 +719,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
   // Open receipt dialog for a sale (PDF / Image / Print)
   const handleOpenReceipt = async (saleId: string) => {
     if (!session?.backendToken) {
-      toast.error('Authentication required');
+      toast.error('ត្រូវការផ្ទៀងផ្ទាត់');
       return;
     }
 
@@ -727,13 +727,13 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       const response = await fetchSaleDetailAction(saleId);
 
       if (!response.success || !response.data) {
-        toast.error('Failed to fetch sale details');
+        toast.error('បរាជ័យក្នុងការផ្ទុកព័ត៌មានការលក់');
         return;
       }
 
       setReceiptDialog({ open: true, sale: response.data });
     } catch {
-      toast.error('Failed to load receipt');
+      toast.error('បរាជ័យក្នុងការផ្ទុកវិក្កយបត្រ');
     }
   };
 
@@ -751,12 +751,12 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Sales</h1>
-          <p className="text-sm text-muted-foreground">Point of Sale & Transactions</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">ការលក់</h1>
+          <p className="text-sm text-muted-foreground">កន្លែងលក់ និងប្រតិបត្តិការ</p>
         </div>
         <Button onClick={() => setDialogOpen(true)} size="lg" className="shadow-lg hover:shadow-xl transition-all">
           <ShoppingCart className="w-4 h-4 mr-2" />
-          New Sale
+          ការលក់ថ្មី
         </Button>
       </div>
 
@@ -777,9 +777,9 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       {/* ── Tabs: Overview / Top Selling / Analytics ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="top-selling">Top Selling</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="overview">ទិដ្ឋភាពទូទៅ</TabsTrigger>
+          <TabsTrigger value="top-selling">លក់ដាច់បំផុត</TabsTrigger>
+          <TabsTrigger value="analytics">វិភាគ</TabsTrigger>
         </TabsList>
 
         {/* ── TAB: Overview ── */}
@@ -789,39 +789,39 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
               <Card className="hover:shadow-lg transition-all border-2 hover:border-blue-300">
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground mb-1">Transactions</p>
+                  <p className="text-xs text-muted-foreground mb-1">ប្រតិបត្តិការ</p>
                   <div className="text-2xl font-black text-blue-600">{summary.totalSales}</div>
                 </CardContent>
               </Card>
               <Card className="hover:shadow-lg transition-all border-2 hover:border-purple-300">
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground mb-1">Products Sold</p>
+                  <p className="text-xs text-muted-foreground mb-1">ផលិតផលបានលក់</p>
                   <div className="text-2xl font-black text-purple-600">{summary.totalProductsSold || 0}</div>
                 </CardContent>
               </Card>
               <Card className="hover:shadow-lg transition-all border-2 hover:border-emerald-300">
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground mb-1">Revenue</p>
+                  <p className="text-xs text-muted-foreground mb-1">ចំណូល</p>
                   <div className="text-2xl font-black text-emerald-600">{formatUSD(summary.totalRevenue)}</div>
                   <p className="text-[10px] text-muted-foreground">{formatKHR(summary.totalRevenue)}</p>
                 </CardContent>
               </Card>
               <Card className="hover:shadow-lg transition-all border-2 hover:border-orange-300">
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground mb-1">Cost</p>
+                  <p className="text-xs text-muted-foreground mb-1">តម្លៃដើម</p>
                   <div className="text-2xl font-black text-orange-600">{formatUSD(summary.totalCost)}</div>
                 </CardContent>
               </Card>
               <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-300">
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">Profit</p>
+                  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">ចំណេញ</p>
                   <div className="text-2xl font-black text-green-600">{formatUSD(summary.totalProfit)}</div>
                   <p className="text-[10px] text-green-600">{formatKHR(summary.totalProfit)}</p>
                 </CardContent>
               </Card>
               <Card className="hover:shadow-lg transition-all border-2 hover:border-cyan-300">
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground mb-1">Margin</p>
+                  <p className="text-xs text-muted-foreground mb-1">អត្រា</p>
                   <div className="text-2xl font-black text-cyan-600">{summary.profitMargin.toFixed(1)}%</div>
                   <div className="mt-1 h-1.5 bg-cyan-100 dark:bg-cyan-950 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all" style={{ width: `${Math.min(summary.profitMargin, 100)}%` }} />
@@ -835,7 +835,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Transactions {totalElements > 0 && <span className="text-sm font-normal text-muted-foreground">({totalElements})</span>}</CardTitle>
+                <CardTitle className="text-lg">ប្រតិបត្តិការ {totalElements > 0 && <span className="text-sm font-normal text-muted-foreground">({totalElements})</span>}</CardTitle>
                 <div className="flex gap-1.5">
                   <Button variant="outline" size="sm" onClick={() => handleExport('csv', false)} disabled={isExporting || sales.length === 0}>
                     <Download className="w-3 h-3 mr-1" /> CSV
@@ -855,11 +855,11 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                       <div key={sale.id} className="flex items-center justify-between gap-3 p-3 border rounded-lg hover:shadow-sm transition-shadow">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-sm truncate">{sale.customerName || 'Walk-in'}</span>
+                            <span className="font-semibold text-sm truncate">{sale.customerName || 'អតិថិជនផ្ទាល់'}</span>
                             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{pm.icon} {pm.label}</Badge>
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {sale.itemCount || 0} items • {new Date(sale.createdAt).toLocaleString()}
+                            {sale.itemCount || 0} មុខ • {new Date(sale.createdAt).toLocaleString()}
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
@@ -867,9 +867,9 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                           <div className="text-xs text-green-600 font-medium">+{formatUSD(sale.profit || 0)}</div>
                         </div>
                         <div className="flex gap-0.5 flex-shrink-0">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleViewSale(sale.id)} title="View"><Eye className="w-3 h-3" /></Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenReceipt(sale.id)} title="Receipt"><FileText className="w-3 h-3" /></Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenRefund(sale.id)} title="Refund"><Undo2 className="w-3 h-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleViewSale(sale.id)} title="មើល"><Eye className="w-3 h-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenReceipt(sale.id)} title="វិក្កយបត្រ"><FileText className="w-3 h-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenRefund(sale.id)} title="សងប្រាក់វិញ"><Undo2 className="w-3 h-3" /></Button>
                         </div>
                       </div>
                     );
@@ -878,9 +878,9 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
               ) : (
                 <div className="text-center py-12">
                   <Receipt className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="font-semibold mb-1">No sales for this period</p>
-                  <p className="text-sm text-muted-foreground mb-4">Try a different date range or create a new sale</p>
-                  <Button onClick={() => setDialogOpen(true)} size="sm"><Plus className="w-4 h-4 mr-1" /> New Sale</Button>
+                  <p className="font-semibold mb-1">គ្មានការលក់សម្រាប់រយៈពេលនេះ</p>
+                  <p className="text-sm text-muted-foreground mb-4">សាកល្បងរយៈពេលផ្សេង ឬបង្កើតការលក់ថ្មី</p>
+                  <Button onClick={() => setDialogOpen(true)} size="sm"><Plus className="w-4 h-4 mr-1" /> ការលក់ថ្មី</Button>
                 </div>
               )}
 
@@ -888,7 +888,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
               {totalPages > 1 && (
                 <div className="mt-4 pt-3 border-t space-y-2">
                   <p className="text-xs text-muted-foreground text-center">
-                    Page {currentPage + 1} of {totalPages} · {totalElements} total
+                    ទំព័រ {currentPage + 1} នៃ {totalPages} · {totalElements} សរុប
                   </p>
                   <Pagination>
                     <PaginationContent>
@@ -949,12 +949,12 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
         <TabsContent value="top-selling" className="mt-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Top Selling Products — {periodLabels[activePeriod]}</CardTitle>
-              <CardDescription>Best performing products by quantity sold</CardDescription>
+              <CardTitle className="text-lg">ផលិតផលលក់ដាច់បំផុត — {periodLabels[activePeriod]}</CardTitle>
+              <CardDescription>ផលិតផលដែលមានសមត្ថភាពល្អបំផុតតាមបរិមាណបានលក់</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingTop ? (
-                <div className="text-center py-12 text-muted-foreground">Loading...</div>
+                <div className="text-center py-12 text-muted-foreground">កំពុងផ្ទុក...</div>
               ) : topSelling.length > 0 ? (
                 <div className="space-y-2">
                   {topSelling.map((p, i) => {
@@ -964,10 +964,10 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                         <span className="text-lg font-bold w-8 text-center flex-shrink-0">{medal}</span>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm truncate">{p.productName}</p>
-                          <p className="text-xs text-muted-foreground">{p.totalQuantitySold} units sold</p>
+                          <p className="text-xs text-muted-foreground">{p.totalQuantitySold} ឯកតាបានលក់</p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <Badge variant="secondary" className="text-xs font-bold">{p.totalQuantitySold} units</Badge>
+                          <Badge variant="secondary" className="text-xs font-bold">{p.totalQuantitySold} ឯកតា</Badge>
                         </div>
                       </div>
                     );
@@ -976,8 +976,8 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
               ) : (
                 <div className="text-center py-12">
                   <Package className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="font-semibold mb-1">No data for this period</p>
-                  <p className="text-sm text-muted-foreground">Try a different date range</p>
+                  <p className="font-semibold mb-1">គ្មានទិន្នន័យសម្រាប់រយៈពេលនេះ</p>
+                  <p className="text-sm text-muted-foreground">សាកល្បងរយៈពេលផ្សេង</p>
                 </div>
               )}
             </CardContent>
@@ -994,8 +994,8 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-[98vw] sm:max-w-[95vw] md:max-w-5xl lg:max-w-6xl h-[95vh] sm:h-[92vh] md:h-[88vh] p-0 gap-0 flex flex-col overflow-hidden">
           <DialogHeader className="px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6 pb-2 sm:pb-3 md:pb-4 border-b flex-shrink-0">
-            <DialogTitle className="text-base sm:text-lg md:text-xl">Point of Sale 💰</DialogTitle>
-            <DialogDescription className="text-[10px] sm:text-xs md:text-sm">Select products and complete the transaction</DialogDescription>
+            <DialogTitle className="text-base sm:text-lg md:text-xl">កន្លែងលក់ 💰</DialogTitle>
+            <DialogDescription className="text-[10px] sm:text-xs md:text-sm">ជ្រើសរើសផលិតផល និងបញ្ចប់ប្រតិបត្តិការ</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
@@ -1009,7 +1009,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                     <Input
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search or scan barcode..."
+                      placeholder="ស្វែងរក ឬស្កេនបាកូដ..."
                       className="pl-7 sm:pl-9 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"
                     />
                   </div>
@@ -1019,7 +1019,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                     size="icon"
                     className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 flex-shrink-0"
                     onClick={() => setScannerOpen(true)}
-                    title="Camera scan"
+                    title="ស្កេនកាមេរ៉ា"
                   >
                     <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
@@ -1039,7 +1039,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                               : 'bg-muted/80 hover:bg-muted text-muted-foreground border border-border'
                           }`}
                         >
-                          All
+                          ទាំងអស់
                         </button>
                         {categories.map((category) => (
                           <button
@@ -1111,18 +1111,18 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                                   )}
                                   {isOutOfStock && (
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/75">
-                                      <span className="text-[8px] sm:text-[9px] font-bold text-white">OUT</span>
+                                      <span className="text-[8px] sm:text-[9px] font-bold text-white">អស់</span>
                                     </div>
                                   )}
                                   {!isOutOfStock && isLowStock && (
                                     <div className="absolute top-0 right-0 bg-orange-500 text-white text-[6px] sm:text-[7px] font-bold px-0.5 rounded-bl">
-                                      LOW
+                                      តិច
                                     </div>
                                   )}
                                   {isParentWithVariants && (
                                     <div className="absolute bottom-0 left-0 right-0 bg-blue-600/90 text-white text-[7px] sm:text-[8px] font-bold px-1 py-0.5 flex items-center justify-center gap-0.5">
                                       <GitBranch className="w-2.5 h-2.5" />
-                                      Variants
+                                      បំរែបំរួល
                                     </div>
                                   )}
                                 </div>
@@ -1198,13 +1198,13 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                                             </div>
                                             <div className="flex-1 min-w-0">
                                               <p className="font-semibold text-[10px] sm:text-xs text-blue-700 dark:text-blue-400 truncate">
-                                                {vLabel || 'Variant'}
+                                                {vLabel || 'បំរែបំរួល'}
                                               </p>
                                               <p className="font-bold text-xs sm:text-sm text-primary">
                                                 ${variant.discountedPrice.toFixed(2)}
                                               </p>
                                               <p className="text-[9px] sm:text-[10px] text-muted-foreground">
-                                                {vOutOfStock ? 'Out of stock' : `${variant.stockQuantity} in stock`}
+                                                {vOutOfStock ? 'អស់ពីស្តុក' : `${variant.stockQuantity} នៅក្នុងស្តុក`}
                                               </p>
                                             </div>
                                           </div>
@@ -1213,7 +1213,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                                     })}
                                   </div>
                                 ) : (
-                                  <p className="text-xs text-muted-foreground text-center py-4">No variants found</p>
+                                  <p className="text-xs text-muted-foreground text-center py-4">រកមិនឃើញបំរែបំរួល</p>
                                 )}
                               </div>
                             )}
@@ -1226,8 +1226,8 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                   <div className="flex items-center justify-center h-full text-center text-muted-foreground p-4">
                     <div>
                       <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                      <p className="text-xs">No products found</p>
-                      <p className="text-[10px] mt-1">Try different filters</p>
+                      <p className="text-xs">រកមិនឃើញផលិតផល</p>
+                      <p className="text-[10px] mt-1">សាកល្បងតម្រងផ្សេង</p>
                     </div>
                   </div>
                 )}
@@ -1241,9 +1241,9 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-xs sm:text-sm md:text-base flex items-center gap-1.5">
                     <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    Cart
+                    កន្រ្តក
                   </h3>
-                  <Badge className="text-[9px] sm:text-[10px]">{cart.length} items</Badge>
+                  <Badge className="text-[9px] sm:text-[10px]">{cart.length} មុខ</Badge>
                 </div>
               </div>
 
@@ -1284,12 +1284,12 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                               <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground">${item.product.discountedPrice.toFixed(2)}</p>
                               {exceedsStock && (
                                 <p className="text-[9px] sm:text-[10px] text-destructive font-medium mt-0.5">
-                                  Only {item.product.stockQuantity} available!
+                                  មាន​តែ {item.product.stockQuantity} ប៉ុណ្ណោះ!
                                 </p>
                               )}
                               {!exceedsStock && isMaxQuantity && (
                                 <p className="text-[9px] sm:text-[10px] text-orange-500 font-medium mt-0.5">
-                                  Max quantity
+                                  បរិមាណអតិបរមា
                                 </p>
                               )}
                             </div>
@@ -1336,8 +1336,8 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                   <div className="flex items-center justify-center h-full text-center">
                     <div className="text-muted-foreground">
                       <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 opacity-50" />
-                      <p className="text-xs sm:text-sm">Cart is empty</p>
-                      <p className="text-[10px] sm:text-xs mt-1">Click products to add</p>
+                      <p className="text-xs sm:text-sm">កន្រ្តកទទេ</p>
+                      <p className="text-[10px] sm:text-xs mt-1">ចុចផលិតផលដើម្បីបន្ថែម</p>
                     </div>
                   </div>
                 )}
@@ -1349,13 +1349,13 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                   <Input
                     value={formData.customerName}
                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    placeholder="Customer (optional)"
+                    placeholder="អតិថិជន (ស្រេចចិត្ត)"
                     className="h-7 sm:h-8 md:h-9 text-[10px] sm:text-xs md:text-sm"
                   />
                   <Input
                     value={formData.customerPhone}
                     onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                    placeholder="Phone (optional)"
+                    placeholder="ទូរសព្ទ (ស្រេចចិត្ត)"
                     className="h-7 sm:h-8 md:h-9 text-[10px] sm:text-xs md:text-sm"
                   />
                 </div>
@@ -1370,11 +1370,11 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CASH">💵 Cash</SelectItem>
-                      <SelectItem value="CARD">💳 Card</SelectItem>
-                      <SelectItem value="E_WALLET">📱 E-Wallet</SelectItem>
-                      <SelectItem value="BANK_TRANSFER">🏦 Bank Transfer</SelectItem>
-                      <SelectItem value="COD">📦 Cash on Delivery</SelectItem>
+                      <SelectItem value="CASH">💵 សាច់ប្រាក់</SelectItem>
+                      <SelectItem value="CARD">💳 កាត</SelectItem>
+                      <SelectItem value="E_WALLET">📱 កាបូបអេឡិចត្រូនិច</SelectItem>
+                      <SelectItem value="BANK_TRANSFER">🏦 ផ្ទេរប្រាក់</SelectItem>
+                      <SelectItem value="COD">📦 បង់ប្រាក់ពេលទទួល</SelectItem>
                     </SelectContent>
                   </Select>
                   <Input
@@ -1382,24 +1382,24 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                     step="0.01"
                     value={formData.discountAmount}
                     onChange={(e) => setFormData({ ...formData, discountAmount: e.target.value })}
-                    placeholder="Discount"
+                    placeholder="បញ្ចុះតម្លៃ"
                     className="h-7 sm:h-8 md:h-9 text-[10px] sm:text-xs md:text-sm"
                   />
                 </div>
 
                 <div className="space-y-0.5 sm:space-y-1 pt-1 sm:pt-2">
                   <div className="flex justify-between text-[10px] sm:text-xs md:text-sm text-muted-foreground">
-                    <span>Subtotal:</span>
+                    <span>សរុបរង:</span>
                     <span>${cartSubtotal.toFixed(2)}</span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-[10px] sm:text-xs md:text-sm text-destructive">
-                      <span>Discount:</span>
+                      <span>បញ្ចុះតម្លៃ:</span>
                       <span>-${discount.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center pt-1 sm:pt-2 border-t">
-                    <span className="font-semibold text-xs sm:text-sm md:text-base">Total:</span>
+                    <span className="font-semibold text-xs sm:text-sm md:text-base">សរុប:</span>
                     <span className="text-lg sm:text-xl md:text-2xl font-bold">${cartTotal.toFixed(2)}</span>
                   </div>
                 </div>
@@ -1411,14 +1411,14 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                     onClick={() => setDialogOpen(false)}
                     className="h-7 sm:h-8 md:h-9 text-[10px] sm:text-xs md:text-sm"
                   >
-                    Cancel
+                    បោះបង់
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={isLoading || cart.length === 0}
                     className="h-7 sm:h-8 md:h-9 text-[10px] sm:text-xs md:text-sm"
                   >
-                    {isLoading ? 'Processing...' : 'Complete Sale'}
+                    {isLoading ? 'កំពុងដំណើរការ...' : 'បញ្ចប់ការលក់'}
                   </Button>
                 </div>
               </div>
@@ -1431,22 +1431,22 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
       <Dialog open={viewDialog.open} onOpenChange={(open) => setViewDialog({ open, sale: null })}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Sale Details</DialogTitle>
-            <DialogDescription>Transaction information</DialogDescription>
+            <DialogTitle>ព័ត៌មានការលក់</DialogTitle>
+            <DialogDescription>ព័ត៌មានប្រតិបត្តិការ</DialogDescription>
           </DialogHeader>
           {viewDialog.sale && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <Label>Customer</Label>
-                  <p>{viewDialog.sale.customerName || 'Walk-in'}</p>
+                  <Label>អតិថិជន</Label>
+                  <p>{viewDialog.sale.customerName || 'អតិថិជនផ្ទាល់'}</p>
                 </div>
                 <div>
-                  <Label>Phone</Label>
+                  <Label>ទូរសព្ទ</Label>
                   <p>{viewDialog.sale.customerPhone || '-'}</p>
                 </div>
                 <div>
-                  <Label>Payment Method</Label>
+                  <Label>វិធីបង់ប្រាក់</Label>
                   {(() => {
                     const pmDisplay = getPaymentMethodDisplay(viewDialog.sale.paymentMethod);
                     return (
@@ -1457,13 +1457,13 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                   })()}
                 </div>
                 <div>
-                  <Label>Date</Label>
+                  <Label>កាលបរិច្ឆេទ</Label>
                   <p>{new Date(viewDialog.sale.createdAt).toLocaleString()}</p>
                 </div>
               </div>
 
               <div>
-                <Label>Items</Label>
+                <Label>មុខទំនិញ</Label>
                 <div className="space-y-2 mt-2">
                   {(viewDialog.sale.items || []).map((item, index) => (
                     <div key={index} className="p-3 border rounded space-y-1">
@@ -1482,11 +1482,11 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
 
               <div className="space-y-2 pt-4 border-t">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total:</span>
+                  <span className="text-muted-foreground">សរុប:</span>
                   <span className="font-bold text-xl">${(viewDialog.sale.totalAmount || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-green-600 font-semibold">Profit:</span>
+                  <span className="text-green-600 font-semibold">ចំណេញ:</span>
                   <span className="text-green-600 font-bold">
                     ${(viewDialog.sale.profit || 0).toFixed(2)} ({(viewDialog.sale.profitMargin || 0).toFixed(1)}%)
                   </span>
@@ -1495,7 +1495,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
 
               {viewDialog.sale.notes && (
                 <div>
-                  <Label>Notes</Label>
+                  <Label>កំណត់ចំណាំ</Label>
                   <p className="text-sm text-muted-foreground mt-1">{viewDialog.sale.notes}</p>
                 </div>
               )}
@@ -1511,7 +1511,7 @@ export default function SalesManagement({ initialSales, initialSalesData, initia
                   className="flex-1"
                 >
                   <Receipt className="w-4 h-4 mr-2" />
-                  View Receipt
+                  មើលវិក្កយបត្រ
                 </Button>
               </div>
             </div>

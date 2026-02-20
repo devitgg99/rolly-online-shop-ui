@@ -60,12 +60,12 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
 
         {/* ── Receipt Info ── */}
         <div style={{ fontSize: '12px', marginBottom: '14px' }}>
-          <Row label="Receipt #" value={sale.id.slice(0, 8).toUpperCase()} />
-          <Row label="Date" value={fmtDate(sale.createdAt)} />
-          {sale.customerName && <Row label="Customer" value={sale.customerName} />}
-          {sale.customerPhone && <Row label="Phone" value={sale.customerPhone} />}
-          <Row label="Cashier" value={sale.soldBy} />
-          <Row label="Payment" value={sale.paymentMethod} bold />
+          <Row label="វិក្កយបត្រ #" value={sale.id.slice(0, 8).toUpperCase()} />
+          <Row label="កាលបរិច្ឆេទ" value={fmtDate(sale.createdAt)} />
+          {sale.customerName && <Row label="អតិថិជន" value={sale.customerName} />}
+          {sale.customerPhone && <Row label="ទូរសព្ទ" value={sale.customerPhone} />}
+          <Row label="អ្នកគិតលុយ" value={sale.soldBy} />
+          <Row label="ការទូទាត់" value={sale.paymentMethod} bold />
         </div>
 
         {/* ── Dashed Separator ── */}
@@ -84,10 +84,10 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
           <thead>
             <tr style={{ backgroundColor: '#000', color: '#fff' }}>
               <th style={{ textAlign: 'center', padding: '6px 4px', fontWeight: 700, width: '28px', borderRight: '1px solid #374151' }}>#</th>
-              <th style={{ textAlign: 'left', padding: '6px 4px', fontWeight: 700, borderRight: '1px solid #374151' }}>Item</th>
-              <th style={{ textAlign: 'center', padding: '6px 4px', fontWeight: 700, width: '32px', borderRight: '1px solid #374151' }}>Qty</th>
-              <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 700, width: '52px', borderRight: '1px solid #374151' }}>Price</th>
-              <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 700, width: '56px' }}>Total</th>
+              <th style={{ textAlign: 'left', padding: '6px 4px', fontWeight: 700, borderRight: '1px solid #374151' }}>មុខទំនិញ</th>
+              <th style={{ textAlign: 'center', padding: '6px 4px', fontWeight: 700, width: '32px', borderRight: '1px solid #374151' }}>ចំនួន</th>
+              <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 700, width: '52px', borderRight: '1px solid #374151' }}>តម្លៃ</th>
+              <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 700, width: '56px' }}>សរុប</th>
             </tr>
           </thead>
           <tbody>
@@ -128,7 +128,7 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
           }}
         >
           {sale.discountAmount != null && sale.discountAmount > 0 && (
-            <Row label="Discount" value={`-${fmt(sale.discountAmount)}`} color="#dc2626" />
+            <Row label="បញ្ចុះតម្លៃ" value={`-${fmt(sale.discountAmount)}`} color="#dc2626" />
           )}
           <div
             style={{
@@ -139,7 +139,7 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
               marginTop: '4px',
             }}
           >
-            <span>TOTAL</span>
+            <span>សរុប</span>
             <span>{fmt(sale.totalAmount)}</span>
           </div>
         </div>
@@ -154,7 +154,7 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
               fontSize: '12px',
             }}
           >
-            <div style={{ fontWeight: 700, marginBottom: '4px' }}>Notes:</div>
+            <div style={{ fontWeight: 700, marginBottom: '4px' }}>កំណត់ចំណាំ:</div>
             <div style={{ wordBreak: 'break-word' }}>{sale.notes}</div>
           </div>
         )}
@@ -170,13 +170,13 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
           }}
         >
           <div style={{ fontWeight: 700, marginBottom: '4px' }}>
-            Thank You for Your Purchase!
+            អរគុណសម្រាប់ការទិញ!
           </div>
-          <div style={{ color: '#374151' }}>Please Come Again</div>
+          <div style={{ color: '#374151' }}>សូមអញ្ជើញមកម្តងទៀត</div>
 
           <div style={{ marginTop: '14px', fontSize: '11px', color: '#6b7280' }}>
-            <div>Items: {sale.items.length}</div>
-            <div>Saved: {fmt(sale.discountAmount || 0)}</div>
+            <div>មុខទំនិញ: {sale.items.length}</div>
+            <div>សន្សំបាន: {fmt(sale.discountAmount || 0)}</div>
           </div>
         </div>
 

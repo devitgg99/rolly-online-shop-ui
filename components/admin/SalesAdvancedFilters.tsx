@@ -92,16 +92,16 @@ export function SalesAdvancedFilters({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Filter className="w-5 h-5" />
-            Filters & Search
+            តម្រង និងស្វែងរក
             {activeFiltersCount > 0 && (
-              <Badge variant="secondary">{activeFiltersCount} active</Badge>
+              <Badge variant="secondary">{activeFiltersCount} សកម្ម</Badge>
             )}
           </CardTitle>
           <div className="flex gap-2">
             {activeFiltersCount > 0 && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
                 <X className="w-4 h-4 mr-1" />
-                Clear All
+                សម្អាតទាំងអស់
               </Button>
             )}
             <Button
@@ -109,7 +109,7 @@ export function SalesAdvancedFilters({
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              {isExpanded ? 'Hide' : 'Show'} Filters
+              {isExpanded ? 'លាក់' : 'បង្ហាញ'}តម្រង
             </Button>
           </div>
         </div>
@@ -126,7 +126,7 @@ export function SalesAdvancedFilters({
               filters.startDate === today && filters.endDate === today && 'bg-primary/10'
             )}
           >
-            Today
+            ថ្ងៃនេះ
           </Button>
           <Button
             variant="outline"
@@ -136,7 +136,7 @@ export function SalesAdvancedFilters({
               filters.startDate === yesterday && filters.endDate === yesterday && 'bg-primary/10'
             )}
           >
-            Yesterday
+            ម្សិលមិញ
           </Button>
           <Button
             variant="outline"
@@ -146,7 +146,7 @@ export function SalesAdvancedFilters({
               filters.startDate === lastWeek && filters.endDate === today && 'bg-primary/10'
             )}
           >
-            This Week
+            សប្តាហ៍នេះ
           </Button>
           <Button
             variant="outline"
@@ -156,7 +156,7 @@ export function SalesAdvancedFilters({
               filters.startDate === lastMonth && filters.endDate === today && 'bg-primary/10'
             )}
           >
-            This Month
+            ខែនេះ
           </Button>
           <Button
             variant="outline"
@@ -166,7 +166,7 @@ export function SalesAdvancedFilters({
               !filters.startDate && !filters.endDate && 'bg-primary/10'
             )}
           >
-            All Time
+            គ្រប់ពេល
           </Button>
         </div>
 
@@ -178,7 +178,7 @@ export function SalesAdvancedFilters({
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
-                  Start Date
+                  ថ្ងៃចាប់ផ្តើម
                 </Label>
                 <Input
                   type="date"
@@ -190,7 +190,7 @@ export function SalesAdvancedFilters({
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
-                  End Date
+                  ថ្ងៃបញ្ចប់
                 </Label>
                 <Input
                   type="date"
@@ -206,7 +206,7 @@ export function SalesAdvancedFilters({
             <div className="space-y-2">
               <Label className="flex items-center gap-1">
                 <CreditCard className="w-3 h-3" />
-                Payment Method
+                វិធីបង់ប្រាក់
               </Label>
               <Select
                 value={filters.paymentMethod || 'ALL'}
@@ -216,12 +216,12 @@ export function SalesAdvancedFilters({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Methods</SelectItem>
-                  <SelectItem value="CASH">💵 Cash</SelectItem>
-                  <SelectItem value="CARD">💳 Card</SelectItem>
-                  <SelectItem value="E_WALLET">📱 E-Wallet</SelectItem>
-                  <SelectItem value="BANK_TRANSFER">🏦 Bank Transfer</SelectItem>
-                  <SelectItem value="COD">📦 Cash on Delivery</SelectItem>
+                  <SelectItem value="ALL">វិធីទាំងអស់</SelectItem>
+                  <SelectItem value="CASH">💵 សាច់ប្រាក់</SelectItem>
+                  <SelectItem value="CARD">💳 កាត</SelectItem>
+                  <SelectItem value="E_WALLET">📱 កាបូបអេឡិចត្រូនិក</SelectItem>
+                  <SelectItem value="BANK_TRANSFER">🏦 ផ្ទេរធនាគារ</SelectItem>
+                  <SelectItem value="COD">📦 បង់ប្រាក់ពេលទទួល</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -231,7 +231,7 @@ export function SalesAdvancedFilters({
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   <DollarSign className="w-3 h-3" />
-                  Min Amount
+                  ចំនួនអប្បបរមា
                 </Label>
                 <Input
                   type="number"
@@ -245,7 +245,7 @@ export function SalesAdvancedFilters({
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   <DollarSign className="w-3 h-3" />
-                  Max Amount
+                  ចំនួនអតិបរមា
                 </Label>
                 <Input
                   type="number"
@@ -262,19 +262,19 @@ export function SalesAdvancedFilters({
             <div className="space-y-2">
               <Label className="flex items-center gap-1">
                 <Search className="w-3 h-3" />
-                Customer Name
+                ឈ្មោះអតិថិជន
               </Label>
               <Input
                 value={filters.customerName || ''}
                 onChange={(e) => updateFilter('customerName', e.target.value || undefined)}
-                placeholder="Search by customer name..."
+                placeholder="ស្វែងរកតាមឈ្មោះអតិថិជន..."
               />
             </div>
 
             {/* Sort Options */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Sort By</Label>
+                <Label>តម្រៀបតាម</Label>
                 <Select
                   value={filters.sortBy || 'date'}
                   onValueChange={(v: any) => updateFilter('sortBy', v)}
@@ -283,14 +283,14 @@ export function SalesAdvancedFilters({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="date">Date</SelectItem>
-                    <SelectItem value="amount">Amount</SelectItem>
-                    <SelectItem value="profit">Profit</SelectItem>
+                    <SelectItem value="date">កាលបរិច្ឆេទ</SelectItem>
+                    <SelectItem value="amount">ចំនួន</SelectItem>
+                    <SelectItem value="profit">ចំណេញ</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Direction</Label>
+                <Label>ទិសដៅ</Label>
                 <Select
                   value={filters.direction || 'desc'}
                   onValueChange={(v: any) => updateFilter('direction', v)}
@@ -299,15 +299,15 @@ export function SalesAdvancedFilters({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="asc">Ascending</SelectItem>
-                    <SelectItem value="desc">Descending</SelectItem>
+                    <SelectItem value="asc">ឡើង</SelectItem>
+                    <SelectItem value="desc">ចុះ</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <Button onClick={onApply} className="w-full">
-              Apply Filters
+              អនុវត្តតម្រង
             </Button>
           </div>
         )}
@@ -315,10 +315,10 @@ export function SalesAdvancedFilters({
         {/* Active Filters Display */}
         {activeFiltersCount > 0 && !isExpanded && (
           <div className="flex items-center gap-2 flex-wrap pt-2 border-t">
-            <span className="text-sm text-muted-foreground">Active:</span>
+            <span className="text-sm text-muted-foreground">សកម្ម:</span>
             {filters.startDate && (
               <Badge variant="secondary" className="gap-1">
-                From {new Date(filters.startDate).toLocaleDateString()}
+                ពី {new Date(filters.startDate).toLocaleDateString()}
                 <button onClick={() => updateFilter('startDate', undefined)}>
                   <X className="w-3 h-3 ml-1" />
                 </button>
@@ -326,7 +326,7 @@ export function SalesAdvancedFilters({
             )}
             {filters.endDate && (
               <Badge variant="secondary" className="gap-1">
-                To {new Date(filters.endDate).toLocaleDateString()}
+                ដល់ {new Date(filters.endDate).toLocaleDateString()}
                 <button onClick={() => updateFilter('endDate', undefined)}>
                   <X className="w-3 h-3 ml-1" />
                 </button>
@@ -342,7 +342,7 @@ export function SalesAdvancedFilters({
             )}
             {filters.customerName && (
               <Badge variant="secondary" className="gap-1">
-                Customer: {filters.customerName}
+                អតិថិជន: {filters.customerName}
                 <button onClick={() => updateFilter('customerName', undefined)}>
                   <X className="w-3 h-3 ml-1" />
                 </button>

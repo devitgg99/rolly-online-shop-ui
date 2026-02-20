@@ -106,13 +106,13 @@ export function SalesAnalyticsDashboard({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Analytics Period
+            រយៈពេលវិភាគ
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px] space-y-2">
-              <Label>Start Date</Label>
+              <Label>កាលបរិច្ឆេទចាប់ផ្តើម</Label>
               <Input
                 type="date"
                 value={startDate}
@@ -121,7 +121,7 @@ export function SalesAnalyticsDashboard({
               />
             </div>
             <div className="flex-1 min-w-[200px] space-y-2">
-              <Label>End Date</Label>
+              <Label>កាលបរិច្ឆេទបញ្ចប់</Label>
               <Input
                 type="date"
                 value={endDate}
@@ -131,22 +131,22 @@ export function SalesAnalyticsDashboard({
               />
             </div>
             <div className="flex-1 min-w-[200px] space-y-2">
-              <Label>Group By</Label>
+              <Label>ដាក់ជាក្រុមតាម</Label>
               <Select value={groupBy} onValueChange={(v: any) => setGroupBy(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="day">Daily</SelectItem>
-                  <SelectItem value="week">Weekly</SelectItem>
-                  <SelectItem value="month">Monthly</SelectItem>
+                  <SelectItem value="day">ប្រចាំថ្ងៃ</SelectItem>
+                  <SelectItem value="week">ប្រចាំសប្តាហ៍</SelectItem>
+                  <SelectItem value="month">ប្រចាំខែ</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-end">
               <Button onClick={loadAnalytics} disabled={isLoading}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
+                ផ្ទុកឡើងវិញ
               </Button>
             </div>
           </div>
@@ -159,20 +159,20 @@ export function SalesAnalyticsDashboard({
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                <CardTitle className="text-sm font-medium">ការលក់សរុប</CardTitle>
                 <ShoppingCart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{analytics.totalSales}</div>
                 <p className="text-xs text-muted-foreground">
-                  Transactions
+                  ប្រតិបត្តិការ
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">ចំណូល</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -180,14 +180,14 @@ export function SalesAnalyticsDashboard({
                   {formatCurrency(analytics.totalRevenue)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Total collected
+                  ប្រមូលបានសរុប
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Profit</CardTitle>
+                <CardTitle className="text-sm font-medium">ចំណេញ</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -195,14 +195,14 @@ export function SalesAnalyticsDashboard({
                   {formatCurrency(analytics.totalProfit)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Net earnings
+                  ប្រាក់ចំណូលសុទ្ធ
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Order</CardTitle>
+                <CardTitle className="text-sm font-medium">ការបញ្ជាទិញមធ្យម</CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -210,7 +210,7 @@ export function SalesAnalyticsDashboard({
                   {formatCurrency(analytics.avgOrderValue)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Per transaction
+                  ក្នុងមួយប្រតិបត្តិការ
                 </p>
               </CardContent>
             </Card>
@@ -221,7 +221,7 @@ export function SalesAnalyticsDashboard({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5" />
-                Sales by Payment Method
+                ការលក់តាមវិធីបង់ប្រាក់
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -232,7 +232,7 @@ export function SalesAnalyticsDashboard({
                       <Wallet className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Cash</p>
+                      <p className="text-sm font-medium text-muted-foreground">សាច់ប្រាក់</p>
                       <p className="text-2xl font-bold">{pmCount(analytics.salesByPaymentMethod.CASH)}</p>
                       {pmRevenue(analytics.salesByPaymentMethod.CASH) > 0 && (
                         <p className="text-xs text-green-600">{formatCurrency(pmRevenue(analytics.salesByPaymentMethod.CASH))}</p>
@@ -254,7 +254,7 @@ export function SalesAnalyticsDashboard({
                       <CreditCard className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Card</p>
+                      <p className="text-sm font-medium text-muted-foreground">កាត</p>
                       <p className="text-2xl font-bold">{pmCount(analytics.salesByPaymentMethod.CARD)}</p>
                       {pmRevenue(analytics.salesByPaymentMethod.CARD) > 0 && (
                         <p className="text-xs text-blue-600">{formatCurrency(pmRevenue(analytics.salesByPaymentMethod.CARD))}</p>
@@ -276,7 +276,7 @@ export function SalesAnalyticsDashboard({
                       <Wallet className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Online</p>
+                      <p className="text-sm font-medium text-muted-foreground">អនឡាញ</p>
                       <p className="text-2xl font-bold">{pmCount(analytics.salesByPaymentMethod.ONLINE)}</p>
                       {pmRevenue(analytics.salesByPaymentMethod.ONLINE) > 0 && (
                         <p className="text-xs text-purple-600">{formatCurrency(pmRevenue(analytics.salesByPaymentMethod.ONLINE))}</p>
@@ -300,9 +300,9 @@ export function SalesAnalyticsDashboard({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Sales by Hour (Peak Times)
+                ការលក់តាមម៉ោង (ម៉ោងកំពូល)
               </CardTitle>
-              <CardDescription>Identify your busiest hours</CardDescription>
+              <CardDescription>កំណត់ម៉ោងមមាញឹករបស់អ្នក</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -325,7 +325,7 @@ export function SalesAnalyticsDashboard({
                           >
                             {percentage > 20 && (
                               <span className="text-xs font-semibold text-white">
-                                {hourData.sales} sales
+                                {hourData.sales} ការលក់
                               </span>
                             )}
                           </div>
@@ -347,9 +347,9 @@ export function SalesAnalyticsDashboard({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5" />
-                Sales Trend
+                និន្នាការការលក់
               </CardTitle>
-              <CardDescription>Revenue and profit over time</CardDescription>
+              <CardDescription>ចំណូល និងចំណេញតាមពេលវេលា</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -378,7 +378,7 @@ export function SalesAnalyticsDashboard({
                           </div>
                         </div>
                         <Badge variant="secondary" className="w-20 justify-center">
-                          {dayData.sales} sales
+                          {dayData.sales} ការលក់
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2">
@@ -401,7 +401,7 @@ export function SalesAnalyticsDashboard({
               
               {analytics.salesByDay.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
-                  No sales data for selected period
+                  គ្មានទិន្នន័យការលក់សម្រាប់រយៈពេលដែលបានជ្រើសរើស
                 </div>
               )}
             </CardContent>
@@ -413,9 +413,9 @@ export function SalesAnalyticsDashboard({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  Top Customers
+                  អតិថិជនកំពូល
                 </CardTitle>
-                <CardDescription>Best customers by total spent</CardDescription>
+                <CardDescription>អតិថិជនល្អបំផុតតាមការចំណាយសរុប</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -427,7 +427,7 @@ export function SalesAnalyticsDashboard({
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{customer.name || 'Walk-in Customer'}</p>
                         <p className="text-xs text-muted-foreground">
-                          {customer.orderCount} order{customer.orderCount !== 1 ? 's' : ''}
+                          {customer.orderCount} ការបញ្ជាទិញ
                         </p>
                       </div>
                       <div className="text-right">
@@ -435,7 +435,7 @@ export function SalesAnalyticsDashboard({
                           {formatCurrency(customer.totalSpent)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatCurrency(customer.totalSpent / customer.orderCount)}/order
+                          {formatCurrency(customer.totalSpent / customer.orderCount)}/ការបញ្ជាទិញ
                         </p>
                       </div>
                     </div>
@@ -450,9 +450,9 @@ export function SalesAnalyticsDashboard({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Percent className="w-5 h-5" />
-                Profit Margin Trend
+                និន្នាការអត្រាចំណេញ
               </CardTitle>
-              <CardDescription>How profitable your sales are over time</CardDescription>
+              <CardDescription>ការរកប្រាក់ចំណេញពីការលក់របស់អ្នកតាមពេលវេលា</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">

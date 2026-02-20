@@ -49,13 +49,13 @@ export function ImageUpload({
   const processFile = useCallback(async (file: File) => {
     if (uploadingRef.current) return;
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file (JPG, PNG, GIF, WEBP)');
+      alert('សូមបង្ហោះឯកសាររូបភាព (JPG, PNG, GIF, WEBP)');
       return;
     }
 
     uploadingRef.current = true;
     setIsUploading(true);
-    setStatusText('Processing...');
+    setStatusText('កំពុងដំណើរការ...');
 
     let blobUrl: string | null = null;
 
@@ -64,7 +64,7 @@ export function ImageUpload({
 
       // Compress if needed
       if (file.size > maxSizeMB * 1024 * 1024 || file.type === 'image/jpeg') {
-        setStatusText('Optimizing...');
+        setStatusText('កំពុងធ្វើឱ្យប្រសើរ...');
         try {
           processed = await compressImage(file, {
             maxWidth: 1920,
@@ -83,7 +83,7 @@ export function ImageUpload({
       setPreview(blobUrl);
 
       // Upload
-      setStatusText('Uploading...');
+      setStatusText('កំពុងបង្ហោះ...');
       if (onFileSelect) {
         const uploadPromise = onFileSelect(processed);
         const timeoutPromise = new Promise<string>((_, reject) =>
@@ -108,7 +108,7 @@ export function ImageUpload({
       setStatusText('');
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Failed to upload image. Please try again.');
+      alert('មិនអាចបង្ហោះរូបភាព។ សូមព្យាយាមម្តងទៀត។');
       if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
       setPreview(value || null);
       setStatusText('');
@@ -173,7 +173,7 @@ export function ImageUpload({
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
               <div className="text-white text-center">
                 <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-                <p className="text-sm font-medium">{statusText || 'Uploading...'}</p>
+                <p className="text-sm font-medium">{statusText || 'កំពុងបង្ហោះ...'}</p>
               </div>
             </div>
           )}
@@ -187,7 +187,7 @@ export function ImageUpload({
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-md shadow-lg hover:bg-primary/90 transition-colors"
               >
                 <Camera className="w-4 h-4" />
-                Change
+                ផ្លាស់ប្តូរ
               </button>
               <button
                 type="button"
@@ -195,7 +195,7 @@ export function ImageUpload({
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-destructive text-destructive-foreground rounded-md shadow-lg hover:bg-destructive/90 transition-colors"
               >
                 <X className="w-4 h-4" />
-                Remove
+                ដកចេញ
               </button>
             </div>
           )}
@@ -218,22 +218,22 @@ export function ImageUpload({
           {isUploading ? (
             <div className="text-center">
               <RefreshCw className="w-10 h-10 animate-spin mx-auto mb-3 text-primary" />
-              <p className="text-sm font-medium">{statusText || 'Uploading...'}</p>
+              <p className="text-sm font-medium">{statusText || 'កំពុងបង្ហោះ...'}</p>
             </div>
           ) : (
             <>
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                 <ImageIcon className="w-7 h-7 text-primary" />
               </div>
-              <p className="text-sm font-semibold mb-1">Upload Image</p>
+              <p className="text-sm font-semibold mb-1">បង្ហោះរូបភាព</p>
               <p className="text-xs text-muted-foreground mb-3">
-                Drag & drop or tap to browse
+                អូស និងទម្លាក់ ឬចុចដើម្បីរុករក
               </p>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Upload className="w-3.5 h-3.5" />
                 <span>JPG, PNG, GIF, WEBP</span>
               </div>
-              <p className="text-[10px] text-green-600 mt-1">Auto-compresses large images</p>
+              <p className="text-[10px] text-green-600 mt-1">បង្រួមរូបភាពធំដោយស្វ័យប្រវត្តិ</p>
             </>
           )}
         </div>
@@ -242,10 +242,10 @@ export function ImageUpload({
       {/* Optional URL input */}
       {showUrlInput && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>or</span>
+          <span>ឬ</span>
           <input
             type="text"
-            placeholder="Paste image URL"
+            placeholder="បិទភ្ជាប់ URL រូបភាព"
             value={value || ''}
             onChange={(e) => { onChange(e.target.value); setPreview(e.target.value); }}
             disabled={disabled}

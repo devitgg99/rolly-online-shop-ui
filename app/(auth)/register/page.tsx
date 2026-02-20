@@ -32,30 +32,30 @@ export default function RegisterPage() {
 
     // Validate based on registration method
     if (registerMethod === 'phone' && !isValidCambodiaPhone(formData.phoneNumber)) {
-      setError('Please enter a valid Cambodia phone number');
+      setError('សូមបញ្ចូលលេខទូរសព្ទកម្ពុជាត្រឹមត្រូវ');
       return;
     }
 
     if (registerMethod === 'email' && !formData.email) {
-      setError('Please enter a valid email address');
+      setError('សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលត្រឹមត្រូវ');
       return;
     }
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('ពាក្យសម្ងាត់មិនត្រូវគ្នា');
       return;
     }
 
     // Validate password length
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('ពាក្យសម្ងាត់ត្រូវតែមានយ៉ាងហោចណាស់ 6 តួអក្សរ');
       return;
     }
 
     // Validate terms agreement
     if (!formData.agreeToTerms) {
-      setError('Please agree to the Terms of Service and Privacy Policy');
+      setError('សូមយល់ព្រមតាមលក្ខខណ្ឌប្រើប្រាស់ និងគោលការណ៍ឯកជនភាព');
       return;
     }
 
@@ -74,7 +74,7 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        setError(errorData.error || 'Registration failed. Please try again.');
+        setError(errorData.error || 'ការចុះឈ្មោះបានបរាជ័យ។ សូមព្យាយាមម្តងទៀត។');
         return;
       }
 
@@ -82,7 +82,7 @@ export default function RegisterPage() {
       router.push('/login?registered=true');
     } catch (err) {
       console.error('Registration error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      setError('មានកំហុសមិនរំពឹងទុក។ សូមព្យាយាមម្តងទៀត។');
     } finally {
       setIsLoading(false);
     }
@@ -95,11 +95,11 @@ export default function RegisterPage() {
   return (
     <div className="w-full">
       <div className="mb-5 sm:mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Create Account</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">បង្កើតគណនី</h1>
         <p className="text-sm sm:text-base text-foreground/60">
-          Already have an account?{' '}
+          មានគណនីរួចហើយ?{' '}
           <Link href="/login" className="text-primary font-semibold hover:underline">
-            Sign in
+            ចូល
           </Link>
         </p>
       </div>
@@ -124,7 +124,7 @@ export default function RegisterPage() {
             }`}
           >
             <Phone className="w-4 h-4" />
-            <span>Phone</span>
+            <span>ទូរសព្ទ</span>
           </button>
           <button
             type="button"
@@ -136,14 +136,14 @@ export default function RegisterPage() {
             }`}
           >
             <Mail className="w-4 h-4" />
-            <span>Email</span>
+            <span>អ៊ីមែល</span>
           </button>
         </div>
 
         {/* Full Name Field */}
         <div>
           <label htmlFor="fullName" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-            Full Name
+            ឈ្មោះពេញ
           </label>
           <input
             id="fullName"
@@ -160,7 +160,7 @@ export default function RegisterPage() {
         {registerMethod === 'phone' && (
           <div className="animate-fade-in">
             <label htmlFor="phoneNumber" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-              Phone Number 🇰🇭
+              លេខទូរសព្ទ 🇰🇭
             </label>
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-foreground/40" />
@@ -177,7 +177,7 @@ export default function RegisterPage() {
                 required={registerMethod === 'phone'}
               />
             </div>
-            <p className="text-xs text-foreground/50 mt-1">Enter without +855 prefix</p>
+            <p className="text-xs text-foreground/50 mt-1">បញ្ចូលដោយមិនចាំបាច់ +855</p>
           </div>
         )}
 
@@ -185,7 +185,7 @@ export default function RegisterPage() {
         {registerMethod === 'email' && (
           <div className="animate-fade-in">
             <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-              E-mail Address
+              អាសយដ្ឋានអ៊ីមែល
             </label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-foreground/40" />
@@ -205,7 +205,7 @@ export default function RegisterPage() {
         {/* Password Field */}
         <div>
           <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-            Password
+            ពាក្យសម្ងាត់
           </label>
           <div className="relative">
             <input
@@ -235,7 +235,7 @@ export default function RegisterPage() {
         {/* Confirm Password Field */}
         <div>
           <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-            Confirm Password
+            បញ្ជាក់ពាក្យសម្ងាត់
           </label>
           <div className="relative">
             <input
@@ -273,13 +273,13 @@ export default function RegisterPage() {
               required
             />
             <span className="text-xs sm:text-sm text-foreground/70 leading-relaxed">
-              I agree to the{' '}
+              ខ្ញុំយល់ព្រមតាម{' '}
               <Link href="/terms" className="text-primary hover:underline font-medium">
-                Terms of Service
+                លក្ខខណ្ឌប្រើប្រាស់
               </Link>{' '}
-              and{' '}
+              និង{' '}
               <Link href="/privacy" className="text-primary hover:underline font-medium">
-                Privacy Policy
+                គោលការណ៍ឯកជនភាព
               </Link>
             </span>
           </label>
@@ -295,12 +295,12 @@ export default function RegisterPage() {
           {isLoading ? (
             <>
               <div className="w-4 h-4 mr-2 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin relative z-10"></div>
-              <span className="relative z-10">Creating Account...</span>
+              <span className="relative z-10">កំពុងបង្កើតគណនី...</span>
             </>
           ) : (
             <>
               <UserPlus className="w-4 h-4 mr-2 relative z-10" />
-              <span className="relative z-10">Create Account</span>
+              <span className="relative z-10">បង្កើតគណនី</span>
             </>
           )}
         </Button>
@@ -311,7 +311,7 @@ export default function RegisterPage() {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-xs sm:text-sm">
-            <span className="px-4 bg-background text-foreground/60">OR</span>
+            <span className="px-4 bg-background text-foreground/60">ឬ</span>
           </div>
         </div>
 
@@ -328,7 +328,7 @@ export default function RegisterPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            <span className="hidden sm:inline">Continue with Google</span>
+            <span className="hidden sm:inline">បន្តជាមួយ Google</span>
             <span className="sm:hidden">Google</span>
           </Button>
 
@@ -340,7 +340,7 @@ export default function RegisterPage() {
             <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" fill="#1877F2" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
-            <span className="hidden sm:inline">Continue with Facebook</span>
+            <span className="hidden sm:inline">បន្តជាមួយ Facebook</span>
             <span className="sm:hidden">Facebook</span>
           </Button>
         </div>

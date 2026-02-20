@@ -46,12 +46,12 @@ interface StockHistoryDialogProps {
 }
 
 const adjustmentTypeConfig = {
-  SALE: { icon: ShoppingCart, label: 'Sale', color: 'text-green-600 bg-green-50' },
-  RESTOCK: { icon: TrendingUp, label: 'Restock', color: 'text-blue-600 bg-blue-50' },
-  DAMAGE: { icon: AlertTriangle, label: 'Damage', color: 'text-red-600 bg-red-50' },
-  MANUAL: { icon: FileEdit, label: 'Manual', color: 'text-purple-600 bg-purple-50' },
-  RETURN: { icon: Undo2, label: 'Return', color: 'text-orange-600 bg-orange-50' },
-  CORRECTION: { icon: RotateCcw, label: 'Correction', color: 'text-gray-600 bg-gray-50' },
+  SALE: { icon: ShoppingCart, label: 'ការលក់', color: 'text-green-600 bg-green-50' },
+  RESTOCK: { icon: TrendingUp, label: 'បញ្ចូលស្តុក', color: 'text-blue-600 bg-blue-50' },
+  DAMAGE: { icon: AlertTriangle, label: 'ខូចខាត', color: 'text-red-600 bg-red-50' },
+  MANUAL: { icon: FileEdit, label: 'ដោយដៃ', color: 'text-purple-600 bg-purple-50' },
+  RETURN: { icon: Undo2, label: 'ត្រឡប់', color: 'text-orange-600 bg-orange-50' },
+  CORRECTION: { icon: RotateCcw, label: 'កែតម្រូវ', color: 'text-gray-600 bg-gray-50' },
 };
 
 export function StockHistoryDialog({
@@ -98,11 +98,11 @@ export function StockHistoryDialog({
         setTotalPages(response.data.totalPages);
         setTotalElements(response.data.totalElements);
       } else {
-        toast.error(response.message || 'Failed to load stock history');
+        toast.error(response.message || 'បរាជ័យក្នុងការផ្ទុកប្រវត្តិស្តុក');
       }
     } catch (error) {
       console.error('Error loading stock history:', error);
-      toast.error('Failed to load stock history');
+      toast.error('បរាជ័យក្នុងការផ្ទុកប្រវត្តិស្តុក');
     } finally {
       setIsLoading(false);
     }
@@ -110,18 +110,18 @@ export function StockHistoryDialog({
 
   const handleAdjustStock = async () => {
     if (!adjustmentData.adjustment) {
-      toast.error('Please enter an adjustment amount');
+      toast.error('សូមបញ្ចូលចំនួនកែតម្រូវ');
       return;
     }
 
     const adjustment = parseInt(adjustmentData.adjustment);
     if (isNaN(adjustment) || adjustment === 0) {
-      toast.error('Please enter a valid non-zero adjustment');
+      toast.error('សូមបញ្ចូលចំនួនកែតម្រូវមិនមែនសូន្យ');
       return;
     }
 
     if (!session?.backendToken) {
-      toast.error('Authentication required');
+      toast.error('ត្រូវការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ');
       return;
     }
 
@@ -138,17 +138,17 @@ export function StockHistoryDialog({
       );
 
       if (response.success) {
-        toast.success('Stock adjusted successfully!');
+        toast.success('កែតម្រូវស្តុកបានជោគជ័យ!');
         setShowAdjustForm(false);
         setAdjustmentData({ adjustment: '', adjustmentType: 'MANUAL', reason: '' });
         loadHistory();
         onStockAdjusted?.();
       } else {
-        toast.error(response.message || 'Failed to adjust stock');
+        toast.error(response.message || 'បរាជ័យក្នុងការកែតម្រូវស្តុក');
       }
     } catch (error) {
       console.error('Error adjusting stock:', error);
-      toast.error('Failed to adjust stock');
+      toast.error('បរាជ័យក្នុងការកែតម្រូវស្តុក');
     } finally {
       setIsLoading(false);
     }
@@ -160,11 +160,11 @@ export function StockHistoryDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <History className="w-5 h-5" />
-            Stock History - {productName}
+            ប្រវត្តិស្តុក - {productName}
           </DialogTitle>
           <DialogDescription>
-            Current Stock: <span className="font-bold">{currentStock}</span> units
-            {totalElements > 0 && ` • ${totalElements} total changes`}
+            ស្តុកបច្ចុប្បន្ន: <span className="font-bold">{currentStock}</span> ឯកតា
+            {totalElements > 0 && ` • ${totalElements} ការផ្លាស់ប្តូរសរុប`}
           </DialogDescription>
         </DialogHeader>
 
@@ -174,7 +174,7 @@ export function StockHistoryDialog({
             <Card className="border-2 border-primary/20">
               <CardContent className="pt-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Adjust Stock</h3>
+                  <h3 className="font-semibold">កែតម្រូវស្តុក</h3>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -189,10 +189,10 @@ export function StockHistoryDialog({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Adjustment Amount *</Label>
+                    <Label>ចំនួនកែតម្រូវ *</Label>
                     <Input
                       type="number"
-                      placeholder="Enter +/- amount (e.g., -5 or +10)"
+                      placeholder="បញ្ចូលចំនួន +/- (ឧ. -5 ឬ +10)"
                       value={adjustmentData.adjustment}
                       onChange={(e) =>
                         setAdjustmentData({ ...adjustmentData, adjustment: e.target.value })
@@ -200,12 +200,12 @@ export function StockHistoryDialog({
                       disabled={isLoading}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Negative to decrease, positive to increase
+                      អវិជ្ជមានដើម្បីបន្ថយ វិជ្ជមានដើម្បីបង្កើន
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Adjustment Type *</Label>
+                    <Label>ប្រភេទកែតម្រូវ *</Label>
                     <Select
                       value={adjustmentData.adjustmentType}
                       onValueChange={(value: any) =>
@@ -217,20 +217,20 @@ export function StockHistoryDialog({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="MANUAL">Manual Adjustment</SelectItem>
-                        <SelectItem value="DAMAGE">Damage/Loss</SelectItem>
-                        <SelectItem value="CORRECTION">Stock Correction</SelectItem>
-                        <SelectItem value="RESTOCK">Restock</SelectItem>
-                        <SelectItem value="RETURN">Customer Return</SelectItem>
+                        <SelectItem value="MANUAL">កែតម្រូវដោយដៃ</SelectItem>
+                        <SelectItem value="DAMAGE">ខូចខាត/បាត់បង់</SelectItem>
+                        <SelectItem value="CORRECTION">កែតម្រូវស្តុក</SelectItem>
+                        <SelectItem value="RESTOCK">បញ្ចូលស្តុក</SelectItem>
+                        <SelectItem value="RETURN">អតិថិជនត្រឡប់</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Reason (Optional)</Label>
+                  <Label>មូលហេតុ (ស្រេចចិត្ត)</Label>
                   <Input
-                    placeholder="Enter reason for adjustment..."
+                    placeholder="បញ្ចូលមូលហេតុសម្រាប់ការកែតម្រូវ..."
                     value={adjustmentData.reason}
                     onChange={(e) =>
                       setAdjustmentData({ ...adjustmentData, reason: e.target.value })
@@ -248,10 +248,10 @@ export function StockHistoryDialog({
                     }}
                     disabled={isLoading}
                   >
-                    Cancel
+                    បោះបង់
                   </Button>
                   <Button onClick={handleAdjustStock} disabled={isLoading}>
-                    {isLoading ? 'Adjusting...' : 'Adjust Stock'}
+                    {isLoading ? 'កំពុងកែតម្រូវ...' : 'កែតម្រូវស្តុក'}
                   </Button>
                 </div>
               </CardContent>
@@ -263,19 +263,19 @@ export function StockHistoryDialog({
               variant="outline"
             >
               <Package className="w-4 h-4 mr-2" />
-              Adjust Stock
+              កែតម្រូវស្តុក
             </Button>
           )}
 
           {/* History List */}
           {isLoading && history.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Loading history...
+              កំពុងផ្ទុកប្រវត្តិ...
             </div>
           ) : history.length === 0 ? (
             <div className="text-center py-8">
               <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No stock changes recorded yet</p>
+              <p className="text-muted-foreground">មិនទាន់មានការផ្លាស់ប្តូរស្តុកនៅឡើយ</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -308,7 +308,7 @@ export function StockHistoryDialog({
                                   )}
                                 >
                                   {isIncrease ? '+' : ''}
-                                  {entry.adjustment} units
+                                  {entry.adjustment} ឯកតា
                                 </span>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -356,7 +356,7 @@ export function StockHistoryDialog({
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-4 border-t">
               <p className="text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
+                ទំព័រ {page + 1} នៃ {totalPages}
               </p>
               <div className="flex gap-2">
                 <Button
