@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
+import AnimatedButton from "@/components/ui/animated-button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Heart, LogIn, Sparkles, Star, UserPlus, Menu, CheckCircle2, Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -489,12 +490,13 @@ export default function Home() {
           <p className="text-base sm:text-lg opacity-90 text-balance max-w-2xl mx-auto px-4">
             ចូលរួមជាមួយអតិថិជនរាប់ពាន់នាក់ដែលបានរកឃើញស្បែកដ៏ស្រស់ស្អាតជាមួយ Rolly។ ចាប់ផ្តើមដំណើរថែទាំស្បែករបស់អ្នកថ្ងៃនេះ។
           </p>
-          <Button size="lg" asChild className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-2xl hover:shadow-2xl hover:scale-105 transition-all">
-            <Link href="#products">
-              ទិញឥឡូវ
-              <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-            </Link>
-          </Button>
+          <AnimatedButton
+            onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+            className="bg-primary-foreground text-primary border-primary-foreground/30 hover:bg-primary-foreground/90 shadow-2xl px-8 py-6 text-lg [--shine:rgba(0,0,0,.15)] dark:[--shine:rgba(255,255,255,.25)]"
+          >
+            ទិញឥឡូវ
+            <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 inline-block" />
+          </AnimatedButton>
         </div>
       </section>
 
