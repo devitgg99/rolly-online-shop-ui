@@ -24,20 +24,24 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { useLocale } from '@/context/LocaleContext';
 
-const navigation = [
-  { name: 'កន្លែងលក់', href: '/pos', icon: Monitor },
-  { name: 'ផលិតផល', href: '/products', icon: Package },
-  { name: 'ប្រភេទ', href: '/categories', icon: Tag },
-  { name: 'ការលក់', href: '/sales', icon: Receipt },
+const navKeys = [
+  { key: 'nav_pos', href: '/pos', icon: Monitor },
+  { key: 'nav_products', href: '/products', icon: Package },
+  { key: 'nav_categories', href: '/categories', icon: Tag },
+  { key: 'nav_sales', href: '/sales', icon: Receipt },
 ];
 
 export default function AdminSidebar() {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
 
   const isActive = (href: string) => pathname === href;
+  const navigation = navKeys.map(({ key, href, icon }) => ({ name: t(key), href, icon }));
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-background">
@@ -49,9 +53,13 @@ export default function AdminSidebar() {
           </div>
           <div>
             <h1 className="font-semibold text-lg">Rolly Admin</h1>
-            <p className="text-xs text-muted-foreground">ផ្ទាំងគ្រប់គ្រង</p>
+            <p className="text-xs text-muted-foreground">{t('nav_dashboard')}</p>
           </div>
         </Link>
+      </div>
+
+      <div className="px-4 pb-2">
+        <LanguageSwitch className="w-full" />
       </div>
 
       <Separator className="mb-2" />
@@ -59,7 +67,7 @@ export default function AdminSidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
         <p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          មឺនុយ
+          {t('nav_menu')}
         </p>
         {navigation.map((item) => {
           const Icon = item.icon;
@@ -126,7 +134,7 @@ export default function AdminSidebar() {
           >
             <Link href="/profile">
               <User className="w-4 h-4 mr-1.5" />
-              គណនី
+              {t('nav_account')}
             </Link>
           </Button>
           
@@ -137,7 +145,7 @@ export default function AdminSidebar() {
             onClick={() => signOut({ callbackUrl: '/' })}
           >
             <LogOut className="w-4 h-4 mr-1.5" />
-            ចាកចេញ
+            {t('logout')}
           </Button>
         </div>
       </div>
@@ -155,11 +163,12 @@ export default function AdminSidebar() {
             </div>
             <div>
               <span className="font-semibold text-sm">Rolly Admin</span>
-              <p className="text-[10px] text-muted-foreground">គ្រប់គ្រង</p>
+              <p className="text-[10px] text-muted-foreground">{t('nav_dashboard')}</p>
             </div>
           </Link>
           
           <div className="flex items-center gap-2">
+            <LanguageSwitch />
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />

@@ -69,6 +69,8 @@ type ProductFormData = {
   variantColor: string;
   variantSize: string;
   useCustomPrice: boolean;
+  // Parent with variants: when true, no stock/price input (set on variants)
+  parentWillHaveVariants: boolean;
 };
 
 interface ProductsManagementProps {
@@ -144,6 +146,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
     variantColor: '',
     variantSize: '',
     useCustomPrice: false,
+    parentWillHaveVariants: false,
   });
 
   // Variant expansion state for product list
@@ -318,19 +321,21 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       return;
     }
 
-    const costPrice = parseFloat(formData.costPrice) || 0;
-    const price = parseFloat(formData.price) || 0;
-    const discountPercent = parseInt(formData.discountPercent) || 0;
-    const stockQuantity = parseInt(formData.stockQuantity) || 0;
+    const isParentWithVariants = !formData.isVariant && formData.parentWillHaveVariants;
+    const costPrice = isParentWithVariants ? 0 : (parseFloat(formData.costPrice) || 0);
+    const price = isParentWithVariants ? 0 : (parseFloat(formData.price) || 0);
+    const discountPercent = isParentWithVariants ? 0 : (parseInt(formData.discountPercent) || 0);
+    const stockQuantity = isParentWithVariants ? 0 : (parseInt(formData.stockQuantity) || 0);
 
-    if (costPrice >= price) {
-      toast.error('តម្លៃលក់ត្រូវតែធំជាងតម្លៃដើម!');
-      return;
-    }
-
-    if (price <= 0) {
-      toast.error('តម្លៃលក់ត្រូវតែធំជាង 0!');
-      return;
+    if (!isParentWithVariants) {
+      if (costPrice >= price) {
+        toast.error('តម្លៃលក់ត្រូវតែធំជាងតម្លៃដើម!');
+        return;
+      }
+      if (price <= 0) {
+        toast.error('តម្លៃលក់ត្រូវតែធំជាង 0!');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -453,6 +458,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
         variantColor: '',
         variantSize: '',
         useCustomPrice: false,
+        parentWillHaveVariants: false,
       });
     }
     setDialogOpen(true);
@@ -478,6 +484,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       variantColor: product.variantColor || '',
       variantSize: product.variantSize || '',
       useCustomPrice: product.isVariant || false,
+      parentWillHaveVariants: !!(product.hasVariants && !product.isVariant),
     });
     setDialogOpen(true);
 
@@ -537,6 +544,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
       variantColor: '',
       variantSize: '',
       useCustomPrice: false,
+      parentWillHaveVariants: false,
     });
     setDialogOpen(false);
     setEditingProduct(null);
@@ -719,6 +727,7 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                         variantColor: '',
                         variantSize: '',
                         useCustomPrice: false,
+                        parentWillHaveVariants: checked ? false : formData.parentWillHaveVariants,
                         ...(checked ? { name: '', costPrice: '', price: '', discountPercent: '', categoryId: '', description: '' } : {}),
                       });
                     }}
@@ -729,6 +738,22 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     នេះជាបំរែបំរួលនៃផលិតផលដែលមានស្រាប់
                   </Label>
                 </div>
+
+                {/* ── Parent "will have variants" (no stock/price on parent) ── */}
+                {!formData.isVariant && !editingProduct && (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                    <input
+                      type="checkbox"
+                      id="parentWillHaveVariants"
+                      checked={formData.parentWillHaveVariants}
+                      onChange={(e) => setFormData({ ...formData, parentWillHaveVariants: e.target.checked })}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="parentWillHaveVariants" className="flex items-center gap-2 cursor-pointer text-sm">
+                      ផលិតផលនេះនឹងមានបំរែបំរួល (ស្តុក និងតម្លៃបញ្ចូលនៅលើបំរែបំរួល)
+                    </Label>
+                  </div>
+                )}
 
                 {/* ── Variant Config: parent + attributes ── */}
                 {formData.isVariant && (
@@ -893,7 +918,8 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                     )}
                   </div>
 
-                  {/* Stock — always required */}
+                  {/* Stock — required unless parent will have variants */}
+                  {(!formData.isVariant && formData.parentWillHaveVariants) ? null : (
                   <div className="space-y-2">
                     <Label htmlFor="stock">បរិមាណស្តុក *</Label>
                     <Input
@@ -903,12 +929,13 @@ export default function ProductsManagement({ initialProducts, categories }: Prod
                       value={formData.stockQuantity}
                       onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
                       placeholder="បញ្ចូលបរិមាណ"
-                      required
+                      required={!formData.parentWillHaveVariants}
                     />
                   </div>
+                  )}
 
-                  {/* ── Price Section ── */}
-                  {formData.isVariant && formData.parentProductId && !formData.useCustomPrice ? (
+                  {/* ── Price Section (hidden when parent will have variants) ── */}
+                  {(!formData.isVariant && formData.parentWillHaveVariants) ? null : formData.isVariant && formData.parentProductId && !formData.useCustomPrice ? (
                     /* Variant using parent price — show summary + toggle */
                     <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-3">
                       <div className="flex items-center justify-between">

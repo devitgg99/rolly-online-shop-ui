@@ -16,21 +16,25 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { useLocale } from '@/context/LocaleContext';
 
-const navigation = [
-  { name: 'ទំព័រដើម', href: '/', icon: Home },
-  { name: 'ការបញ្ជាទិញ', href: '/my-orders', icon: ShoppingBag },
-  { name: 'បញ្ជីចង់បាន', href: '/wishlist', icon: Heart },
-  { name: 'គណនី', href: '/profile', icon: UserIcon },
+const navKeys = [
+  { key: 'nav_home', href: '/', icon: Home },
+  { key: 'nav_orders', href: '/my-orders', icon: ShoppingBag },
+  { key: 'nav_wishlist', href: '/wishlist', icon: Heart },
+  { key: 'nav_account', href: '/profile', icon: UserIcon },
 ];
 
 export default function UserNavbar() {
+  const { t } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
 
   const isActive = (href: string) => pathname === href;
+  const navigation = navKeys.map(({ key, href, icon }) => ({ name: t(key), href, icon }));
 
   return (
     <>
@@ -71,8 +75,9 @@ export default function UserNavbar() {
               })}
             </div>
 
-            {/* Desktop User Menu */}
+            {/* Desktop: Language + User Menu */}
             <div className="hidden md:flex items-center gap-3">
+              <LanguageSwitch />
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
@@ -105,14 +110,14 @@ export default function UserNavbar() {
                         onClick={() => setProfileOpen(false)}
                       >
                         <UserIcon className="w-4 h-4" />
-                        <span>គណនីរបស់ខ្ញុំ</span>
+                        <span>{t('my_account')}</span>
                       </Link>
                       <button
                         onClick={() => signOut({ callbackUrl: '/' })}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors text-sm mt-1"
                       >
                         <LogOut className="w-4 h-4" />
-                        <span>ចាកចេញ</span>
+                        <span>{t('logout')}</span>
                       </button>
                     </div>
                   </>
@@ -140,6 +145,9 @@ export default function UserNavbar() {
         {menuOpen && (
           <div className="md:hidden border-t border-border bg-card/95 backdrop-blur-md animate-fade-in">
             <div className="px-4 py-4 space-y-1">
+              <div className="flex justify-center mb-3">
+                <LanguageSwitch />
+              </div>
               {/* User Info */}
               <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-muted/50 mb-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
@@ -183,7 +191,7 @@ export default function UserNavbar() {
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors mt-2"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="text-sm font-medium">ចាកចេញ</span>
+                <span className="text-sm font-medium">{t('logout')}</span>
               </button>
             </div>
           </div>

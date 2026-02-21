@@ -152,7 +152,6 @@ export default function BrandsManagement({ brands: initialBrands }: BrandsManage
         console.error('Error fetching brand analytics:', error);
       }
     };
-
     fetchAnalytics();
   }, [session, brands]); // Refetch when brands change
 

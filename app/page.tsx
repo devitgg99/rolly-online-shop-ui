@@ -5,8 +5,11 @@ import { ArrowRight, Heart, LogIn, Sparkles, Star, UserPlus, Menu } from "lucide
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { LanguageSwitch } from "@/components/LanguageSwitch";
+import { useLocale } from "@/context/LocaleContext";
 
 export default function Home() {
+  const { t } = useLocale();
   const [currentProduct, setCurrentProduct] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -58,29 +61,30 @@ export default function Home() {
               {/* Centered Desktop Navigation Links */}
               <div className="hidden lg:flex items-center space-x-1 absolute left-1/2 -translate-x-1/2">
                 <a href="#about" className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-primary transition-all duration-200">
-                  អំពីយើង
+                  {t('nav_about')}
                 </a>
                 <a href="#products" className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-primary transition-all duration-200">
-                  ផលិតផល
+                  {t('nav_products')}
                 </a>
                 <a href="#benefits" className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-primary transition-all duration-200">
-                  អត្ថប្រយោជន៍
+                  {t('nav_benefits')}
                 </a>
                 <a href="#contact" className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-primary transition-all duration-200">
-                  ទំនាក់ទំនង
+                  {t('nav_contact')}
                 </a>
               </div>
 
-              {/* Desktop Auth Buttons */}
+              {/* Desktop: Language + Auth Buttons */}
               <div className="hidden sm:flex items-center gap-2">
+                <LanguageSwitch />
                 <Link href="/login">
                   <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2 rounded-full hover:bg-primary/10 transition-all duration-200">
-                    <span className="text-sm">ចូល</span>
+                    <span className="text-sm">{t('nav_login')}</span>
                   </Button>
                 </Link>
                 <Link href="/register">
                   <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 text-xs sm:text-sm px-3 sm:px-4">
-                    <span>ចុះឈ្មោះ</span>
+                    <span>{t('nav_register')}</span>
                   </Button>
                 </Link>
               </div>
@@ -116,8 +120,8 @@ export default function Home() {
                         <Sparkles className="w-5 h-5 text-primary-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-foreground">គណនី</p>
-                        <p className="text-xs text-foreground/60">ចូល ឬ ចុះឈ្មោះ</p>
+                        <p className="text-sm font-bold text-foreground">{t('nav_account')}</p>
+                        <p className="text-xs text-foreground/60">{t('nav_login')} / {t('nav_register')}</p>
                       </div>
                     </div>
                     <button
@@ -128,15 +132,18 @@ export default function Home() {
                     </button>
                   </div>
 
-                  {/* Auth Buttons */}
+                  {/* Language + Auth Buttons */}
                   <div className="space-y-3 pt-2">
+                    <div className="flex justify-center">
+                      <LanguageSwitch />
+                    </div>
                     <Link href="/login" className="block" onClick={() => setMobileMenuOpen(false)}>
                       <Button 
                         variant="outline" 
                         className="w-full justify-center rounded-2xl hover:bg-primary/10 h-12 font-semibold border-2 border-border hover:border-primary/40 transition-all duration-300"
                       >
                         <LogIn className="w-4 h-4 mr-2" />
-                        ចូល
+                        {t('nav_login')}
                       </Button>
                     </Link>
                     
@@ -146,7 +153,7 @@ export default function Home() {
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                         <UserPlus className="w-4 h-4 mr-2 relative z-10 group-hover:scale-110 transition-transform" />
-                        <span className="relative z-10">ចុះឈ្មោះ</span>
+                        <span className="relative z-10">{t('nav_register')}</span>
                         <Sparkles className="w-3.5 h-3.5 ml-2 relative z-10" />
                       </Button>
                     </Link>
