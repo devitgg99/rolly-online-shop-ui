@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { fetchProductDetail } from '@/services/products.service';
 import type { ProductDetail } from '@/types/product.types';
 import { Button } from '@/components/ui/button';
@@ -99,15 +100,24 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Package className="w-16 h-16 text-muted-foreground mx-auto" />
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center space-y-6 max-w-sm">
+          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto">
+            <Package className="w-10 h-10 text-muted-foreground" />
+          </div>
           <h2 className="text-2xl font-bold">រកមិនឃើញផលិតផល</h2>
-          <p className="text-muted-foreground">ផលិតផលដែលអ្នកកំពុងស្វែងរកមិនមានទេ។</p>
-          <Button onClick={() => router.push('/')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            ត្រឡប់ទៅទំព័រដើម
-          </Button>
+          <p className="text-muted-foreground">ផលិតផលដែលអ្នកកំពុងស្វែងរកមិនមានទេ ឬបានដកចេញហើយ។</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button asChild>
+              <Link href="/">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                ត្រឡប់ទៅទំព័រដើម
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/#products">រុករកផលិតផល</Link>
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -119,14 +129,14 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Back Button */}
-      <div className="container mx-auto px-4 py-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.back()}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+      <div className="container mx-auto px-4 py-4 flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="w-4 h-4 mr-1" />
           ត្រឡប់
+        </Button>
+        <span className="text-muted-foreground/60">|</span>
+        <Button variant="ghost" size="sm" asChild className="text-primary">
+          <Link href="/#products">រុករកផលិតផល</Link>
         </Button>
       </div>
 
@@ -311,15 +321,17 @@ export default function ProductDetailPage() {
                       size="icon"
                       onClick={() => handleQuantityChange('decrease')}
                       disabled={quantity === 1}
+                      aria-label="Decrease quantity"
                     >
                       <Minus className="w-4 h-4" />
                     </Button>
-                    <span className="w-12 text-center font-medium">{quantity}</span>
+                    <span className="w-12 text-center font-medium tabular-nums" aria-live="polite">{quantity}</span>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleQuantityChange('increase')}
                       disabled={quantity >= product.stockQuantity}
+                      aria-label="Increase quantity"
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -331,23 +343,14 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="border-t pt-6 space-y-3">
+            {/* Action Buttons - desktop */}
+            <div className="border-t pt-6 space-y-3 max-lg:hidden">
               {product.stockQuantity > 0 ? (
                 <>
-                  <Button 
-                    size="lg" 
-                    className="w-full" 
-                    onClick={handleBuyNow}
-                  >
+                  <Button size="lg" className="w-full" onClick={handleBuyNow}>
                     ទិញឥឡូវ
                   </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handleAddToCart}
-                  >
+                  <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
                     <ShoppingCart className="w-5 h-5 mr-2" />
                     ដាក់ក្នុងកន្រ្តក
                   </Button>
@@ -357,27 +360,28 @@ export default function ProductDetailPage() {
                   អស់ពីស្តុក
                 </Button>
               )}
-              
               <div className="flex gap-3">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={handleAddToWishlist}
-                >
+                <Button size="lg" variant="outline" className="flex-1" onClick={handleAddToWishlist}>
                   <Heart className="w-5 h-5 mr-2" />
                   បញ្ជីចង់បាន
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={handleShare}
-                >
+                <Button size="lg" variant="outline" className="flex-1" onClick={handleShare}>
                   <Share2 className="w-5 h-5 mr-2" />
                   ចែករំលែក
                 </Button>
               </div>
+            </div>
+
+            {/* Wishlist + Share only on mobile (main CTAs in sticky bar) */}
+            <div className="border-t pt-4 flex gap-3 lg:hidden">
+              <Button size="lg" variant="outline" className="flex-1" onClick={handleAddToWishlist}>
+                <Heart className="w-5 h-5 mr-2" />
+                បញ្ជីចង់បាន
+              </Button>
+              <Button size="lg" variant="outline" className="flex-1" onClick={handleShare}>
+                <Share2 className="w-5 h-5 mr-2" />
+                ចែករំលែក
+              </Button>
             </div>
 
             {/* Additional Info */}
@@ -390,6 +394,22 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Sticky bottom CTA on mobile */}
+      {product.stockQuantity > 0 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/95 backdrop-blur border-t border-border safe-area-pb">
+          <div className="flex gap-3 max-w-lg mx-auto">
+            <Button size="lg" variant="outline" className="flex-1 min-h-12" onClick={handleAddToCart}>
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              ដាក់ក្នុងកន្រ្តក
+            </Button>
+            <Button size="lg" className="flex-1 min-h-12" onClick={handleBuyNow}>
+              ទិញឥឡូវ
+            </Button>
+          </div>
+        </div>
+      )}
+      {product.stockQuantity > 0 && <div className="lg:hidden h-24" />}
     </div>
   );
 }

@@ -92,8 +92,16 @@ function LoginForm() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
-          <p className="text-sm text-destructive">{error}</p>
+        <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-2 animate-fade-in">
+          <p className="text-sm text-destructive flex-1">{error}</p>
+          <button
+            type="button"
+            onClick={() => setError('')}
+            className="shrink-0 p-1 rounded hover:bg-destructive/20 text-destructive transition-colors"
+            aria-label="Dismiss error"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -220,20 +228,12 @@ function LoginForm() {
         {/* Sign In Button */}
         <Button
           type="submit"
+          loading={isLoading}
           disabled={isLoading}
-          className="w-full h-11 sm:h-12 text-sm sm:text-base bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-semibold rounded-xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-11 sm:h-12 text-sm sm:text-base bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-semibold rounded-xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
         >
-          {isLoading ? (
-            <>
-              <div className="w-4 h-4 mr-2 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
-              កំពុងចូល...
-            </>
-          ) : (
-            <>
-              <LogIn className="w-4 h-4 mr-2" />
-              ចូល
-            </>
-          )}
+          <LogIn className="w-4 h-4 mr-2" />
+          {isLoading ? 'កំពុងចូល...' : 'ចូល'}
         </Button>
 
         {/* Divider */}

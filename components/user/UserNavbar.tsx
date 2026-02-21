@@ -61,10 +61,10 @@ export default function UserNavbar() {
                     key={item.name}
                     href={item.href}
                     className={`
-                      flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200
+                      flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 min-h-[44px]
                       ${active
                         ? 'bg-primary/10 text-primary font-medium'
-                        : 'text-foreground/70 hover:text-foreground hover:bg-muted'
+                        : 'text-foreground/70 hover:text-foreground hover:bg-muted/80 active:scale-[0.98]'
                       }
                     `}
                   >

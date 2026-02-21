@@ -1,12 +1,61 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Heart, LogIn, Sparkles, Star, UserPlus, Menu } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowRight, Heart, LogIn, Sparkles, Star, UserPlus, Menu, CheckCircle2, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { useLocale } from "@/context/LocaleContext";
+
+function NewsletterBlock() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus('loading');
+    await new Promise(r => setTimeout(r, 800));
+    setStatus('success');
+    setEmail('');
+  };
+
+  return (
+    <section id="contact" className="py-12 sm:py-16 lg:py-32 border-t border-border scroll-mt-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 sm:space-y-8">
+        <div className="space-y-3 sm:space-y-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground">ទទួលដំណឹងថ្មី</h2>
+          <p className="text-base sm:text-lg text-foreground/70 px-4">ទទួលបានគន្លឹះពិសេស ការចេញផលិតផលថ្មី និងការផ្តល់ជូនពិសេស</p>
+        </div>
+
+        {status === 'success' ? (
+          <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 rounded-lg py-4 px-6 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 animate-fade-in">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <span className="font-medium">អរគុណ! យើងនឹងផ្ញើរដំណឹងជូនអ្នក។</span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <Input
+              type="email"
+              placeholder="បញ្ចូលអ៊ីមែល"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 h-11 sm:h-12 text-base"
+              required
+              disabled={status === 'loading'}
+              aria-invalid={status === 'error'}
+            />
+            <Button type="submit" className="h-11 sm:h-12 text-sm sm:text-base min-w-[7rem]" loading={status === 'loading'}>
+              ជាវ
+            </Button>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   const { t } = useLocale();
@@ -246,12 +295,14 @@ export default function Home() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4 justify-center lg:justify-start">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all w-full sm:w-auto">
-                  រុករកផលិតផល
-                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                <Button size="lg" asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all w-full sm:w-auto">
+                  <Link href="#products">
+                    រុករកផលិតផល
+                    <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                  </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-primary/30 hover:border-primary/50 w-full sm:w-auto">
-                  ស្វែងយល់បន្ថែម
+                <Button size="lg" variant="outline" asChild className="border-primary/30 hover:border-primary/50 w-full sm:w-auto">
+                  <Link href="#benefits">ស្វែងយល់បន្ថែម</Link>
                 </Button>
               </div>
 
@@ -438,31 +489,17 @@ export default function Home() {
           <p className="text-base sm:text-lg opacity-90 text-balance max-w-2xl mx-auto px-4">
             ចូលរួមជាមួយអតិថិជនរាប់ពាន់នាក់ដែលបានរកឃើញស្បែកដ៏ស្រស់ស្អាតជាមួយ Rolly។ ចាប់ផ្តើមដំណើរថែទាំស្បែករបស់អ្នកថ្ងៃនេះ។
           </p>
-          <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all">
-            ទិញឥឡូវ
-            <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+          <Button size="lg" asChild className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-2xl hover:shadow-2xl hover:scale-105 transition-all">
+            <Link href="#products">
+              ទិញឥឡូវ
+              <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+            </Link>
           </Button>
         </div>
       </section>
 
       {/* Newsletter Section */}
-      <section id="contact" className="py-12 sm:py-16 lg:py-32 border-t border-border scroll-mt-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 sm:space-y-8">
-          <div className="space-y-3 sm:space-y-4">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">ទទួលដំណឹងថ្មី</h2>
-            <p className="text-base sm:text-lg text-foreground/70 px-4">ទទួលបានគន្លឹះពិសេស ការចេញផលិតផលថ្មី និងការផ្តល់ជូនពិសេស</p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="បញ្ចូលអ៊ីមែល"
-              className="flex-1 px-4 py-2.5 sm:py-3 rounded-lg border border-border bg-background text-foreground text-sm sm:text-base placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <Button className="bg-primary hover:bg-primary/90 text-sm sm:text-base">ជាវ</Button>
-          </div>
-        </div>
-      </section>
+      <NewsletterBlock />
 
       {/* Footer */}
       <footer className="bg-muted/30 border-t border-border py-8 sm:py-12">
@@ -481,27 +518,27 @@ export default function Home() {
             <div className="space-y-2 sm:space-y-3">
               <h4 className="font-semibold text-sm sm:text-base text-foreground">ហាង</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">ផលិតផលទាំងអស់</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">មកថ្មី</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">លក់ដាច់បំផុត</a></li>
+                <li><a href="#products" className="text-foreground/60 hover:text-primary transition-colors">ផលិតផលទាំងអស់</a></li>
+                <li><a href="#products" className="text-foreground/60 hover:text-primary transition-colors">មកថ្មី</a></li>
+                <li><a href="#products" className="text-foreground/60 hover:text-primary transition-colors">លក់ដាច់បំផុត</a></li>
               </ul>
             </div>
-            
+
             <div className="space-y-2 sm:space-y-3">
               <h4 className="font-semibold text-sm sm:text-base text-foreground">ក្រុមហ៊ុន</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">អំពីយើង</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">ប្លក់</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">ទំនាក់ទំនង</a></li>
+                <li><a href="#about" className="text-foreground/60 hover:text-primary transition-colors">អំពីយើង</a></li>
+                <li><a href="#products" className="text-foreground/60 hover:text-primary transition-colors">ប្លក់</a></li>
+                <li><a href="#contact" className="text-foreground/60 hover:text-primary transition-colors">ទំនាក់ទំនង</a></li>
               </ul>
             </div>
-            
+
             <div className="space-y-2 sm:space-y-3">
               <h4 className="font-semibold text-sm sm:text-base text-foreground">ជំនួយ</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">សំណួរញឹកញាប់</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">គោលការណ៍ឯកជនភាព</a></li>
-                <li><a href="#" className="text-foreground/60 hover:text-primary transition">លក្ខខណ្ឌប្រើប្រាស់</a></li>
+                <li><a href="#contact" className="text-foreground/60 hover:text-primary transition-colors">សំណួរញឹកញាប់</a></li>
+                <li><a href="#contact" className="text-foreground/60 hover:text-primary transition-colors">គោលការណ៍ឯកជនភាព</a></li>
+                <li><a href="#contact" className="text-foreground/60 hover:text-primary transition-colors">លក្ខខណ្ឌប្រើប្រាស់</a></li>
               </ul>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { ShoppingBag, Package, Truck, CheckCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -64,13 +65,16 @@ export default function MyOrdersPage() {
         {/* Orders List */}
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="text-center py-16">
-            <ShoppingBag className="w-16 h-16 text-foreground/20 mx-auto mb-4" />
+            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <ShoppingBag className="w-10 h-10 text-muted-foreground" />
+            </div>
             <h3 className="text-xl font-semibold mb-2">មិនទាន់មានការបញ្ជាទិញ</h3>
-            <p className="text-foreground/60 mb-6">
-              ចាប់ផ្តើមទិញ ហើយការបញ្ជាទិញរបស់អ្នកនឹងបង្ហាញនៅទីនេះ
+            <p className="text-foreground/60 mb-2 max-w-sm mx-auto">
+              ចាប់ផ្តើមទិញ ហើយការបញ្ជាទិញរបស់អ្នកនឹងបង្ហាញនៅទីនេះ។
             </p>
+            <p className="text-sm text-muted-foreground mb-6">តាមដានស្ថានភាពគ្រប់ពេល។</p>
             <Button asChild>
-              <a href="/">រុករកផលិតផល</a>
+              <Link href="/#products">រុករកផលិតផល</Link>
             </Button>
           </div>
         </div>

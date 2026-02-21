@@ -4,7 +4,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-background">
       <UserNavbar />
-      <main>{children}</main>
+      <main className="px-4 sm:px-6 lg:px-8 py-6 min-h-[60vh]">{children}</main>
     </div>
   );
 }

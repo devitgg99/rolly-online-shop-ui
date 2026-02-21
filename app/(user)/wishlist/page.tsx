@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Heart, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -55,14 +56,15 @@ export default function WishlistPage() {
               <Heart className="w-10 h-10 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">បញ្ជីចង់បានរបស់អ្នកទទេ</h3>
-            <p className="text-foreground/60 mb-6 max-w-md mx-auto">
-              រុករកផលិតផល ហើយចុចបេះដូងដើម្បីរក្សាទុក
+            <p className="text-foreground/60 mb-2 max-w-md mx-auto">
+              រុករកផលិតផល ហើយចុចបេះដូងដើម្បីរក្សាទុកចំណូលចិត្ត។
             </p>
+            <p className="text-sm text-muted-foreground mb-6">ផលិតផលដែលអ្នកចង់បាននឹងបង្ហាញនៅទីនេះ។</p>
             <Button asChild>
-              <a href="/">
+              <Link href="/#products">
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 ចាប់ផ្តើមទិញ
-              </a>
+              </Link>
             </Button>
           </div>
         </div>
